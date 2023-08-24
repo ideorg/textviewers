@@ -6,12 +6,10 @@
 
 using namespace vl;
 
-int Wrap::wrapCount() {
-    return 0;
-}
-
-std::vector<int> Wrap::wrapEnds() {
-    return std::vector<int>();
+std::vector<int> Wrap::wrapEnds(std::string_view lineVIew) {
+    std::vector<int> vec;
+    vec.push_back((int)lineVIew.size());
+    return vec;
 }
 
 void Wrap::setScreenLineLen(int screenLineLen) {

@@ -6,6 +6,7 @@
 #define VIEWER_WRAP_H
 
 #include <vector>
+#include <string_view>
 
 namespace vl {
 
@@ -14,8 +15,7 @@ class Wrap {
 public:
     void setScreenLineLen(int screenLineLen);
     int screenLineLen();
-    int wrapCount();
-    std::vector<int> wrapEnds();
+    std::vector<int> wrapEnds(std::string_view lineVIew);
 };
 }
 

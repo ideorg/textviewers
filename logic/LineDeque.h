@@ -37,6 +37,8 @@ public:
     void clear() override;
     int size() override;
     int64_t backWrapOffset(int i) override;
+    std::string_view beforeFrontLine() override;
+    std::string_view afterBackLine() override;
 };
 }
 

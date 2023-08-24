@@ -6,6 +6,7 @@
 #define VIEWER_IDEQUE_H
 
 #include <vector>
+#include <string_view>
 
 namespace vl {
 
@@ -24,6 +25,8 @@ public:
     virtual void clear() = 0;
     virtual int size() = 0;
     virtual int64_t backWrapOffset(int i) = 0;
+    virtual std::string_view beforeFrontLine() = 0;
+    virtual std::string_view afterBackLine() = 0;
 };
 }
 

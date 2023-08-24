@@ -77,3 +77,29 @@ int64_t LineDeque::backWrapOffset(int i) {
     return (int) deq.back().wrapOffsets[i];
 }
 
+std::string_view LineDeque::beforeFrontLine() {
+    int index;
+    if (deq.empty())
+        index = m_startLine;
+    else
+        index = deq.back().index - 1;
+    auto opt = m_lineAccess->line(index);
+    if (opt)
+        return *opt;
+    else
+        return "";
+}
+
+std::string_view LineDeque::afterBackLine() {
+    int index;
+    if (deq.empty())
+        index = m_startLine;
+    else
+        index = deq.back().index + 1;
+    auto opt = m_lineAccess->line(index);
+    if (opt)
+        return *opt;
+    else
+        return "";
+}
+
