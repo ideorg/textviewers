@@ -26,7 +26,7 @@ protected:
     std::unique_ptr<IDeque> viewDeque;
     int countWrapBefore = 0;
     int countWrapAfter = 0;
-    bool m_wrapMode = 0;
+    int m_wrapMode = 0;
 protected:
     int m_screenLineCount = 0;
     int64_t m_start;
