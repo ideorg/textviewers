@@ -4,6 +4,8 @@
 
 #include "Wrap.h"
 
+using namespace vl;
+
 int Wrap::wrapCount() {
     return 0;
 }

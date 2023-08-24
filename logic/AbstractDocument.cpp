@@ -7,6 +7,7 @@
 #include "UTF/UTF.hpp"
 
 using namespace std;
+using namespace vl;
 
 bool AbstractDocument::isNewlineChar(const char c) {
     return c == '\r' || c == '\n';

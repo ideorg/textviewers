@@ -7,8 +7,9 @@ using namespace std;
 
 int main() {
     string content = makeString("../main.cpp");
-    LineDocument ldoc(content);
-    LineView lv(&ldoc);
+    vl::LineDocument ldoc(content);
+    vl::LineView lv(&ldoc);
     lv.fillDeque();
+    lv.recalcLines();
     return 0;
 }

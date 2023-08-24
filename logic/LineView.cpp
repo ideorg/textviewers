@@ -8,6 +8,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace vl;
 
 void LineView::gotoProportional(double relativePos) {
     Wrap wrap;
@@ -19,9 +20,6 @@ void LineView::gotoProportional(double relativePos) {
 }
 
 LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
-    auto str = lineAccess->line(5);
-    if (str)
-        cout << *str << endl;
 }
 
 void LineView::backNLines(int position, int backCount) {

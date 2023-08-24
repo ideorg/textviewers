@@ -8,7 +8,9 @@
 #include "AbstractView.h"
 #include "ILineAccess.h"
 
-class LineView: public AbstractView {
+namespace vl {
+
+class LineView : public AbstractView {
     ILineAccess *m_lineAccess;
     void backNLines(int position, int backCount);
     int m_firstLine = 0;
@@ -16,6 +18,6 @@ public:
     LineView(ILineAccess *lineAccess);
     void gotoProportional(double relativePos) override;
 };
-
+}
 
 #endif //VIEWER_LINEVIEW_H

@@ -5,8 +5,9 @@
 #ifndef VIEWER_ABSTRACTDOCUMENT_H
 #define VIEWER_ABSTRACTDOCUMENT_H
 
-
 #include <cstdint>
+
+namespace vl {
 
 class AbstractDocument {
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
@@ -23,7 +24,9 @@ protected:
     int64_t searchEndOfLine(int64_t startOffset);
     int64_t skipLineBreakEx(int64_t eolPos, int64_t len);
     int64_t firstOfCRLF(int64_t position);
-    enum EndLine {elMaybeInside, elTrueEol};//todo really needed?
+    enum EndLine {
+        elMaybeInside, elTrueEol
+    };//todo really needed?
     int64_t gotoBeginLine(int64_t offset, EndLine maybeInside);
     bool lineIsEmpty(int64_t offset);
     int64_t gotoBeginNonEmptyLine(int64_t start, EndLine maybeInside);
@@ -31,6 +34,6 @@ protected:
 public:
     AbstractDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
 };
-
+}
 
 #endif //VIEWER_ABSTRACTDOCUMENT_H

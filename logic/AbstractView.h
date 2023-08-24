@@ -11,6 +11,8 @@
 #include "IDeque.h"
 #include "Wrap.h"
 
+namespace vl {
+
 struct IndexView {
     int index = 0;
     int wrapIndex = 0;
@@ -35,6 +37,6 @@ public:
     void fillDeque();
     void recalcLines();
 };
-
+}
 
 #endif //VIEWER_ABSTRACTVIEW_H

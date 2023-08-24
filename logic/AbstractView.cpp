@@ -4,6 +4,8 @@
 
 #include "AbstractView.h"
 
+using namespace vl;
+
 int AbstractView::scrollDown() {
     if (viewDeque->empty())
         return 0;

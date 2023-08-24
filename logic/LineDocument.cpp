@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 using namespace std;
+using namespace vl;
 
 optional<string_view> LineDocument::line(int n) {
     if (n < 0 || n + 1 >= wholeIndex.size())
