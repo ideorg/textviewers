@@ -20,7 +20,7 @@ int AbstractView::scrollDown() {
             countWrapAfter = viewDeque->backWrapCount();
         }
         countWrapBefore++;
-        if (countWrapBefore == viewDeque->fronWrapCount()) {
+        if (countWrapBefore == viewDeque->frontWrapCount()) {
             countWrapBefore = 0;
             viewDeque->popFront();
         }
@@ -43,7 +43,7 @@ int AbstractView::scrollUp() {
         countWrapBefore--;
         if (countWrapBefore <= 0) {
             viewDeque->pushFront();
-                countWrapAfter = viewDeque->fronWrapCount();
+                countWrapAfter = viewDeque->frontWrapCount();
         }
         countWrapAfter++;
         if (countWrapAfter == viewDeque->backWrapCount()) {
@@ -71,7 +71,7 @@ void AbstractView::fillDeque() {
         int row = 0;
         while (row < m_screenLineCount) {
             viewDeque->pushBack();
-            row += viewDeque->fronWrapCount();
+            row += viewDeque->frontWrapCount();
         }
     }
     else {

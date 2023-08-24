@@ -3,6 +3,7 @@
 //
 
 #include "LineView.h"
+#include "LineDeque.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -20,6 +21,7 @@ void LineView::gotoProportional(double relativePos) {
 }
 
 LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
+    viewDeque = make_unique<LineDeque>(m_lineAccess);
 }
 
 void LineView::backNLines(int position, int backCount) {

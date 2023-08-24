@@ -13,20 +13,15 @@ public:
     virtual bool frontAtStart() = 0;
     virtual void pushFront() = 0;
     virtual void popFront() = 0;
-    virtual int fronWrapCount() = 0;
+    virtual int frontWrapCount() = 0;
     virtual bool backAtEnd() = 0;
     virtual void pushBack() = 0;
     virtual void popBack() = 0;
     virtual int backWrapCount() = 0;
     virtual void setFront(int64_t start) = 0;
-
-    void clear() {}
-
-    int size() { return 0; }
-
-    int64_t backWrapOffset(int i) {
-        return 0;
-    }
+    virtual void clear() = 0;
+    virtual int size() = 0;
+    virtual int64_t backWrapOffset(int i) = 0;
 };
 }
 

@@ -13,6 +13,8 @@ set(LOGIC_SOURCES logic/AbstractDocument.cpp
         logic/LineView.cpp
         logic/Wrap.cpp
         logic/IByteAccess.h
+        logic/LineDeque.h
+        logic/LineDeque.cpp
 )
 
 add_executable(${PROJECT_NAME} ${LOGIC_SOURCES}

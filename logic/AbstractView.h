@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <memory>
 #include "IDeque.h"
 #include "Wrap.h"
 
@@ -21,8 +22,8 @@ struct IndexView {
 };
 
 class AbstractView {
-private:
-    IDeque *viewDeque;
+protected:
+    std::unique_ptr<IDeque> viewDeque;
     int countWrapBefore = 0;
     int countWrapAfter = 0;
     bool m_wrapMode = 0;
