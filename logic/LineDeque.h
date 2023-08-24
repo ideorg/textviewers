@@ -26,11 +26,11 @@ public:
     explicit LineDeque(ILineAccess* lineAccess);
     bool empty() override;
     bool frontAtStart() override;
-    void pushFront() override;
+    void pushFront(const std::vector<int> &wrapEnds) override;
     void popFront() override;
     int frontWrapCount() override;
     bool backAtEnd() override;
-    void pushBack() override;
+    void pushBack(const std::vector<int> &wrapEnds) override;
     void popBack() override;
     int backWrapCount() override;
     void setFront(int64_t start) override;

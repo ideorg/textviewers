@@ -19,7 +19,7 @@ bool LineDeque::frontAtStart() {
     return deq[0].index == 0;
 }
 
-void LineDeque::pushFront() {
+void LineDeque::pushFront(const std::vector<int> &wrapEnds) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
@@ -43,7 +43,7 @@ bool LineDeque::backAtEnd() {
     return lastIndex == m_lineAccess->lineCount();
 }
 
-void LineDeque::pushBack() {
+void LineDeque::pushBack(const std::vector<int> &wrapEnds) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;

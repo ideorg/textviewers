@@ -5,11 +5,17 @@
 #ifndef VIEWER_WRAP_H
 #define VIEWER_WRAP_H
 
+#include <vector>
+
 namespace vl {
 
 class Wrap {
+    int m_screenLineLen = 0;
 public:
+    void setScreenLineLen(int screenLineLen);
+    int screenLineLen();
     int wrapCount();
+    std::vector<int> wrapEnds();
 };
 }
 

@@ -5,17 +5,19 @@
 #ifndef VIEWER_IDEQUE_H
 #define VIEWER_IDEQUE_H
 
+#include <vector>
+
 namespace vl {
 
 class IDeque {
 public:
     virtual bool empty() = 0;
     virtual bool frontAtStart() = 0;
-    virtual void pushFront() = 0;
+    virtual void pushFront(const std::vector<int> &wrapEnds) = 0;
     virtual void popFront() = 0;
     virtual int frontWrapCount() = 0;
     virtual bool backAtEnd() = 0;
-    virtual void pushBack() = 0;
+    virtual void pushBack(const std::vector<int> &wrapEnds) = 0;
     virtual void popBack() = 0;
     virtual int backWrapCount() = 0;
     virtual void setFront(int64_t start) = 0;

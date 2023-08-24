@@ -28,10 +28,13 @@ protected:
     int countWrapAfter = 0;
     int m_wrapMode = 0;
 protected:
-    int m_screenLineCount = 0;
     int64_t m_start;
     std::vector<IndexView> indexView;
+    int m_screenLineCount;
+    Wrap wrap;
 public:
+    void setScreenLineCount(int screenLineCount);
+    void setScreenLineLen(int screenLineLen);
     int size();
     virtual std::string at(int n) = 0;
     std::string operator[](int n);

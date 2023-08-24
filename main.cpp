@@ -9,6 +9,8 @@ int main() {
     string content = makeString("../main.cpp");
     vl::LineDocument ldoc(content);
     vl::LineView lv(&ldoc);
+    lv.setScreenLineLen(40);
+    lv.setScreenLineCount(10);
     lv.fillDeque();
     lv.recalcLines();
     for (int i=0; i<lv.size(); i++)
