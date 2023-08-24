@@ -2,8 +2,10 @@
 // Created by andrzej on 8/23/23.
 //
 
+#include <string>
 #include "AbstractView.h"
 
+using namespace std;
 using namespace vl;
 
 int AbstractView::scrollDown() {
@@ -64,7 +66,7 @@ bool AbstractView::wrapMode() {
 
 void AbstractView::fillDeque() {
     viewDeque->clear();
-    viewDeque->setFront(start);
+    viewDeque->setFront(m_start);
     if (wrapMode()) {
         int row = 0;
         while (row < m_screenLineCount) {
@@ -92,4 +94,12 @@ void AbstractView::recalcLines() {
             indexView.push_back(iv);
         }
     }
+}
+
+int AbstractView::size() {
+    return (int)indexView.size();
+}
+
+std::string AbstractView::operator[](int n) {
+    return at(n);
 }

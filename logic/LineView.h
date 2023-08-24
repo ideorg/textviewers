@@ -13,10 +13,10 @@ namespace vl {
 class LineView : public AbstractView {
     ILineAccess *m_lineAccess;
     void backNLines(int position, int backCount);
-    int m_firstLine = 0;
 public:
     LineView(ILineAccess *lineAccess);
     void gotoProportional(double relativePos) override;
+    std::string at(int n) override;
 };
 }
 

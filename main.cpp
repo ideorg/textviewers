@@ -11,5 +11,7 @@ int main() {
     vl::LineView lv(&ldoc);
     lv.fillDeque();
     lv.recalcLines();
+    for (int i=0; i<lv.size(); i++)
+        cout << lv[i] << endl;
     return 0;
 }

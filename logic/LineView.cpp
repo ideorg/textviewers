@@ -23,5 +23,13 @@ LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
 }
 
 void LineView::backNLines(int position, int backCount) {
-    m_firstLine = max(position-backCount,0);
+    m_start = max(position-backCount,0);
+}
+
+string LineView::at(int n) {
+    auto iv = indexView[n];
+    auto lineView = m_lineAccess->line(iv.index);
+    if (lineView)
+        return string(*lineView);
+    else return "";
 }

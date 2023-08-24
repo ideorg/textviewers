@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 #include "IDeque.h"
 #include "Wrap.h"
 
@@ -27,9 +28,12 @@ private:
     bool m_wrapMode = 0;
 protected:
     int m_screenLineCount = 0;
-    int64_t start;
+    int64_t m_start;
     std::vector<IndexView> indexView;
 public:
+    int size();
+    virtual std::string at(int n) = 0;
+    std::string operator[](int n);
     int scrollDown();
     int scrollUp();
     bool wrapMode();
