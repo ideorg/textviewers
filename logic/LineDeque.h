@@ -15,7 +15,7 @@ namespace vl {
 
 struct LDequeElem {
     int index;
-    std::vector<int> wrapOffsets;
+    std::vector<int> wrapEnds;
 };
 
 class LineDeque : public IDeque {

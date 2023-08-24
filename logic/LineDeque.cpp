@@ -34,7 +34,7 @@ void LineDeque::popFront() {
 }
 
 int LineDeque::frontWrapCount() {
-    return (int) deq[0].wrapOffsets.size();
+    return (int) deq[0].wrapEnds.size();
 }
 
 bool LineDeque::backAtEnd() {
@@ -49,6 +49,7 @@ void LineDeque::pushBack(const std::vector<int> &wrapEnds) {
         elem.index = m_startLine;
     else
         elem.index = deq.back().index + 1;
+    elem.wrapEnds = wrapEnds;
     deq.push_back(elem);
 }
 
@@ -58,7 +59,7 @@ void LineDeque::popBack() {
 }
 
 int LineDeque::backWrapCount() {
-    return (int) deq.back().wrapOffsets.size();
+    return (int) deq.back().wrapEnds.size();
 }
 
 void LineDeque::setFront(int64_t start) {
@@ -74,7 +75,7 @@ int LineDeque::size() {
 }
 
 int64_t LineDeque::backWrapOffset(int i) {
-    return (int) deq.back().wrapOffsets[i];
+    return (int) deq.back().wrapEnds[i];
 }
 
 std::string_view LineDeque::beforeFrontLine() {
