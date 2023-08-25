@@ -2,6 +2,7 @@
 #include "logic/LineView.h"
 #include "logic/LineDocument.h"
 #include "misc/util.h"
+#include "UTF/UTF.hpp"
 
 using namespace std;
 
@@ -13,7 +14,8 @@ int main() {
     lv.setScreenLineCount(10);
     lv.fillDeque();
     lv.recalcLines();
+    UTF utf;
     for (int i=0; i<lv.size(); i++)
-        wcout << lv[i] << endl;
+        cout << utf.u32to8(lv[i]) << endl;
     return 0;
 }

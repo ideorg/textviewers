@@ -4,7 +4,9 @@
 
 #include "DString.h"
 
-dstring DString::substr(const std::string_view sv, int start, int len) {
+using namespace std;
+
+u32string DString::substr(const std::string_view sv, int start, int len) {
     UTF utf;
     return utf.u8to32substr(sv,start,len);
 }

@@ -37,8 +37,8 @@ public:
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
     int size();
-    virtual std::wstring at(int n) = 0;
-    std::wstring operator[](int n);
+    virtual std::u32string at(int n) = 0;
+    std::u32string operator[](int n);
     int scrollDown();
     int scrollUp();
     bool wrapMode();

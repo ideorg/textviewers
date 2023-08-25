@@ -149,8 +149,8 @@ vector<string> removeLFExpect(const vector<string> &lines) {
     return v;
 }
 
-vector<wstring> toUTF16(const vector<string> &lines) {
-    vector<wstring> v;
+vector<u16string> toUTF16(const vector<string> &lines) {
+    vector<u16string> v;
     UTF utf;
     for (auto &line: lines) {
         v.push_back(utf.u8to16(line));
@@ -253,7 +253,7 @@ string makeContent(string filename, int nEols, bool rn) {
     return content;
 }
 
-vector<wstring> makeExpect(string filename) {
+vector<u16string> makeExpect(string filename) {
     auto v = toUTF16(removeLFExpect(unslashExpect(clear(readLines(filename)))));
     if (v.empty())
         throw runtime_error("empty test expect");

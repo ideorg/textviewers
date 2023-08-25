@@ -100,7 +100,7 @@ int AbstractView::size() {
     return (int)indexView.size();
 }
 
-std::wstring AbstractView::operator[](int n) {
+std::u32string AbstractView::operator[](int n) {
     return at(n);
 }
 

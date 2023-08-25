@@ -28,13 +28,13 @@ void LineView::backNLines(int position, int backCount) {
     m_start = max(position-backCount,0);
 }
 
-wstring LineView::at(int n) {
+u32string LineView::at(int n) {
     DString dstr;
     auto iv = indexView[n];
     auto lineView = m_lineAccess->line(iv.index);
     if (lineView) {
         UTF utf;
-        return utf.u32to16(DString::substr(*lineView, 0, m_screenLineLen));
+        return DString::substr(*lineView, 0, m_screenLineLen);
     }
-    else return L"";
+    else return U"";
 }

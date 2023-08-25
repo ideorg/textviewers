@@ -16,7 +16,7 @@ class LineView : public AbstractView {
 public:
     LineView(ILineAccess *lineAccess);
     void gotoProportional(double relativePos) override;
-    std::wstring at(int n) override;
+    std::u32string at(int n) override;
 };
 }
 

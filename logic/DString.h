@@ -10,7 +10,7 @@
 
 class DString {
 public:
-    static dstring substr(const std::string_view sv, int start, int len);
+    static std::u32string substr(std::string_view sv, int start, int len);
 };
 
 
