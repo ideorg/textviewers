@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include "DString.h"
 
 using namespace std;
 using namespace vl;
@@ -27,10 +28,13 @@ void LineView::backNLines(int position, int backCount) {
     m_start = max(position-backCount,0);
 }
 
-string LineView::at(int n) {
+wstring LineView::at(int n) {
+    DString dstr;
     auto iv = indexView[n];
     auto lineView = m_lineAccess->line(iv.index);
-    if (lineView)
-        return string(*lineView);
-    else return "";
+    if (lineView) {
+        UTF utf;
+        return utf.u32to16(DString::substr(*lineView, 0, m_screenLineLen));
+    }
+    else return L"";
 }

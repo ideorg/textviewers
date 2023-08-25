@@ -31,13 +31,14 @@ protected:
     int64_t m_start;
     std::vector<IndexView> indexView;
     int m_screenLineCount;
+    int m_screenLineLen;
     Wrap wrap;
 public:
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
     int size();
-    virtual std::string at(int n) = 0;
-    std::string operator[](int n);
+    virtual std::wstring at(int n) = 0;
+    std::wstring operator[](int n);
     int scrollDown();
     int scrollUp();
     bool wrapMode();

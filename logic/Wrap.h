@@ -11,11 +11,8 @@
 namespace vl {
 
 class Wrap {
-    int m_screenLineLen = 0;
 public:
-    void setScreenLineLen(int screenLineLen);
-    int screenLineLen();
-    std::vector<int> wrapEnds(std::string_view lineVIew);
+    static std::vector<int> wrapEnds(std::string_view lineVIew);
 };
 }
 

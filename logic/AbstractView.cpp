@@ -100,7 +100,7 @@ int AbstractView::size() {
     return (int)indexView.size();
 }
 
-std::string AbstractView::operator[](int n) {
+std::wstring AbstractView::operator[](int n) {
     return at(n);
 }
 
@@ -109,5 +109,5 @@ void AbstractView::setScreenLineCount(int screenLineCount) {
 }
 
 void AbstractView::setScreenLineLen(int screenLineLen) {
-    wrap.setScreenLineLen(screenLineLen);
+    m_screenLineLen = screenLineLen;
 }

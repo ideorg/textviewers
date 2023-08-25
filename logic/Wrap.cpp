@@ -11,11 +11,3 @@ std::vector<int> Wrap::wrapEnds(std::string_view lineVIew) {
     vec.push_back((int)lineVIew.size());
     return vec;
 }
-
-void Wrap::setScreenLineLen(int screenLineLen) {
-    m_screenLineLen = screenLineLen;
-}
-
-int Wrap::screenLineLen() {
-    return m_screenLineLen;
-}

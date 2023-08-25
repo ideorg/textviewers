@@ -15,6 +15,8 @@ set(LOGIC_SOURCES logic/AbstractDocument.cpp
         logic/IByteAccess.h
         logic/LineDeque.h
         logic/LineDeque.cpp
+        logic/DString.h
+        logic/DString.cpp
 )
 
 add_executable(${PROJECT_NAME} ${LOGIC_SOURCES}
