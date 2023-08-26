@@ -12,7 +12,7 @@
 
 namespace vl {
 
-class LineIndexedDocument : public ByteDocument, public ILineAccess {
+class LineIndexedDocument : public virtual ByteDocument, public virtual ILineAccess {
     std::vector<std::string> stringList;
     std::string m_content;
     std::vector<int> wholeIndex;

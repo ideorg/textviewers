@@ -10,7 +10,7 @@
 
 namespace vl {
 
-class ByteDocument: public IByteAccess {
+class ByteDocument: public virtual IByteAccess {
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
     bool isFirstChunkStart(int64_t offset);
     int64_t skipLineBreak(int64_t pos);

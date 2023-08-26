@@ -13,9 +13,10 @@
 #include <QTimer>
 
 namespace wid {
+enum class LogicKind {BytePos, LineIndex};
 class PaintArea : public QWidget {
 Q_OBJECT
-    enum class LogicKind {BytePos, LineIndex};
+    LogicKind logicKind;
     qreal fontWidth, fontHeight;
     QTimer timer;
     bool drawCaret = true;
@@ -46,8 +47,8 @@ public:
     void trySetCaret(QPoint point);
     void setHorizontal(int beginX);
     void setVertical(int64_t position);
-    vl::ByteView *tv;
-    vl::Interface *doc;
+    vl::ByteView *tv = nullptr;
+    vl::Interface *doc = nullptr;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:

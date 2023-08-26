@@ -11,7 +11,7 @@
 
 namespace vl {
 
-class ILineAccess : public Interface {
+class ILineAccess : public virtual Interface {
 public:
     virtual std::optional<std::string_view> line(int n) = 0;
     virtual int lineCount() = 0;

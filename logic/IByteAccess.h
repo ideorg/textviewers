@@ -17,7 +17,7 @@ struct LinePoints {
     int64_t fullLen = 0;
 };
 
-class IByteAccess : public Interface {
+class IByteAccess : public virtual Interface {
 public:
     virtual int64_t byteCount() = 0;
     virtual std::optional<LinePoints> firstLine() = 0;
