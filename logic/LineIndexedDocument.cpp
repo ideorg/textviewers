@@ -13,9 +13,13 @@ using namespace vl;
 optional<string_view> LineIndexedDocument::line(int n) {
     if (n < 0 || n + 1 >= wholeIndex.size())
         return nullopt;;
-    int offset = wholeIndex[n];
-    int end = wholeIndex[n+1];
-    int eol = firstOfCRLF(end-1);
+    int64_t offset = wholeIndex[n];
+    int64_t end = wholeIndex[n+1];
+    int64_t eol;
+    if (isNewlineChar(m_addr[end-1]))
+        eol = firstOfCRLF(end-1);
+    else
+        eol = end;
     string_view view(m_content.c_str() + offset, eol-offset);
     return make_optional(view);
 }

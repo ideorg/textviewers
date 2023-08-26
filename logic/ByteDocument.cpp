@@ -80,12 +80,12 @@ int64_t ByteDocument::skipLineBreak(int64_t pos) {
 }
 
 int64_t ByteDocument::firstOfCRLF(int64_t position) {
-    assert(position < m_fileSize && isNewlineChar(m_addr[position]));
+    assert(position>=m_BOMsize && position < m_fileSize && isNewlineChar(m_addr[position]));
     char c = m_addr[position];
     if (c == '\r')
         return position;
     else {
-        if (position <= m_BOMsize)
+        if (position == m_BOMsize)
             return position;
         else {
             char b = m_addr[position - 1];
