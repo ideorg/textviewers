@@ -235,3 +235,7 @@ bool ByteDocument::fileIsEmpty() {
     assert(m_fileSize >= m_BOMsize);
     return m_fileSize == m_BOMsize;
 }
+
+int64_t ByteDocument::byteCount() {
+    return m_fileSize;
+}

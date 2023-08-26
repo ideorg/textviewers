@@ -7,6 +7,7 @@
 
 #include "logic/LineView.h"
 #include "logic/LineIndexedDocument.h"
+#include "logic/ByteView.h"
 #include <QWidget>
 #include <QPaintEvent>
 #include <QTimer>
@@ -44,8 +45,8 @@ public:
     void trySetCaret(QPoint point);
     void setHorizontal(int beginX);
     void setVertical(int64_t position);
-    vl::LineView *tv;
-    vl::LineIndexedDocument *doc;
+    vl::ByteView *tv;
+    vl::ByteDocument *doc;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:

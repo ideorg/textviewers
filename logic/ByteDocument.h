@@ -34,6 +34,7 @@ protected:
     bool empty();
 public:
     ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
+    int64_t byteCount() override;
     std::optional<LinePoints> firstLine() override;
     std::optional<LinePoints> lastLine() override;
     LinePoints lineEnclosing(int64_t position) override;

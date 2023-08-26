@@ -27,6 +27,7 @@ public:
     virtual int64_t backWrapOffset(int i) = 0;
     virtual std::string_view beforeFrontLine() = 0;
     virtual std::string_view afterBackLine() = 0;
+    virtual std::string_view lineAt(int n) = 0;
 };
 }
 

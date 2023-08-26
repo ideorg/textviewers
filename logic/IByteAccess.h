@@ -16,6 +16,7 @@ struct LinePoints {
 
 class IByteAccess {
 public:
+    virtual int64_t byteCount() = 0;
     virtual std::optional<LinePoints> firstLine() = 0;
     virtual std::optional<LinePoints> lastLine() = 0;
     virtual LinePoints lineEnclosing(int64_t position) = 0;

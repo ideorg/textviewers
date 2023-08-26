@@ -4,6 +4,7 @@
 
 #include <string>
 #include "AbstractView.h"
+#include "DString.h"
 
 using namespace std;
 using namespace vl;
@@ -128,3 +129,12 @@ bool AbstractView::lastInFile(int row) {
         return false;
     return viewDeque->backAtEnd();
 }
+
+std::u32string AbstractView::at(int n) {
+    DString dstr;
+    auto iv = indexView[n];
+    auto lineView = viewDeque->lineAt(iv.index);
+    UTF utf;
+    return DString::substr(lineView, 0, m_screenLineLen);
+}
+

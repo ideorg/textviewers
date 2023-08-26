@@ -8,7 +8,6 @@
 using namespace vl;
 
 LineDeque::LineDeque(ILineAccess *lineAccess) : m_lineAccess(lineAccess) {
-
 }
 
 bool LineDeque::empty() {
@@ -24,12 +23,12 @@ void LineDeque::pushFront(const std::vector<int> &wrapEnds) {
     if (deq.empty())
         elem.index = m_startLine;
     else
-        elem.index = deq.back().index - 1;
-    deq.push_back(elem);
+        elem.index = deq[0].index - 1;
+    deq.push_front(elem);
 }
 
 void LineDeque::popFront() {
-    assert(deq.size() > 0);
+    assert(!deq.empty());
     deq.pop_front();
 }
 
@@ -53,7 +52,7 @@ void LineDeque::pushBack(const std::vector<int> &wrapEnds) {
 }
 
 void LineDeque::popBack() {
-    assert(deq.size() > 0);
+    assert(!deq.empty());
     deq.pop_back();
 }
 
@@ -63,6 +62,7 @@ int LineDeque::backWrapCount() {
 
 void LineDeque::setFront(int64_t start) {
     m_startLine = (int)start;
+    assert(deq.empty());
 }
 
 void LineDeque::clear() {
@@ -70,7 +70,7 @@ void LineDeque::clear() {
 }
 
 int LineDeque::size() {
-    return deq.size();
+    return (int)deq.size();
 }
 
 int64_t LineDeque::backWrapOffset(int i) {
@@ -101,5 +101,9 @@ std::string_view LineDeque::afterBackLine() {
         return *opt;
     else
         return "";
+}
+
+std::string_view LineDeque::lineAt(int n) {
+    return m_lineAccess->line(deq[n].index).value();
 }
 

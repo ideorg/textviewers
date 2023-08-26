@@ -13,6 +13,7 @@
 #include <QClipboard>
 #include <QMimeData>
 #include "UTF/UTF.hpp"
+#include "logic/ByteView.h"
 
 namespace wid {
 
@@ -85,8 +86,8 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     fontHeight = fm.height();
     this->setFont(font);
     std::string content(addr, fileSize);
-    doc = new vl::LineIndexedDocument(content);
-    tv = new vl::LineView(doc);
+    doc = new vl::ByteDocument(content.c_str(), content.size());
+    tv = new vl::ByteView(doc);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
 }
 
@@ -97,9 +98,9 @@ PaintArea::~PaintArea() {
 void PaintArea::setData(const char *addr, int64_t fileSize) {
     delete doc;
     std::string content(addr, fileSize);
-    doc = new vl::LineIndexedDocument(content);
+    doc = new vl::ByteDocument(content.c_str(), content.size());
     delete tv;
-    tv = new vl::LineView(doc);
+    tv = new vl::ByteView(doc);
     setSize(width(), height());
     update();
 }

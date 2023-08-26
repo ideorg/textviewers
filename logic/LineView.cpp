@@ -12,6 +12,10 @@
 using namespace std;
 using namespace vl;
 
+LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
+    viewDeque = make_unique<LineDeque>(m_lineAccess);
+}
+
 void LineView::gotoProportional(double relativePos) {
     relativePos = max(min(relativePos,1.0),0.0);
     int position = floor(relativePos*(m_lineAccess->lineCount() - 1));
@@ -20,21 +24,6 @@ void LineView::gotoProportional(double relativePos) {
     backNLines(position, backCount);
 }
 
-LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
-    viewDeque = make_unique<LineDeque>(m_lineAccess);
-}
-
 void LineView::backNLines(int position, int backCount) {
     m_start = max(position-backCount,0);
-}
-
-u32string LineView::at(int n) {
-    DString dstr;
-    auto iv = indexView[n];
-    auto lineView = m_lineAccess->line(iv.index);
-    if (lineView) {
-        UTF utf;
-        return DString::substr(*lineView, 0, m_screenLineLen);
-    }
-    else return U"";
 }

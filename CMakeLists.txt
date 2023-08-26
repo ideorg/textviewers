@@ -17,6 +17,9 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/DString.h
         logic/DString.cpp
         logic/AbstractView.h
+        logic/ByteView.cpp
+        logic/ByteDeque.h
+        logic/ByteDeque.cpp
 )
 
 set(WID_SOURCES

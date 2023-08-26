@@ -1,29 +1,28 @@
 //
-// Created by andrzej on 8/24/23.
+// Created by andrzej on 8/26/23.
 //
 
-#ifndef VIEWER_LINEDEQUE_H
-#define VIEWER_LINEDEQUE_H
+#ifndef VIEWERS_BYTEDEQUE_H
+#define VIEWERS_BYTEDEQUE_H
 
 #include <cstdint>
 #include "IDeque.h"
-#include "ILineAccess.h"
+#include "IByteAccess.h"
 #include <deque>
-#include <vector>
 
 namespace vl {
 
-struct LDequeElem {
-    int index;
+struct BDequeElem {
+    LinePoints linePoints;
     std::vector<int> wrapEnds;
 };
 
-class LineDeque : public IDeque {
-    std::deque<LDequeElem> deq;
-    ILineAccess* m_lineAccess;
-    int m_startLine = 0;
+class ByteDeque : public IDeque {
+    std::deque<BDequeElem> deq;
+    IByteAccess* m_byteAccess;
+    int64_t m_startByte = 0;
 public:
-    explicit LineDeque(ILineAccess* lineAccess);
+    explicit ByteDeque(IByteAccess* byteAccess);
     bool empty() override;
     bool frontAtStart() override;
     void pushFront(const std::vector<int> &wrapEnds) override;
@@ -43,4 +42,4 @@ public:
 };
 }
 
-#endif //VIEWER_LINEDEQUE_H
+#endif //VIEWERS_BYTEDEQUE_H

@@ -39,7 +39,7 @@ public:
     int screenLineCount();
     int screenLineLen();
     int size();
-    virtual std::u32string at(int n) = 0;
+    std::u32string at(int n);
     std::u32string operator[](int n);
     int scrollDown();
     int scrollUp();
