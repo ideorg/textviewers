@@ -13,12 +13,11 @@
 namespace vl {
 
 class LineIndexedDocument : public virtual ByteDocument, public virtual ILineAccess {
-    std::vector<std::string> stringList;
-    std::string m_content;
+    std::string_view m_content;
     std::vector<int> wholeIndex;
-    void createIndex(std::string source);
+    void createIndex(std::string_view source);
 public:
-    explicit LineIndexedDocument(std::string content, int maxLineLen = 0);
+    explicit LineIndexedDocument(std::string_view content, int maxLineLen = 0);
     std::optional<std::string_view> line(int n) override;
     int lineCount() override;
     bool linesAreEmpty() override;

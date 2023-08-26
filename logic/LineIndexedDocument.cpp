@@ -20,7 +20,7 @@ optional<string_view> LineIndexedDocument::line(int n) {
         eol = firstOfCRLF(end-1);
     else
         eol = end;
-    string_view view(m_content.c_str() + offset, eol-offset);
+    string_view view(m_content.data() + offset, eol-offset);
     return make_optional(view);
 }
 
@@ -28,12 +28,12 @@ int LineIndexedDocument::lineCount() {
     return max(wholeIndex.size() - 1, 0UL);
 }
 
-LineIndexedDocument::LineIndexedDocument(string content, int maxLineLen)
-        : ByteDocument(content.c_str(), content.size(), maxLineLen), m_content(std::move(content)) {
+LineIndexedDocument::LineIndexedDocument(string_view content, int maxLineLen)
+        : ByteDocument(content.data(), content.size(), maxLineLen), m_content(content) {
     createIndex(m_content);
 }
 
-void LineIndexedDocument::createIndex(std::string source) {
+void LineIndexedDocument::createIndex(std::string_view source) {
     int source_size = (int) source.size();
     if (source_size != source.size())
         throw runtime_error("file too large");
