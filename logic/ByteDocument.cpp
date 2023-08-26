@@ -222,7 +222,7 @@ std::optional<LinePoints> ByteDocument::lineAfter(const LinePoints &linePoints) 
     LinePoints lp;
     lp.offset = linePoints.offset + linePoints.fullLen;
     lp.len = searchEndOfLine(lp.offset) - lp.offset;
-    lp.fullLen = skipLineBreakEx(lp.offset + lp.len, lp.len);
+    lp.fullLen = skipLineBreakEx(lp.offset + lp.len, lp.len) - lp.offset;
     return make_optional(lp);
 }
 
