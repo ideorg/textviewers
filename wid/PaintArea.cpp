@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include "UTF/UTF.hpp"
 #include "logic/ByteView.h"
+#include "logic/ChangeableDocument.h"
 
 namespace wid {
 
@@ -103,9 +104,13 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
             doc = new vl::ByteDocument(addr, fileSize);
             tv = new vl::ByteView(dynamic_cast<vl::IByteAccess*>(doc));
             break;
-        default:
+        case 1:
             doc = new vl::LineIndexedDocument(addr, fileSize);
-            tv = new vl::ByteView(dynamic_cast<vl::IByteAccess*>(doc));
+            tv = new vl::LineView(dynamic_cast<vl::ILineAccess*>(doc));
+            break;
+        default:
+            doc = new vl::ChangeableDocument(addr, fileSize);
+            tv = new vl::LineView(dynamic_cast<vl::ILineAccess*>(doc));
     }
     setSize(width(), height());
     update();

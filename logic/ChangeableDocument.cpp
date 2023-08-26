@@ -50,5 +50,5 @@ bool ChangeableDocument::isFirstInFile(int n) {
 }
 
 bool ChangeableDocument::isLastInFile(int n) {
-    return n = lineCount()-1;
+    return n == lineCount() - 1;
 }

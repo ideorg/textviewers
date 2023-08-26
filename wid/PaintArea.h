@@ -50,7 +50,7 @@ public:
     void trySetCaret(QPoint point);
     void setHorizontal(int beginX);
     void setVertical(int64_t position);
-    vl::ByteView *tv = nullptr;
+    vl::AbstractView *tv = nullptr;
     vl::Interface *doc = nullptr;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
