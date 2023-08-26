@@ -58,21 +58,21 @@ void MainWindow::onButtonCLick() {
 }
 
 void MainWindow::createMenus() {
-    QMenu *fileMenu = menuBar()->addMenu(tr("&Wrap"));
-    auto actionGroup = new QActionGroup(fileMenu);
+    QMenu *wrapMenu = menuBar()->addMenu(tr("&Wrap"));
+    auto actionGroup = new QActionGroup(wrapMenu);
 
-    QAction *nowrapAct = fileMenu->addAction(tr("&No wrap"));
+    QAction *nowrapAct = wrapMenu->addAction(tr("&No wrap"));
     nowrapAct->setData(0);
     nowrapAct->setCheckable(true);
     nowrapAct->setChecked(true);
     actionGroup->addAction(nowrapAct);
 
-    QAction *wrapAct = fileMenu->addAction(tr("&Wrap"));
+    QAction *wrapAct = wrapMenu->addAction(tr("&Wrap"));
     wrapAct->setData(1);
     wrapAct->setCheckable(true);
     actionGroup->addAction(wrapAct);
 
-    QAction *smartWrapAct = fileMenu->addAction(tr("&Smart wrap"));
+    QAction *smartWrapAct = wrapMenu->addAction(tr("&Smart wrap"));
     smartWrapAct->setData(2);
     smartWrapAct->setCheckable(true);
     actionGroup->addAction(smartWrapAct);
@@ -80,5 +80,23 @@ void MainWindow::createMenus() {
     connect(actionGroup, &QActionGroup::triggered, this, [this](QAction *action) {
         int mode = action->data().toInt();
         widget->setWrapMode(mode);
+    });
+
+    QMenu *kindMenu = menuBar()->addMenu(tr("&Kind"));
+    auto actionGroup2 = new QActionGroup(kindMenu);
+
+    QAction *byteAct = kindMenu->addAction(tr("&Byte position"));
+    byteAct->setData(0);
+    byteAct->setCheckable(true);
+    byteAct->setChecked(true);
+    actionGroup2->addAction(byteAct);
+
+    QAction *lineAct = kindMenu->addAction(tr("&Line index"));
+    lineAct->setData(1);
+    lineAct->setCheckable(true);
+    actionGroup2->addAction(lineAct);
+
+    connect(actionGroup2, &QActionGroup::triggered, this, [this](QAction *action) {
+        int kind = action->data().toInt();
     });
 }

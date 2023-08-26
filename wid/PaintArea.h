@@ -15,6 +15,7 @@
 namespace wid {
 class PaintArea : public QWidget {
 Q_OBJECT
+    enum class LogicKind {BytePos, LineIndex};
     qreal fontWidth, fontHeight;
     QTimer timer;
     bool drawCaret = true;
