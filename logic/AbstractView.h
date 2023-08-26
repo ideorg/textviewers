@@ -28,7 +28,7 @@ protected:
     int countWrapAfter = 0;
     int m_wrapMode = 0;
 protected:
-    int64_t m_start;
+    int64_t m_start = 0;
     std::vector<IndexView> indexView;
     int m_screenLineCount;
     int m_screenLineLen;

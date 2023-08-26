@@ -11,7 +11,7 @@ using namespace std;
 using namespace vl;
 
 optional<string_view> LineIndexedDocument::line(int n) {
-    if (n < 0 || n + 1 >= wholeIndex.size())
+    if (n < 0 || n  >= lineCount())
         return nullopt;;
     int64_t offset = wholeIndex[n];
     int64_t end = wholeIndex[n+1];
@@ -49,19 +49,19 @@ void LineIndexedDocument::createIndex(std::string source) {
 }
 
 bool LineIndexedDocument::linesAreEmpty() {
-    return wholeIndex.size() == 0;
+    return lineCount() == 0;
 }
 
 bool LineIndexedDocument::isFirstInFile(int n) {
     assert(n >= 0);
-    assert(n < wholeIndex.size());
-    assert(wholeIndex.size() > 0);
+    assert(n < lineCount());
+    assert(lineCount() > 0);
     return n == 0;
 }
 
 bool LineIndexedDocument::isLastInFile(int n) {
     assert(n >= 0);
-    assert(n < wholeIndex.size());
-    assert(wholeIndex.size() > 0);
-    return n + 1 == wholeIndex.size();
+    assert(n < lineCount());
+    assert(lineCount() > 0);
+    return n +1 == lineCount();
 }
