@@ -98,5 +98,6 @@ void MainWindow::createMenus() {
 
     connect(actionGroup2, &QActionGroup::triggered, this, [this](QAction *action) {
         int kind = action->data().toInt();
+        widget->setKind(kind);
     });
 }

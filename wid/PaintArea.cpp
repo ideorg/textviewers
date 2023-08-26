@@ -94,10 +94,12 @@ PaintArea::~PaintArea() {
 }
 
 void PaintArea::setData(const char *addr, int64_t fileSize) {
+    m_addr = addr;
+    m_fileSize = fileSize;
     delete doc;
     delete tv;
     switch(logicKind) {
-        case LogicKind::BytePos:
+        case 0:
             doc = new vl::ByteDocument(addr, fileSize);
             tv = new vl::ByteView(dynamic_cast<vl::IByteAccess*>(doc));
             break;
@@ -226,6 +228,11 @@ bool PaintArea::charInseideArea(std::pair<int, int> cp) {
 
 void PaintArea::drawSelBackground(QPainter &painter, int row) {
     painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, Qt::white);
+}
+
+void PaintArea::setKind(int kind) {
+    logicKind = kind;
+    setData(m_addr, m_fileSize);
 }
 
 #endif

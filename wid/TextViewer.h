@@ -15,6 +15,7 @@ namespace wid {
         explicit TextViewer(const char *addr, int64_t fileSize, QWidget *parent = nullptr);
         void setData(const char *addr, int64_t fileSize);
         void setWrapMode(int mode);
+        void setKind(int kind);
     private:
         const int MAXVSCROLL = 10000;
         void hscrollChanged();

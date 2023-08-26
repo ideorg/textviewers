@@ -39,4 +39,8 @@ void TextViewer::setWrapMode(int mode) {
     paintArea->setWrapMode(mode);
 }
 
+void TextViewer::setKind(int kind) {
+    paintArea->setKind(kind);
+}
+
 }

@@ -13,10 +13,10 @@
 #include <QTimer>
 
 namespace wid {
-enum class LogicKind {BytePos, LineIndex};
+
 class PaintArea : public QWidget {
 Q_OBJECT
-    LogicKind logicKind;
+    int logicKind;
     qreal fontWidth, fontHeight;
     QTimer timer;
     bool drawCaret = true;
@@ -26,6 +26,8 @@ Q_OBJECT
     QString updateCaretPos();
     std::pair<int,int> toCharPos(QPoint point, bool smart);
     std::pair<int,int> toScreenPos(std::pair<int,int> point, bool smart);
+    const char *m_addr;
+    int64_t m_fileSize;
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
@@ -40,6 +42,7 @@ public:
     explicit PaintArea(const char *addr, int64_t fileSize, QWidget *parent);
     void setData(const char *addr, int64_t fileSize);
     void setSize(int width, int height);
+    void setKind(int kind);
     void setWrapMode(int mode);
     ~PaintArea() override;
     void wheelVertical(int delta);
