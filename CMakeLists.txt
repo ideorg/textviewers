@@ -6,9 +6,9 @@ add_definitions("-Werror=return-type -Werror=unused-result")
 
 set(MAIN_PROJECT_DIR ${CMAKE_SOURCE_DIR})
 
-set(LOGIC_SOURCES logic/AbstractDocument.cpp
+set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/AbstractView.cpp
-        logic/LineDocument.cpp
+        logic/LineIndexedDocument.cpp
         logic/LineView.cpp
         logic/Wrap.cpp
         logic/IByteAccess.h

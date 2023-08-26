@@ -10,7 +10,7 @@
 
 namespace vl {
 
-class AbstractDocument: public IByteAccess {
+class ByteDocument: public IByteAccess {
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
     bool isFirstChunkStart(int64_t offset);
     int64_t skipLineBreak(int64_t pos);
@@ -33,7 +33,7 @@ protected:
     int64_t gotoBeginNonEmptyLine(int64_t start, EndLine maybeInside);
     bool empty();
 public:
-    AbstractDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
+    ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
     std::optional<LinePoints> firstLine() override;
     std::optional<LinePoints> lastLine() override;
     LinePoints lineEnclosing(int64_t position) override;

@@ -3,17 +3,17 @@
 //
 
 #include <cassert>
-#include "AbstractDocument.h"
+#include "ByteDocument.h"
 #include "UTF/UTF.hpp"
 
 using namespace std;
 using namespace vl;
 
-bool AbstractDocument::isNewlineChar(const char c) {
+bool ByteDocument::isNewlineChar(const char c) {
     return c == '\r' || c == '\n';
 }
 
-int64_t AbstractDocument::searchEndOfLine(int64_t startOffset) {
+int64_t ByteDocument::searchEndOfLine(int64_t startOffset) {
     if (m_maxLineLen) {
         int64_t offset = startOffset;
         int64_t possibleBreakAt = (offset / m_maxLineLen) * m_maxLineLen + m_maxLineLen;
@@ -38,7 +38,7 @@ int64_t AbstractDocument::searchEndOfLine(int64_t startOffset) {
     }
 }
 
-int64_t AbstractDocument::correctPossibleBreak(int64_t possibleBreakAt) {
+int64_t ByteDocument::correctPossibleBreak(int64_t possibleBreakAt) {
     if (possibleBreakAt < m_BOMsize || possibleBreakAt >= m_fileSize)
         return possibleBreakAt;
     if (m_addr[possibleBreakAt] == '\n' && possibleBreakAt > m_BOMsize && m_addr[possibleBreakAt - 1] == '\r')
@@ -49,15 +49,15 @@ int64_t AbstractDocument::correctPossibleBreak(int64_t possibleBreakAt) {
                                      m_addr + m_fileSize) - m_addr;
 }
 
-bool AbstractDocument::isFirstChunkStart(int64_t offset) {
+bool ByteDocument::isFirstChunkStart(int64_t offset) {
     return offset <= m_BOMsize || isNewlineChar(m_addr[offset - 1]);
 }
 
-AbstractDocument::AbstractDocument(const char *addr, int64_t fileSize, int64_t maxLineLen) :
+ByteDocument::ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen) :
         m_addr(addr), m_fileSize(fileSize), m_maxLineLen(maxLineLen) {
 }
 
-int64_t AbstractDocument::skipLineBreakEx(int64_t eolPos, int64_t len) {
+int64_t ByteDocument::skipLineBreakEx(int64_t eolPos, int64_t len) {
     int64_t next = skipLineBreak(eolPos);
     assert(next<=m_fileSize);
     if (next == m_fileSize && len>0)
@@ -66,7 +66,7 @@ int64_t AbstractDocument::skipLineBreakEx(int64_t eolPos, int64_t len) {
         return next;
 }
 
-int64_t AbstractDocument::skipLineBreak(int64_t pos) {
+int64_t ByteDocument::skipLineBreak(int64_t pos) {
     assert(pos <= m_fileSize);
     if (pos == m_fileSize) return pos;
     const char c = m_addr[pos];
@@ -79,7 +79,7 @@ int64_t AbstractDocument::skipLineBreak(int64_t pos) {
         return pos;
 }
 
-int64_t AbstractDocument::firstOfCRLF(int64_t position) {
+int64_t ByteDocument::firstOfCRLF(int64_t position) {
     assert(position < m_fileSize && isNewlineChar(m_addr[position]));
     char c = m_addr[position];
     if (c == '\r')
@@ -97,12 +97,12 @@ int64_t AbstractDocument::firstOfCRLF(int64_t position) {
     }
 }
 
-bool AbstractDocument::empty() {
+bool ByteDocument::empty() {
     assert(m_fileSize >= m_BOMsize);
     return m_fileSize == m_BOMsize;
 }
 
-int64_t AbstractDocument::gotoBeginLine(int64_t offset, AbstractDocument::EndLine maybeInside) {
+int64_t ByteDocument::gotoBeginLine(int64_t offset, ByteDocument::EndLine maybeInside) {
     assert(offset <= m_fileSize);
     if (offset == m_fileSize) return m_fileSize;
     if (isNewlineChar(m_addr[offset])) {
@@ -114,7 +114,7 @@ int64_t AbstractDocument::gotoBeginLine(int64_t offset, AbstractDocument::EndLin
     return gotoBeginNonEmptyLine(offset, maybeInside);
 }
 
-bool AbstractDocument::lineIsEmpty(int64_t offset) {
+bool ByteDocument::lineIsEmpty(int64_t offset) {
     assert(offset < m_fileSize && isNewlineChar(m_addr[offset]));
     if (offset == m_fileSize - 1)
         return true;
@@ -124,7 +124,7 @@ bool AbstractDocument::lineIsEmpty(int64_t offset) {
     return offset == m_BOMsize || isNewlineChar(m_addr[offset - 1]);
 }
 
-int64_t AbstractDocument::gotoBeginNonEmptyLine(int64_t start, AbstractDocument::EndLine maybeInside) {
+int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine maybeInside) {
     assert(start >= m_BOMsize);
     assert(start < m_fileSize && !isNewlineChar(m_addr[start]));
     int64_t possibleBreakAt = (start / m_maxLineLen) * m_maxLineLen;
@@ -145,11 +145,11 @@ int64_t AbstractDocument::gotoBeginNonEmptyLine(int64_t start, AbstractDocument:
     return offset;
 }
 
-bool AbstractDocument::isFirstChunkInside(int64_t offset) {
+bool ByteDocument::isFirstChunkInside(int64_t offset) {
     return !startInsideSegment(offset - m_maxLineLen);
 }
 
-bool AbstractDocument::startInsideSegment(int64_t offset) {
+bool ByteDocument::startInsideSegment(int64_t offset) {
     if (offset <= m_BOMsize + UTF::MAXCHARLEN - 1) return false;
     int64_t nSegment = offset / m_maxLineLen;
     int64_t start = (max((int64_t) m_BOMsize + 1, nSegment * m_maxLineLen)) - 1;
@@ -161,7 +161,7 @@ bool AbstractDocument::startInsideSegment(int64_t offset) {
     return true;
 }
 
-std::optional<LinePoints> AbstractDocument::firstLine() {
+std::optional<LinePoints> ByteDocument::firstLine() {
     if (fileIsEmpty())
         return nullopt;
     LinePoints lp;
@@ -171,7 +171,7 @@ std::optional<LinePoints> AbstractDocument::firstLine() {
     return make_optional(lp);
 }
 
-std::optional<LinePoints> AbstractDocument::lastLine() {
+std::optional<LinePoints> ByteDocument::lastLine() {
     if (fileIsEmpty())
         return nullopt;
     LinePoints lp;
@@ -182,7 +182,7 @@ std::optional<LinePoints> AbstractDocument::lastLine() {
     return make_optional(lp);
 }
 
-LinePoints AbstractDocument::lineEnclosing(int64_t position) {
+LinePoints ByteDocument::lineEnclosing(int64_t position) {
     assert(m_fileSize > m_BOMsize);
     LinePoints lp;
     lp.offset = gotoBeginLine(position, elMaybeInside);
@@ -193,12 +193,12 @@ LinePoints AbstractDocument::lineEnclosing(int64_t position) {
     return lp;
 }
 
-std::string_view AbstractDocument::line(const LinePoints &linePoints) {
+std::string_view ByteDocument::line(const LinePoints &linePoints) {
     std::string_view view(linePoints.offset + m_addr, linePoints.len);
     return view;
 }
 
-std::optional<LinePoints> AbstractDocument::lineBefore(const LinePoints &linePoints) {
+std::optional<LinePoints> ByteDocument::lineBefore(const LinePoints &linePoints) {
     if (isFirstInFile(linePoints))
         return nullopt;
     LinePoints lp;
@@ -209,7 +209,7 @@ std::optional<LinePoints> AbstractDocument::lineBefore(const LinePoints &linePoi
     return make_optional(lp);
 }
 
-std::optional<LinePoints> AbstractDocument::lineAfter(const LinePoints &linePoints) {
+std::optional<LinePoints> ByteDocument::lineAfter(const LinePoints &linePoints) {
     if (isLastInFile(linePoints))
         return nullopt;
     LinePoints lp;
@@ -219,19 +219,19 @@ std::optional<LinePoints> AbstractDocument::lineAfter(const LinePoints &linePoin
     return make_optional(lp);
 }
 
-bool AbstractDocument::isFirstInFile(const LinePoints &linePoints) {
+bool ByteDocument::isFirstInFile(const LinePoints &linePoints) {
     assert(m_fileSize >= m_BOMsize);
     assert(linePoints.offset >= m_BOMsize);
     return linePoints.offset == m_BOMsize;
 }
 
-bool AbstractDocument::isLastInFile(const LinePoints &linePoints) {
+bool ByteDocument::isLastInFile(const LinePoints &linePoints) {
     assert(m_fileSize >= m_BOMsize);
     assert(linePoints.offset + linePoints.fullLen <= m_fileSize);
     return linePoints.offset + linePoints.fullLen == m_fileSize;
 }
 
-bool AbstractDocument::fileIsEmpty() {
+bool ByteDocument::fileIsEmpty() {
     assert(m_fileSize >= m_BOMsize);
     return m_fileSize == m_BOMsize;
 }

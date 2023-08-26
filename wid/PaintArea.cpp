@@ -85,7 +85,7 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     fontHeight = fm.height();
     this->setFont(font);
     std::string content(addr, fileSize);
-    doc = new vl::LineDocument(content);
+    doc = new vl::LineIndexedDocument(content);
     tv = new vl::LineView(doc);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
 }
@@ -97,7 +97,7 @@ PaintArea::~PaintArea() {
 void PaintArea::setData(const char *addr, int64_t fileSize) {
     delete doc;
     std::string content(addr, fileSize);
-    doc = new vl::LineDocument(content);
+    doc = new vl::LineIndexedDocument(content);
     delete tv;
     tv = new vl::LineView(doc);
     setSize(width(), height());

@@ -6,7 +6,7 @@
 #define VIEWER_PAINTAREA_H
 
 #include "logic/LineView.h"
-#include "logic/LineDocument.h"
+#include "logic/LineIndexedDocument.h"
 #include <QWidget>
 #include <QPaintEvent>
 #include <QTimer>
@@ -45,7 +45,7 @@ public:
     void setHorizontal(int beginX);
     void setVertical(int64_t position);
     vl::LineView *tv;
-    vl::LineDocument *doc;
+    vl::LineIndexedDocument *doc;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:
