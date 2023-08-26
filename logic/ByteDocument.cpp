@@ -246,3 +246,7 @@ bool ByteDocument::fileIsEmpty() {
 int64_t ByteDocument::byteCount() {
     return m_fileSize;
 }
+
+int ByteDocument::BOMsize() {
+    return m_BOMsize;
+}

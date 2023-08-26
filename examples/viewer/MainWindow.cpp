@@ -96,6 +96,11 @@ void MainWindow::createMenus() {
     lineAct->setCheckable(true);
     actionGroup2->addAction(lineAct);
 
+    QAction *changeableAct = kindMenu->addAction(tr("&Changeable"));
+    changeableAct->setData(2);
+    changeableAct->setCheckable(true);
+    actionGroup2->addAction(changeableAct);
+
     connect(actionGroup2, &QActionGroup::triggered, this, [this](QAction *action) {
         int kind = action->data().toInt();
         widget->setKind(kind);

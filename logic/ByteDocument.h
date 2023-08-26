@@ -22,8 +22,6 @@ protected:
     int64_t m_maxLineLen;
     int m_BOMsize = 0;
     static bool isNewlineChar(char c);
-    int64_t searchEndOfLine(int64_t startOffset);
-    int64_t skipLineBreakEx(int64_t eolPos, int64_t len);
     int64_t firstOfCRLF(int64_t position);
     enum EndLine {
         elMaybeInside, elTrueEol
@@ -35,6 +33,7 @@ protected:
 public:
     ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
     int64_t byteCount() override;
+    int BOMsize();
     std::optional<LinePoints> firstLine() override;
     std::optional<LinePoints> lastLine() override;
     LinePoints lineEnclosing(int64_t position) override;
@@ -44,6 +43,8 @@ public:
     bool isFirstInFile(const LinePoints& linePoints) override;
     bool isLastInFile(const LinePoints& linePoints) override;
     bool fileIsEmpty();
+    int64_t searchEndOfLine(int64_t startOffset);
+    int64_t skipLineBreakEx(int64_t eolPos, int64_t len);
 };
 }
 

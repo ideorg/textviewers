@@ -20,6 +20,8 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/ByteView.cpp
         logic/ByteDeque.h
         logic/ByteDeque.cpp
+        logic/ChangeableDocument.h
+        logic/ChangeableDocument.cpp
 )
 
 set(WID_SOURCES
