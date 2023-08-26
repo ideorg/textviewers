@@ -39,8 +39,7 @@ int LineDeque::frontWrapCount() {
 
 bool LineDeque::backAtEnd() {
     int lastIndex = deq.back().index;
-    assert(lastIndex <= m_lineAccess->lineCount());
-    return lastIndex == m_lineAccess->lineCount();
+    return m_lineAccess->isLastInFile(lastIndex);
 }
 
 void LineDeque::pushBack(const std::vector<int> &wrapEnds) {

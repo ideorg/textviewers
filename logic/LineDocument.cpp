@@ -21,7 +21,7 @@ optional<string_view> LineDocument::line(int n) {
 }
 
 int LineDocument::lineCount() {
-    return wholeIndex.size() - 1;
+    return max(wholeIndex.size() - 1, 0UL);
 }
 
 LineDocument::LineDocument(string content, int maxLineLen)
@@ -42,4 +42,22 @@ void LineDocument::createIndex(std::string source) {
     }
     assert(position == source_size);
     wholeIndex.push_back(position);
+}
+
+bool LineDocument::linesAreEmpty() {
+    return wholeIndex.size() == 0;
+}
+
+bool LineDocument::isFirstInFile(int n) {
+    assert(n >= 0);
+    assert(n < wholeIndex.size());
+    assert(wholeIndex.size() > 0);
+    return n == 0;
+}
+
+bool LineDocument::isLastInFile(int n) {
+    assert(n >= 0);
+    assert(n < wholeIndex.size());
+    assert(wholeIndex.size() > 0);
+    return n + 1 == wholeIndex.size();
 }

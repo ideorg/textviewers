@@ -160,3 +160,78 @@ bool AbstractDocument::startInsideSegment(int64_t offset) {
         }
     return true;
 }
+
+std::optional<LinePoints> AbstractDocument::firstLine() {
+    if (fileIsEmpty())
+        return nullopt;
+    LinePoints lp;
+    lp.offset = m_BOMsize;
+    lp.len = searchEndOfLine(m_BOMsize) - m_BOMsize;
+    lp.fullLen = skipLineBreakEx(lp.offset + lp.len, lp.len);
+    return make_optional(lp);
+}
+
+std::optional<LinePoints> AbstractDocument::lastLine() {
+    if (fileIsEmpty())
+        return nullopt;
+    LinePoints lp;
+    auto eolPos = firstOfCRLF(m_fileSize - 1);
+    lp.offset = gotoBeginLine(eolPos, elTrueEol);
+    lp.len = eolPos - lp.offset;
+    lp.fullLen = m_fileSize - lp.offset;
+    return make_optional(lp);
+}
+
+LinePoints AbstractDocument::lineEnclosing(int64_t position) {
+    assert(m_fileSize > m_BOMsize);
+    LinePoints lp;
+    lp.offset = gotoBeginLine(position, elMaybeInside);
+    auto eolPos = searchEndOfLine(position);
+    lp.len = eolPos - lp.offset;
+    auto next = skipLineBreakEx(eolPos, lp.len);
+    lp.fullLen = next - lp.offset;
+    return lp;
+}
+
+std::string_view AbstractDocument::line(const LinePoints &linePoints) {
+    std::string_view view(linePoints.offset + m_addr, linePoints.len);
+    return view;
+}
+
+std::optional<LinePoints> AbstractDocument::lineBefore(const LinePoints &linePoints) {
+    if (isFirstInFile(linePoints))
+        return nullopt;
+    LinePoints lp;
+    auto eolPos = firstOfCRLF(linePoints.offset - 1);
+    lp.offset = gotoBeginLine(eolPos, elTrueEol);
+    lp.len = eolPos - lp.offset;
+    lp.fullLen = linePoints.offset - lp.offset;
+    return make_optional(lp);
+}
+
+std::optional<LinePoints> AbstractDocument::lineAfter(const LinePoints &linePoints) {
+    if (isLastInFile(linePoints))
+        return nullopt;
+    LinePoints lp;
+    lp.offset = linePoints.offset + linePoints.fullLen;
+    lp.len = searchEndOfLine(lp.offset) - lp.offset;
+    lp.fullLen = skipLineBreakEx(lp.offset + lp.len, lp.len);
+    return make_optional(lp);
+}
+
+bool AbstractDocument::isFirstInFile(const LinePoints &linePoints) {
+    assert(m_fileSize >= m_BOMsize);
+    assert(linePoints.offset >= m_BOMsize);
+    return linePoints.offset == m_BOMsize;
+}
+
+bool AbstractDocument::isLastInFile(const LinePoints &linePoints) {
+    assert(m_fileSize >= m_BOMsize);
+    assert(linePoints.offset + linePoints.fullLen <= m_fileSize);
+    return linePoints.offset + linePoints.fullLen == m_fileSize;
+}
+
+bool AbstractDocument::fileIsEmpty() {
+    assert(m_fileSize >= m_BOMsize);
+    return m_fileSize == m_BOMsize;
+}

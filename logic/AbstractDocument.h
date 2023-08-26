@@ -6,10 +6,11 @@
 #define VIEWER_ABSTRACTDOCUMENT_H
 
 #include <cstdint>
+#include "IByteAccess.h"
 
 namespace vl {
 
-class AbstractDocument {
+class AbstractDocument: public IByteAccess {
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
     bool isFirstChunkStart(int64_t offset);
     int64_t skipLineBreak(int64_t pos);
@@ -33,6 +34,15 @@ protected:
     bool empty();
 public:
     AbstractDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
+    std::optional<LinePoints> firstLine() override;
+    std::optional<LinePoints> lastLine() override;
+    LinePoints lineEnclosing(int64_t position) override;
+    std::string_view line(const LinePoints& linePoints) override;
+    std::optional<LinePoints> lineBefore(const LinePoints& linePoints) override;
+    std::optional<LinePoints> lineAfter(const LinePoints& linePoints) override;
+    bool isFirstInFile(const LinePoints& linePoints) override;
+    bool isLastInFile(const LinePoints& linePoints) override;
+    bool fileIsEmpty();
 };
 }
 

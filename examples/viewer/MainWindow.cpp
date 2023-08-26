@@ -22,7 +22,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     hLayout->addWidget(button);
     mainLayout->addLayout(hLayout);
     lineEdit->setText("../../../main.cpp");
-    ///vmap.openFile(lineEdit->text().toStdString().c_str());
     file = std::make_unique<QFile>(lineEdit->text());
     if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "error open file";
@@ -30,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     }
     uchar *addr = file->map(0, file->size());
     widget = new wid::TextViewer((char *) addr, file->size(), this);
-    //file.close();
     mainLayout->addWidget(widget);
     QWidget *central = new QWidget(this);
     central->setLayout(mainLayout);

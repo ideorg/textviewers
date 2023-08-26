@@ -21,6 +21,9 @@ public:
     explicit LineDocument(std::string content, int maxLineLen = 0);
     std::optional<std::string_view> line(int n) override;
     int lineCount() override;
+    bool linesAreEmpty() override;
+    bool isFirstInFile(int n) override;
+    bool isLastInFile(int n) override;
 };
 }
 
