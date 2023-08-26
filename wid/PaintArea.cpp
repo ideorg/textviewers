@@ -31,6 +31,7 @@ void PaintArea::paintEvent(QPaintEvent *event) {
 
     } else {
         for (int i = 0; i < tv->size(); i++) {
+            drawSelBackground(painter, i);
             QRect R(0, i * fontHeight, this->rect().width(), fontHeight);
             QString qstr = QString::fromUcs4(tv->at(i).c_str(), tv->at(i).size());
             if (qstr.isEmpty()) {
@@ -216,6 +217,10 @@ void PaintArea::contextMenuEvent(QContextMenuEvent *event) {
 //smart "<=" in second<=screenLineLen
 bool PaintArea::charInseideArea(std::pair<int, int> cp) {
     return cp.first >= 0 && cp.first < tv->screenLineCount() && cp.second >= 0 && cp.second <= tv->screenLineLen();
+}
+
+void PaintArea::drawSelBackground(QPainter &painter, int row) {
+    painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, Qt::white);
 }
 
 #endif

@@ -47,6 +47,7 @@ public:
     vl::LineView *tv;
     vl::LineDocument *doc;
     bool charInseideArea(std::pair<int,int> cp);
+    void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:
     void sizeChanged();
     void scrollHChanged();
