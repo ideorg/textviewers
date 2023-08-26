@@ -18,12 +18,13 @@ bool LineDeque::frontAtStart() {
     return deq[0].index == 0;
 }
 
-void LineDeque::pushFront(const std::vector<int> &wrapEnds) {
+void LineDeque::pushFront(const Wrap &wrap) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
     else
         elem.index = deq[0].index - 1;
+    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->line(elem.index).value());
     deq.push_front(elem);
 }
 
@@ -41,13 +42,13 @@ bool LineDeque::backAtEnd() {
     return m_lineAccess->isLastInFile(lastIndex);
 }
 
-void LineDeque::pushBack(const std::vector<int> &wrapEnds) {
+void LineDeque::pushBack(const Wrap &wrap) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
     else
         elem.index = deq.back().index + 1;
-    elem.wrapEnds = wrapEnds;
+    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->line(elem.index).value());
     deq.push_back(elem);
 }
 
@@ -75,32 +76,6 @@ int LineDeque::size() {
 
 int64_t LineDeque::backWrapOffset(int i) {
     return (int) deq.back().wrapEnds[i];
-}
-
-std::string_view LineDeque::beforeFrontLine() {
-    int index;
-    if (deq.empty())
-        index = m_startLine;
-    else
-        index = deq.back().index - 1;
-    auto opt = m_lineAccess->line(index);
-    if (opt)
-        return *opt;
-    else
-        return "";
-}
-
-std::string_view LineDeque::afterBackLine() {
-    int index;
-    if (deq.empty())
-        index = m_startLine;
-    else
-        index = deq.back().index + 1;
-    auto opt = m_lineAccess->line(index);
-    if (opt)
-        return *opt;
-    else
-        return "";
 }
 
 std::string_view LineDeque::lineAt(int n) {

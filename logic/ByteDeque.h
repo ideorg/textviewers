@@ -25,19 +25,17 @@ public:
     explicit ByteDeque(IByteAccess* byteAccess);
     bool empty() override;
     bool frontAtStart() override;
-    void pushFront(const std::vector<int> &wrapEnds) override;
+    void pushFront(const Wrap &wrap) override;
     void popFront() override;
     int frontWrapCount() override;
     bool backAtEnd() override;
-    void pushBack(const std::vector<int> &wrapEnds) override;
+    void pushBack(const Wrap &wrap) override;
     void popBack() override;
     int backWrapCount() override;
     void setFront(int64_t start) override;
     void clear() override;
     int size() override;
     int64_t backWrapOffset(int i) override;
-    std::string_view beforeFrontLine() override;
-    std::string_view afterBackLine() override;
     std::string_view lineAt(int n) override;
 };
 }

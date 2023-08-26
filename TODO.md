@@ -1,3 +1,6 @@
+- gotoProportional
+- scrollDown,scrollUp
+
 0.1
 - widget
 - example program

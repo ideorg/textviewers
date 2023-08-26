@@ -17,7 +17,7 @@ int AbstractView::scrollDown() {
             return 0;
         countWrapAfter--;
         if (countWrapAfter <= 0) {
-            viewDeque->pushBack(wrap.wrapEnds(viewDeque->afterBackLine()));
+            viewDeque->pushBack(wrap);
             countWrapAfter = viewDeque->backWrapCount();
         }
         countWrapBefore++;
@@ -29,7 +29,7 @@ int AbstractView::scrollDown() {
     } else {
         if (viewDeque->backAtEnd())
             return 0;
-        viewDeque->pushBack(wrap.wrapEnds(viewDeque->afterBackLine()));
+        viewDeque->pushBack(wrap);
         viewDeque->popFront();
         return 1;
     }
@@ -43,7 +43,7 @@ int AbstractView::scrollUp() {
             return 0;
         countWrapBefore--;
         if (countWrapBefore <= 0) {
-            viewDeque->pushFront(wrap.wrapEnds(viewDeque->beforeFrontLine()));
+            viewDeque->pushFront(wrap);
                 countWrapAfter = viewDeque->frontWrapCount();
         }
         countWrapAfter++;
@@ -55,7 +55,7 @@ int AbstractView::scrollUp() {
     } else {
         if (viewDeque->frontAtStart())
             return 0;
-        viewDeque->pushFront(wrap.wrapEnds(viewDeque->beforeFrontLine()));
+        viewDeque->pushFront(wrap);
         viewDeque->popBack();
         return 1;
     }
@@ -71,13 +71,13 @@ void AbstractView::fillDeque() {
     if (wrapMode()) {
         int row = 0;
         while (row < m_screenLineCount) {
-            viewDeque->pushBack(wrap.wrapEnds(viewDeque->afterBackLine()));
+            viewDeque->pushBack(wrap);
             row += viewDeque->frontWrapCount();
         }
     }
     else {
         for (int i = 0; i < m_screenLineCount; i++) {
-            viewDeque->pushBack(wrap.wrapEnds(viewDeque->afterBackLine()));
+            viewDeque->pushBack(wrap);
             if (viewDeque->backAtEnd())
                 break;
         }
