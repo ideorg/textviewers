@@ -111,3 +111,11 @@ void AbstractView::setScreenLineCount(int screenLineCount) {
 void AbstractView::setScreenLineLen(int screenLineLen) {
     m_screenLineLen = screenLineLen;
 }
+
+int AbstractView::screenLineCount() {
+    return m_screenLineCount;
+}
+
+int AbstractView::screenLineLen() {
+    return m_screenLineLen;
+}

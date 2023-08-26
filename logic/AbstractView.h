@@ -36,6 +36,8 @@ protected:
 public:
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
+    int screenLineCount();
+    int screenLineLen();
     int size();
     virtual std::u32string at(int n) = 0;
     std::u32string operator[](int n);
