@@ -127,22 +127,29 @@ bool ByteDocument::lineIsEmpty(int64_t offset) {
 int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine maybeInside) {
     assert(start >= m_BOMsize);
     assert(start < m_fileSize && !isNewlineChar(m_addr[start]));
-    int64_t possibleBreakAt = (start / m_maxLineLen) * m_maxLineLen;
-    int64_t possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
-    if (possibleBreakCorrected > start && possibleBreakAt >= m_maxLineLen) {
-        possibleBreakAt -= m_maxLineLen;
-        possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
-    }
-    int64_t offset = start;
-    while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1])) {
-        if (offset == possibleBreakCorrected) {
-            if (!isFirstChunkInside(offset)) {
-                return offset;
-            }
+    if (m_maxLineLen) {
+        int64_t possibleBreakAt = (start / m_maxLineLen) * m_maxLineLen;
+        int64_t possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
+        if (possibleBreakCorrected > start && possibleBreakAt >= m_maxLineLen) {
+            possibleBreakAt -= m_maxLineLen;
+            possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
         }
-        offset--;
+        int64_t offset = start;
+        while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1])) {
+            if (offset == possibleBreakCorrected) {
+                if (!isFirstChunkInside(offset)) {
+                    return offset;
+                }
+            }
+            offset--;
+        }
+        return offset;
+    } else {
+        int64_t offset = start;
+        while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1]))
+            offset--;
+        return offset;
     }
-    return offset;
 }
 
 bool ByteDocument::isFirstChunkInside(int64_t offset) {
