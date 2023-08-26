@@ -47,7 +47,7 @@ public:
     void setHorizontal(int beginX);
     void setVertical(int64_t position);
     vl::ByteView *tv;
-    vl::ByteDocument *doc;
+    vl::Interface *doc;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:
