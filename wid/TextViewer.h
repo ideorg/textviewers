@@ -19,6 +19,7 @@ namespace wid {
     private:
         const int MAXVSCROLL = 10000;
         void hscrollChanged();
+        void vscrollChanged();
     };
 }
 #endif // VIEWER_TEXTVIEWER_H

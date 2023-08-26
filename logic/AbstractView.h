@@ -48,6 +48,7 @@ public:
     void fillDeque();
     void recalcLines();
     bool lastInFile(int row);
+    virtual int64_t getMaximum() = 0;
 };
 }
 

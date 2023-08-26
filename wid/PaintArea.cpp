@@ -138,7 +138,10 @@ void PaintArea::setHorizontal(int beginX) {
     update();
 }
 
-void PaintArea::setVertical(int64_t position) {
+void PaintArea::setVertical(double relativePos) {
+    tv->gotoProportional(relativePos);
+    tv->fillDeque();
+    tv->recalcLines();
     update();
 }
 

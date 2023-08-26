@@ -17,13 +17,15 @@ LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
 }
 
 void LineView::gotoProportional(double relativePos) {
-    relativePos = max(min(relativePos,1.0),0.0);
-    int position = floor(relativePos*(m_lineAccess->lineCount() - 1));
-    auto backf = relativePos * (m_screenLineCount - 1);
-    int backCount = ceill(backf);
-    backNLines(position, backCount);
+    if (m_lineAccess->lineCount() == 0)
+        return;
+    if (m_lineAccess->lineCount() <= m_screenLineCount) {
+        m_start = 1;
+    } else {
+        m_start = floor((m_lineAccess->lineCount()  - m_screenLineCount) * relativePos);
+    }
 }
 
-void LineView::backNLines(int position, int backCount) {
-    m_start = max(position-backCount,0);
+int64_t LineView::getMaximum() {
+    return m_lineAccess->lineCount();
 }

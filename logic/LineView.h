@@ -12,10 +12,10 @@ namespace vl {
 
 class LineView : public AbstractView {
     ILineAccess *m_lineAccess;
-    void backNLines(int position, int backCount);
 public:
     explicit LineView(ILineAccess *lineAccess);
     void gotoProportional(double relativePos) override;
+    int64_t getMaximum() override;
 };
 }
 

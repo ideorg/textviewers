@@ -32,3 +32,7 @@ void ByteView::backNLines(int64_t position, int backCount) {
         lp = opt.value();
     }
 }
+
+int64_t ByteView::getMaximum() {
+    return m_byteAccess->byteCount();
+}

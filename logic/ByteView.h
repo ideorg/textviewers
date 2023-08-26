@@ -16,6 +16,7 @@ class ByteView : public AbstractView {
 public:
     explicit ByteView(IByteAccess *byteAccess);
     void gotoProportional(double relativePos) override;
+    int64_t getMaximum() override;
 };
 }
 

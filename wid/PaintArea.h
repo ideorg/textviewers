@@ -16,7 +16,7 @@ namespace wid {
 
 class PaintArea : public QWidget {
 Q_OBJECT
-    int logicKind;
+    int logicKind = 0;
     qreal fontWidth, fontHeight;
     QTimer timer;
     bool drawCaret = true;
@@ -49,7 +49,7 @@ public:
     void wheelHorizontal(int delta);
     void trySetCaret(QPoint point);
     void setHorizontal(int beginX);
-    void setVertical(int64_t position);
+    void setVertical(double relativePos);
     vl::AbstractView *tv = nullptr;
     vl::Interface *doc = nullptr;
     bool charInseideArea(std::pair<int,int> cp);
