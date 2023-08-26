@@ -119,3 +119,12 @@ int AbstractView::screenLineCount() {
 int AbstractView::screenLineLen() {
     return m_screenLineLen;
 }
+
+bool AbstractView::lastInFile(int row) {
+    auto iv = indexView[row];
+    if (iv.index != viewDeque->size() - 1)
+        return false;
+    if (iv.wrapIndex != viewDeque->backWrapCount() - 1)
+        return false;
+    return viewDeque->backAtEnd();
+}

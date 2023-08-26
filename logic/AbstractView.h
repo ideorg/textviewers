@@ -47,6 +47,7 @@ public:
     virtual void gotoProportional(double relativePos) = 0;
     void fillDeque();
     void recalcLines();
+    bool lastInFile(int row);
 };
 }
 

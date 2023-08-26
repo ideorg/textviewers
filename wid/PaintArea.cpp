@@ -34,7 +34,7 @@ void PaintArea::paintEvent(QPaintEvent *event) {
             drawSelBackground(painter, i);
             QRect R(0, i * fontHeight, this->rect().width(), fontHeight);
             QString qstr = QString::fromUcs4(tv->at(i).c_str(), tv->at(i).size());
-            if (qstr.isEmpty()) {
+            if (qstr.isEmpty() && tv->lastInFile(i)) {
                 QPen pen1(Qt::gray);
                 painter.setPen(pen1);
                 painter.drawText(R, Qt::AlignLeft, pilcrow);
