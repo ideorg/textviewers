@@ -25,14 +25,14 @@ int AbstractView::scrollDown() {
             countWrapBefore = 0;
             viewDeque->popFront();
         }
-        m_start = viewDeque->getMinimum();
+        m_startY = viewDeque->getMinimum();
         return 1;
     } else {
         if (viewDeque->backAtEnd())
             return 0;
         viewDeque->pushBack(wrap);
         viewDeque->popFront();
-        m_start = viewDeque->getMinimum();
+        m_startY = viewDeque->getMinimum();
         return 1;
     }
 }
@@ -53,14 +53,14 @@ int AbstractView::scrollUp() {
             countWrapAfter = 0;
             viewDeque->popBack();
         }
-        m_start = viewDeque->getMinimum();
+        m_startY = viewDeque->getMinimum();
         return 1;
     } else {
         if (viewDeque->frontAtStart())
             return 0;
         viewDeque->pushFront(wrap);
         viewDeque->popBack();
-        m_start = viewDeque->getMinimum();
+        m_startY = viewDeque->getMinimum();
         return 1;
     }
 }
@@ -71,7 +71,7 @@ bool AbstractView::wrapMode() {
 
 void AbstractView::fillDeque() {
     viewDeque->clear();
-    viewDeque->setFront(m_start);
+    viewDeque->setFront(m_startY);
     if (wrapMode()) {
         int row = 0;
         while (row < m_screenLineCount) {
@@ -181,7 +181,7 @@ int64_t AbstractView::startX() {
 }
 
 int64_t AbstractView::startY() {
-    return m_start;
+    return m_startY;
 }
 
 double AbstractView::startYproportional() {

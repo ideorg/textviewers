@@ -32,7 +32,7 @@ int64_t ByteView::beginTail() {
 
 void ByteView::gotoProportional(double relativePos) {
     auto lp =  m_byteAccess->lineEnclosing(ceill((long double)beginTail()*relativePos));
-    m_start = lp.offset;
+    m_startY = lp.offset;
 }
 
 int64_t ByteView::getMinimum() {
