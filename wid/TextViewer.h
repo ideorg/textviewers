@@ -21,6 +21,8 @@ namespace wid {
         void hscrollChanged();
         void vscrollChanged();
         void sizeChanged();
+        void setHScrollChange();
+        void setVScrollChange();
     };
 }
 #endif // VIEWER_TEXTVIEWER_H

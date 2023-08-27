@@ -25,12 +25,14 @@ int AbstractView::scrollDown() {
             countWrapBefore = 0;
             viewDeque->popFront();
         }
+        m_start = viewDeque->getMinimum();
         return 1;
     } else {
         if (viewDeque->backAtEnd())
             return 0;
         viewDeque->pushBack(wrap);
         viewDeque->popFront();
+        m_start = viewDeque->getMinimum();
         return 1;
     }
 }
@@ -51,12 +53,14 @@ int AbstractView::scrollUp() {
             countWrapAfter = 0;
             viewDeque->popBack();
         }
+        m_start = viewDeque->getMinimum();
         return 1;
     } else {
         if (viewDeque->frontAtStart())
             return 0;
         viewDeque->pushFront(wrap);
         viewDeque->popBack();
+        m_start = viewDeque->getMinimum();
         return 1;
     }
 }
@@ -148,5 +152,39 @@ int64_t AbstractView::getWindowedRange() {
 
 int64_t AbstractView::getScrollRange() {
     return getRange() - getWindowedRange();
+}
+
+int AbstractView::scrollNDown(int n) {
+    int result = 0;
+    for (int i = 0; i < n; i++) {
+        int res = scrollDown();
+        if (res < 1)
+            return result;
+        result += res;
+    }
+    return result;
+}
+
+int AbstractView::scrollNUp(int n) {
+    int result = 0;
+    for (int i = 0; i < n; i++) {
+        int res = scrollUp();
+        if (res < 1)
+            return result;
+        result += res;
+    }
+    return result;
+}
+
+int64_t AbstractView::startX() {
+    return m_startX;
+}
+
+int64_t AbstractView::startY() {
+    return m_start;
+}
+
+double AbstractView::startYproportional() {
+    return (double)startY() / (double)getScrollRange();
 }
 

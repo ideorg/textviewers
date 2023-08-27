@@ -29,6 +29,7 @@ protected:
     int m_wrapMode = 0;
 protected:
     int64_t m_start = 0;
+    int64_t m_startX = 0;
     std::vector<IndexView> indexView;
     int m_screenLineCount;
     int m_screenLineLen;
@@ -39,10 +40,15 @@ public:
     int screenLineCount();
     int screenLineLen();
     int size();
+    int64_t startX();
+    int64_t startY();
+    double startYproportional();
     std::u32string at(int n);
     std::u32string operator[](int n);
     int scrollDown();
     int scrollUp();
+    int scrollNDown(int n);
+    int scrollNUp(int n);
     bool wrapMode();
     virtual void gotoProportional(double relativePos) = 0;
     void fillDeque();

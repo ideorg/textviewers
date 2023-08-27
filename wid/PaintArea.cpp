@@ -130,8 +130,13 @@ void PaintArea::resizeEvent(QResizeEvent *event) {
 }
 
 void PaintArea::wheelVertical(int delta) {
+    if (delta > 0)
+        tv->scrollNUp(delta);
+    else if (delta < 0)
+        tv->scrollNDown(-delta);
     update();
     Q_EMIT scrollVChanged();
+
 }
 
 void PaintArea::setHorizontal(int beginX) {

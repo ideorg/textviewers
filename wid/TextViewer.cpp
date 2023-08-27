@@ -26,6 +26,8 @@ TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
     connect(hscroll, &QScrollBar::valueChanged, this, &TextViewer::hscrollChanged);
     connect(vscroll, &QScrollBar::valueChanged, this, &TextViewer::vscrollChanged);
     connect(paintArea, &PaintArea::sizeChanged, this, &TextViewer::sizeChanged);
+    connect(paintArea, &PaintArea::scrollHChanged, this, &TextViewer::setHScrollChange);
+    connect(paintArea, &PaintArea::scrollVChanged, this, &TextViewer::setVScrollChange);
 }
 
 void TextViewer::setData(const char *addr, int64_t fileSize) {
@@ -65,6 +67,18 @@ void TextViewer::sizeChanged() {
         factor = (double) range64 / MAXVSCROLL;
     }
     vscroll->setPageStep(paintArea->tv->getWindowedRange()/factor);
+}
+
+void TextViewer::setHScrollChange() {
+    disconnect(hscroll, &QScrollBar::valueChanged, this, &TextViewer::hscrollChanged);
+    hscroll->setValue(paintArea->tv->startX());
+    connect(hscroll, &QScrollBar::valueChanged, this, &TextViewer::hscrollChanged);
+}
+
+void TextViewer::setVScrollChange() {
+    disconnect(vscroll, &QScrollBar::valueChanged, this, &TextViewer::vscrollChanged);
+    vscroll->setValue(paintArea->tv->startYproportional()*vscroll->maximum());
+    connect(vscroll, &QScrollBar::valueChanged, this, &TextViewer::vscrollChanged);
 }
 
 }
