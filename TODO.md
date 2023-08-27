@@ -6,6 +6,7 @@
 - example program
 
 0.2
+- smart EOL ending file
 - start Google tests
 
 0.3
