@@ -1,9 +1,9 @@
-- gotoProportional
-- scrollDown,scrollUp
-
+===== DONE
 0.1
 - widget
 - example program
+- 
+==== TODO
 
 0.2
 - smart EOL ending file
