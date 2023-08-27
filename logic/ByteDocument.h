@@ -23,6 +23,7 @@ class ByteDocument: public virtual IByteAccess {
     int64_t m_fileSize;
     int64_t m_maxLineLen;
     int m_BOMsize = 0;
+    bool m_smartEOL;
     enum EndLine {
         elMaybeInside, elTrueEol
     };//todo really needed?
@@ -37,7 +38,7 @@ class ByteDocument: public virtual IByteAccess {
     int64_t gotoBeginLine(int64_t offset, EndLine maybeInside);
     int64_t gotoBeginNonEmptyLine(int64_t start, EndLine maybeInside);
 public:
-    ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen = 0);
+    ByteDocument(const char *addr, int64_t fileSize, bool smartEOL, int64_t maxLineLen = 0);
     int64_t firstByte() override;
     int64_t byteCount() override;
     bool fileIsEmpty() override;

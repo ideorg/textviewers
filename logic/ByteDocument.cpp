@@ -56,8 +56,8 @@ bool ByteDocument::isFirstChunkStart(int64_t offset) {
     return offset <= m_BOMsize || isNewlineChar(m_addr[offset - 1]);
 }
 
-ByteDocument::ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen) :
-        m_addr(addr), m_fileSize(fileSize), m_maxLineLen(maxLineLen) {
+ByteDocument::ByteDocument(const char *addr, int64_t fileSize, bool smartEOL, int64_t maxLineLen) :
+        m_addr(addr), m_fileSize(fileSize), m_smartEOL(smartEOL), m_maxLineLen(maxLineLen) {
 }
 
 int64_t ByteDocument::skipLineBreak(int64_t pos) {
@@ -112,7 +112,14 @@ bool ByteDocument::lineIsEmpty(int64_t offset) {
         return false;
     offset = firstOfCRLF(offset);
     assert(offset >= m_BOMsize);
-    return offset == m_BOMsize || isNewlineChar(m_addr[offset - 1]);
+    if (offset == m_BOMsize)
+        return true;
+    if (m_smartEOL) {
+        auto offset1 = skipLineBreak(offset);
+        if (offset1 == m_fileSize)
+            return true;
+    }
+    return isNewlineChar(m_addr[offset - 1]);
 }
 
 int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine maybeInside) {

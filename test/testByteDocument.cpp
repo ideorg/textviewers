@@ -9,7 +9,7 @@ using namespace std;
 
 namespace vl {
 TEST (ByteDocument, lineIsEmpty) {
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -20,13 +20,28 @@ TEST (ByteDocument, lineIsEmpty) {
                 else
                     lineLens[i] = 0;
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), 0);
+            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
-                if (lineBreakAtEnd || i < lineCount - 1)
+                bool addLineBreak;
+                switch (lineBreakAtEnd) {
+                    case 0:
+                        addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
+                        break;
+                    case 1:
+                        addLineBreak = true;
+                        break;
+                    default:
+                        if (lineLens.back() == 0)
+                            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                        else
+                            addLineBreak = i < lineLens.size() - 1;
+                        break;
+                }
+                if (addLineBreak)
                     next = eolExpected + lenBreaks;
                 else
                     next = eolExpected;
@@ -45,7 +60,7 @@ TEST (ByteDocument, lineIsEmpty) {
 }
 
 TEST (ByteDocument, forward) {
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -56,13 +71,28 @@ TEST (ByteDocument, forward) {
                 else
                     lineLens[i] = 0;
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), 0);
+            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
-                if (lineBreakAtEnd || i < lineCount - 1)
+                bool addLineBreak;
+                switch (lineBreakAtEnd) {
+                    case 0:
+                        addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
+                        break;
+                    case 1:
+                        addLineBreak = true;
+                        break;
+                    default:
+                        if (lineLens.back() == 0)
+                            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                        else
+                            addLineBreak = i < lineLens.size() - 1;
+                        break;
+                }
+                if (addLineBreak)
                     next = eolExpected + lenBreaks;
                 else
                     next = eolExpected;
@@ -85,7 +115,7 @@ TEST (ByteDocument, forward) {
 }
 
 TEST (ByteDocument, backward) {
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -96,13 +126,28 @@ TEST (ByteDocument, backward) {
                 else
                     lineLens[i] = 0;
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), 0);
+            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
-                if (lineBreakAtEnd || i < lineCount - 1)
+                bool addLineBreak;
+                switch (lineBreakAtEnd) {
+                    case 0:
+                        addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
+                        break;
+                    case 1:
+                        addLineBreak = true;
+                        break;
+                    default:
+                        if (lineLens.back() == 0)
+                            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                        else
+                            addLineBreak = i < lineLens.size() - 1;
+                        break;
+                }
+                if (addLineBreak)
                     next = eolExpected + lenBreaks;
                 else
                     next = eolExpected;

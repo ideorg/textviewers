@@ -9,7 +9,7 @@ using namespace std;
 using namespace vl;
 
 TEST (IByteAccess, lineAfter) {
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -20,7 +20,7 @@ TEST (IByteAccess, lineAfter) {
                 else
                     lineLens[i] = 0;
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), 0);
+            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             IByteAccess *idoc = &doc;
             auto optLine = idoc->firstLine();
             EXPECT_EQ(lineCount > 0, optLine.has_value());
@@ -42,7 +42,7 @@ TEST (IByteAccess, lineAfter) {
 }
 
 TEST (IByteAccess, lineBefore) {
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
         for (int lineBreaksKind = 1/**todo**/; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -53,7 +53,7 @@ TEST (IByteAccess, lineBefore) {
                 else
                     lineLens[i] = 0;
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), 0);
+            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             IByteAccess *idoc = &doc;
             auto optLine = idoc->lastLine();
             EXPECT_EQ(optLine.has_value(), lineCount > 0);
@@ -75,7 +75,7 @@ TEST (IByteAccess, lineBefore) {
 }
 
 TEST (IByteAccess, lineEnclosing) {
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
         for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
             int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
             for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -86,7 +86,7 @@ TEST (IByteAccess, lineEnclosing) {
                     else
                         lineLens[i] = 0;
                 string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-                ByteDocument doc(s.c_str(), s.size(), 0);
+                ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
                 int64_t eolExpected = 0;
                 int64_t firstLineByte = 0;
                 for (int i = 0; i < lineCount; i++) {

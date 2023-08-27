@@ -14,7 +14,7 @@ ChangeableDocument::ChangeableDocument(std::string_view content, int maxLineLen)
 }
 
 void ChangeableDocument::createStringList(std::string_view source) {
-    ByteDocument byteDocument(source.data(), source.size());
+    ByteDocument byteDocument(source.data(), true, source.size());
     IByteAccess *idoc = &byteDocument;
     int source_size = (int) source.size();
     if (source_size != source.size())

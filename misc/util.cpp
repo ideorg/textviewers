@@ -260,12 +260,28 @@ vector<u16string> makeExpect(string filename) {
     return v;
 }
 
-string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, bool lineBreakAtEnd) {
+//lineBreakAtEnd - 1: add line break at end of file 2: smart line break at end of file
+string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
     string s;
     for (int i = 0; i < lineLens.size(); i++) {
         for (int j = 0; j < lineLens[i]; j++)
             s += 'a';
-        if (lineBreakAtEnd || i < lineLens.size() - 1 || lineLens[i] == 0)
+        bool addLineBreak;
+        switch (lineBreakAtEnd) {
+            case 0:
+                addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
+                break;
+            case 1:
+                addLineBreak = true;
+                break;
+            default:
+                if (lineLens.back() == 0)
+                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                else
+                    addLineBreak = i < lineLens.size() - 1;
+                break;
+        }
+        if (addLineBreak)
         switch (lineBreaksKind) {
             case 0:
                 s += '\n';
