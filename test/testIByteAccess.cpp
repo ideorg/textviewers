@@ -73,3 +73,39 @@ TEST (IByteAccess, lineBefore) {
         }
     }
 }
+
+TEST (IByteAccess, lineEnclosing) {
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+        for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
+            int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
+            for (int lineCount = 0; lineCount <= 5; lineCount++) {
+                vector<int> lineLens(lineCount);
+                for (int i = 0; i < lineCount; i++)
+                    if ((i + lineCount + lineBreaksKind) % 2)
+                        lineLens[i] = 10;
+                    else
+                        lineLens[i] = 0;
+                string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
+                ByteDocument doc(s.c_str(), s.size(), 0);
+                int64_t eolExpected = 0;
+                int64_t firstLineByte = 0;
+                for (int i = 0; i < lineCount; i++) {
+                    eolExpected = firstLineByte + lineLens[i];
+                    int64_t next;
+                    if (lineBreakAtEnd || i < lineCount - 1)
+                        next = eolExpected + lenBreaks;
+                    else
+                        next = eolExpected;
+                    for (int64_t j = firstLineByte; j < eolExpected; j++) {
+                        auto lp = doc.lineEnclosing(j);
+                        EXPECT_EQ(firstLineByte, lp.offset);
+                    }
+                    for (int64_t j = eolExpected; j < next; j++) {
+                        auto lp = doc.lineEnclosing(j);
+                        EXPECT_EQ(firstLineByte, lp.offset);
+                    }
+                    firstLineByte = next;
+                }
+            }
+        }
+}

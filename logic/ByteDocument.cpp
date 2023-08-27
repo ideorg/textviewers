@@ -193,7 +193,11 @@ LinePoints ByteDocument::lineEnclosing(int64_t position) {
     assert(m_fileSize > m_BOMsize);
     LinePoints lp;
     lp.offset = gotoBeginLine(position, elMaybeInside);
-    auto eolPos = searchEndOfLine(position);
+    int64_t eolPos;
+    if (isNewlineChar(m_addr[position]))
+        eolPos = firstOfCRLF(position);
+    else
+        eolPos = searchEndOfLine(position);
     lp.len = eolPos - lp.offset;
     auto next = skipLineBreak(eolPos);
     lp.fullLen = next - lp.offset;
