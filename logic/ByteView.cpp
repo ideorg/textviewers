@@ -16,7 +16,7 @@ ByteView::ByteView(IByteAccess *byteAccess) : m_byteAccess(byteAccess) {
     viewDeque = make_unique<ByteDeque>(m_byteAccess);
 }
 
-int64_t ByteView::beginTail(){
+int64_t ByteView::beginTail() {
     auto opt = m_byteAccess->lastLine();
     if (!opt)
         return m_byteAccess->firstByte();
@@ -31,7 +31,8 @@ int64_t ByteView::beginTail(){
 }
 
 void ByteView::gotoProportional(double relativePos) {
-    m_start = beginTail();
+    auto lp =  m_byteAccess->lineEnclosing(ceill((long double)beginTail()*relativePos));
+    m_start = lp.offset;
 }
 
 int64_t ByteView::getMinimum() {
