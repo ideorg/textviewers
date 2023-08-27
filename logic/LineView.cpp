@@ -20,9 +20,9 @@ void LineView::gotoProportional(double relativePos) {
     if (m_lineAccess->lineCount() == 0)
         return;
     if (m_lineAccess->lineCount() <= m_screenLineCount) {
-        m_start = 1;
+        m_start = 0;
     } else {
-        m_start = floor((m_lineAccess->lineCount()  - m_screenLineCount) * relativePos);
+        m_start = floor((m_lineAccess->lineCount() - m_screenLineCount) * relativePos);
     }
 }
 
