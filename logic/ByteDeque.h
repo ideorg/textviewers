@@ -24,6 +24,10 @@ class ByteDeque : public IDeque {
 public:
     explicit ByteDeque(IByteAccess* byteAccess);
     bool empty() override;
+    int64_t getMinimum() override;
+    int64_t getWrapMinimum(int wrapIndex) override;
+    int64_t getMaximum() override;
+    int64_t getWrapMaximum(int wrapIndex) override;
     bool frontAtStart() override;
     void pushFront(const Wrap &wrap) override;
     void popFront() override;

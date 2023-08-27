@@ -15,7 +15,7 @@ bool ByteDeque::empty() {
 }
 
 bool ByteDeque::frontAtStart() {
-    return m_byteAccess->isFirstInFile(deq[0].linePoints);
+    return m_byteAccess->isFirstInFile(deq.front().linePoints);
 }
 
 void ByteDeque::pushFront(const Wrap &wrap) {
@@ -23,7 +23,7 @@ void ByteDeque::pushFront(const Wrap &wrap) {
     if (deq.empty())
         elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
     else
-        elem.linePoints = m_byteAccess->lineBefore(deq[0].linePoints).value();
+        elem.linePoints = m_byteAccess->lineBefore(deq.front().linePoints).value();
     elem.wrapEnds = wrap.wrapEnds(m_byteAccess->line(elem.linePoints));
     deq.push_front(elem);
 }
@@ -34,7 +34,7 @@ void ByteDeque::popFront() {
 }
 
 int ByteDeque::frontWrapCount() {
-    return (int) deq[0].wrapEnds.size();
+    return (int) deq.front().wrapEnds.size();
 }
 
 bool ByteDeque::backAtEnd() {
@@ -79,4 +79,27 @@ int64_t ByteDeque::backWrapOffset(int i) {
 
 std::string_view ByteDeque::lineAt(int n) {
     return m_byteAccess->line(deq[n].linePoints);
+}
+
+int64_t ByteDeque::getMinimum() {
+    auto lp = deq.front().linePoints;
+    return lp.offset;
+}
+
+int64_t ByteDeque::getWrapMinimum(int wrapIndex) {
+    auto elem = deq.front();
+    if (wrapIndex > 0)
+        return elem.linePoints.offset + elem.wrapEnds[wrapIndex - 1];
+    else
+        return elem.linePoints.offset;
+}
+
+int64_t ByteDeque::getMaximum() {
+    auto lp = deq.back().linePoints;
+    return lp.offset + lp.fullLen;
+}
+
+int64_t ByteDeque::getWrapMaximum(int wrapIndex) {
+    auto elem = deq.front();
+    return elem.linePoints.offset + elem.wrapEnds[wrapIndex];
 }

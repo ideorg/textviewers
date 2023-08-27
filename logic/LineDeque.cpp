@@ -82,3 +82,18 @@ std::string_view LineDeque::lineAt(int n) {
     return m_lineAccess->line(deq[n].index).value();
 }
 
+int64_t LineDeque::getMinimum() {
+    return deq.front().index;
+}
+
+int64_t LineDeque::getWrapMinimum(int wrapIndex) {
+    return getMinimum();
+}
+
+int64_t LineDeque::getMaximum() {
+    return deq.back().index + 1;
+}
+
+int64_t LineDeque::getWrapMaximum(int wrapIndex) {
+    return getMaximum();
+}

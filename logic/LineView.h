@@ -15,7 +15,10 @@ class LineView : public AbstractView {
 public:
     explicit LineView(ILineAccess *lineAccess);
     void gotoProportional(double relativePos) override;
+    int64_t getMinimum() override;
     int64_t getMaximum() override;
+    int64_t getWindowedMinimum() override;
+    int64_t getWindowedMaximum() override;
 };
 }
 

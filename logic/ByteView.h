@@ -12,11 +12,14 @@ namespace vl {
 
 class ByteView : public AbstractView {
     IByteAccess *m_byteAccess;
-    void backNLines(int64_t position, int backCount);
+    int64_t beginTail();
 public:
     explicit ByteView(IByteAccess *byteAccess);
     void gotoProportional(double relativePos) override;
+    int64_t getMinimum() override;
     int64_t getMaximum() override;
+    int64_t getWindowedMinimum() override;
+    int64_t getWindowedMaximum() override;
 };
 }
 

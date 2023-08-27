@@ -24,7 +24,7 @@ void ChangeableDocument::createStringList(std::string_view source) {
         int len = eolPos - position;
         string str(source.data()+position, len);
         stringList.push_back(str);
-        position = byteDocument.skipLineBreakEx(eolPos, len);
+        position = byteDocument.skipLineBreak(eolPos);
     }
     assert(position == source_size);
 }

@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     hLayout->addWidget(lineEdit);
     hLayout->addWidget(button);
     mainLayout->addLayout(hLayout);
-    lineEdit->setText("../../../main.cpp");
+    lineEdit->setText("../../../test/data/textviewer.h0");
     file = std::make_unique<QFile>(lineEdit->text());
     if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "error open file";

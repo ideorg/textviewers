@@ -7,6 +7,7 @@
 #include "ByteDeque.h"
 #include <memory>
 #include <cmath>
+#include <iostream>
 
 using namespace vl;
 using namespace std;
@@ -15,24 +16,42 @@ ByteView::ByteView(IByteAccess *byteAccess) : m_byteAccess(byteAccess) {
     viewDeque = make_unique<ByteDeque>(m_byteAccess);
 }
 
-void ByteView::gotoProportional(double relativePos) {
-    relativePos = max(min(relativePos, 1.0), 0.0);
-    int64_t position = floorl((long double) relativePos * (m_byteAccess->byteCount() - 1));
-    auto backf = relativePos * (m_screenLineCount - 1);
-    int backCount = ceil(backf);
-    backNLines(position, backCount);
-}
-
-void ByteView::backNLines(int64_t position, int backCount) {
-    auto lp = m_byteAccess->lineEnclosing(position);
-    for (int i=0; i<backCount; i++) {
+int64_t ByteView::beginTail(){
+    auto opt = m_byteAccess->lastLine();
+    if (!opt)
+        return m_byteAccess->firstByte();
+    auto lp = opt.value();
+    for (int i=0; i<screenLineCount()-1; i++) {
         auto opt = m_byteAccess->lineBefore(lp);
         if (!opt)
             break;
         lp = opt.value();
     }
+    return lp.offset;
+}
+
+void ByteView::gotoProportional(double relativePos) {
+    m_start = beginTail();
+}
+
+int64_t ByteView::getMinimum() {
+    return m_byteAccess->firstByte();
 }
 
 int64_t ByteView::getMaximum() {
     return m_byteAccess->byteCount();
+}
+
+int64_t ByteView::getWindowedMinimum() {
+    if (indexView.empty())
+        return getMinimum();
+    else
+        return viewDeque->getMinimum();
+}
+
+int64_t ByteView::getWindowedMaximum() {
+    if (indexView.empty())
+        return getMinimum();
+    else
+        return viewDeque->getMaximum();
 }

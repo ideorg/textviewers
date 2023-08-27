@@ -48,7 +48,12 @@ public:
     void fillDeque();
     void recalcLines();
     bool lastInFile(int row);
+    virtual int64_t getMinimum() = 0;
     virtual int64_t getMaximum() = 0;
+    virtual int64_t getWindowedMinimum() = 0;
+    virtual int64_t getWindowedMaximum() = 0;
+    int64_t getRange();
+    int64_t getWindowedRange();
 };
 }
 

@@ -22,10 +22,28 @@ void LineView::gotoProportional(double relativePos) {
     if (m_lineAccess->lineCount() <= m_screenLineCount) {
         m_start = 0;
     } else {
-        m_start = floor((m_lineAccess->lineCount() - m_screenLineCount) * relativePos);
+        m_start = round((m_lineAccess->lineCount() - m_screenLineCount) * relativePos);
     }
 }
 
 int64_t LineView::getMaximum() {
     return m_lineAccess->lineCount();
+}
+
+int64_t LineView::getMinimum() {
+    return 0;
+}
+
+int64_t LineView::getWindowedMinimum() {
+    if (indexView.empty())
+        return getMinimum();
+    else
+        return viewDeque->getMinimum();
+}
+
+int64_t LineView::getWindowedMaximum() {
+    if (indexView.empty())
+        return getMinimum();
+    else
+        return viewDeque->getMaximum();
 }

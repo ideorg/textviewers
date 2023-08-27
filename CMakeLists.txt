@@ -30,6 +30,10 @@ set(WID_SOURCES
 
 add_subdirectory(examples/viewer)
 
-add_executable(main ${LOGIC_SOURCES}
-        misc/util.cpp
-        main.cpp)
+add_executable(gtest_viewer ${LOGIC_SOURCES}
+        test/testByteDocument.cpp
+)
+
+target_link_libraries(gtest_viewer gtest gtest_main)
+
+target_include_directories(gtest_viewer PRIVATE ${CMAKE_SOURCE_DIR})

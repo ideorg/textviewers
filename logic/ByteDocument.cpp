@@ -3,6 +3,7 @@
 //
 
 #include <cassert>
+#include <stdexcept>
 #include "ByteDocument.h"
 #include "UTF/UTF.hpp"
 
@@ -14,6 +15,8 @@ bool ByteDocument::isNewlineChar(const char c) {
 }
 
 int64_t ByteDocument::searchEndOfLine(int64_t startOffset) {
+    if (isNewlineChar(m_addr[startOffset]))
+        throw std::runtime_error("searchEndOfLine: startOffset is on a line break");
     if (m_maxLineLen) {
         int64_t offset = startOffset;
         int64_t possibleBreakAt = (offset / m_maxLineLen) * m_maxLineLen + m_maxLineLen;
@@ -57,15 +60,6 @@ ByteDocument::ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLe
         m_addr(addr), m_fileSize(fileSize), m_maxLineLen(maxLineLen) {
 }
 
-int64_t ByteDocument::skipLineBreakEx(int64_t eolPos, int64_t len) {
-    int64_t next = skipLineBreak(eolPos);
-    assert(next<=m_fileSize);
-    if (next == m_fileSize && len>0)
-        return eolPos;
-    else
-        return next;
-}
-
 int64_t ByteDocument::skipLineBreak(int64_t pos) {
     assert(pos <= m_fileSize);
     if (pos == m_fileSize) return pos;
@@ -80,7 +74,10 @@ int64_t ByteDocument::skipLineBreak(int64_t pos) {
 }
 
 int64_t ByteDocument::firstOfCRLF(int64_t position) {
-    assert(position>=m_BOMsize && position < m_fileSize && isNewlineChar(m_addr[position]));
+    assert(position >= m_BOMsize);
+    assert(position < m_fileSize);
+    if (!isNewlineChar(m_addr[position]))
+        throw std::runtime_error("firstOfCRLF: position is not on a line break");
     char c = m_addr[position];
     if (c == '\r')
         return position;
@@ -97,14 +94,9 @@ int64_t ByteDocument::firstOfCRLF(int64_t position) {
     }
 }
 
-bool ByteDocument::empty() {
-    assert(m_fileSize >= m_BOMsize);
-    return m_fileSize == m_BOMsize;
-}
-
 int64_t ByteDocument::gotoBeginLine(int64_t offset, ByteDocument::EndLine maybeInside) {
     assert(offset <= m_fileSize);
-    if (offset == m_fileSize) return m_fileSize;
+    if (offset == m_fileSize) offset--;
     if (isNewlineChar(m_addr[offset])) {
         offset = firstOfCRLF(offset);
         if (lineIsEmpty(offset))
@@ -115,18 +107,19 @@ int64_t ByteDocument::gotoBeginLine(int64_t offset, ByteDocument::EndLine maybeI
 }
 
 bool ByteDocument::lineIsEmpty(int64_t offset) {
-    assert(offset < m_fileSize && isNewlineChar(m_addr[offset]));
-    if (offset == m_fileSize - 1)
-        return true;
-    if (offset == m_fileSize - 2 && m_addr[offset] == '\r' && m_addr[offset + 1] == '\n')
-        return true;
+    assert(offset < m_fileSize);
+    if (!isNewlineChar(m_addr[offset]))
+        return false;
+    offset = firstOfCRLF(offset);
     assert(offset >= m_BOMsize);
     return offset == m_BOMsize || isNewlineChar(m_addr[offset - 1]);
 }
 
 int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine maybeInside) {
     assert(start >= m_BOMsize);
-    assert(start < m_fileSize && !isNewlineChar(m_addr[start]));
+    assert(start < m_fileSize);
+    if (isNewlineChar(m_addr[start]))
+        throw std::runtime_error("gotoBeginNonEmptyLine: start is on a line break");
     if (m_maxLineLen) {
         int64_t possibleBreakAt = (start / m_maxLineLen) * m_maxLineLen;
         int64_t possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
@@ -174,7 +167,7 @@ std::optional<LinePoints> ByteDocument::firstLine() {
     LinePoints lp;
     lp.offset = m_BOMsize;
     lp.len = searchEndOfLine(m_BOMsize) - m_BOMsize;
-    lp.fullLen = skipLineBreakEx(lp.offset + lp.len, lp.len);
+    lp.fullLen = skipLineBreak(lp.offset + lp.len);
     return make_optional(lp);
 }
 
@@ -182,10 +175,11 @@ std::optional<LinePoints> ByteDocument::lastLine() {
     if (fileIsEmpty())
         return nullopt;
     LinePoints lp;
-    auto eolPos = firstOfCRLF(m_fileSize - 1);
+    int64_t eolPos = firstOfCRLF(m_fileSize - 1);
     lp.offset = gotoBeginLine(eolPos, elTrueEol);
     lp.len = eolPos - lp.offset;
     lp.fullLen = m_fileSize - lp.offset;
+
     return make_optional(lp);
 }
 
@@ -195,7 +189,7 @@ LinePoints ByteDocument::lineEnclosing(int64_t position) {
     lp.offset = gotoBeginLine(position, elMaybeInside);
     auto eolPos = searchEndOfLine(position);
     lp.len = eolPos - lp.offset;
-    auto next = skipLineBreakEx(eolPos, lp.len);
+    auto next = skipLineBreak(eolPos);
     lp.fullLen = next - lp.offset;
     return lp;
 }
@@ -209,7 +203,7 @@ std::optional<LinePoints> ByteDocument::lineBefore(const LinePoints &linePoints)
     if (isFirstInFile(linePoints))
         return nullopt;
     LinePoints lp;
-    auto eolPos = firstOfCRLF(linePoints.offset - 1);
+    int64_t eolPos = firstOfCRLF(linePoints.offset - 1);
     lp.offset = gotoBeginLine(eolPos, elTrueEol);
     lp.len = eolPos - lp.offset;
     lp.fullLen = linePoints.offset - lp.offset;
@@ -221,8 +215,8 @@ std::optional<LinePoints> ByteDocument::lineAfter(const LinePoints &linePoints) 
         return nullopt;
     LinePoints lp;
     lp.offset = linePoints.offset + linePoints.fullLen;
-    lp.len = searchEndOfLine(lp.offset) - lp.offset;
-    lp.fullLen = skipLineBreakEx(lp.offset + lp.len, lp.len) - lp.offset;
+    lp.len = searchEndOfLineFromStart(lp.offset) - lp.offset;
+    lp.fullLen = skipLineBreak(lp.offset + lp.len) - lp.offset;
     return make_optional(lp);
 }
 
@@ -249,4 +243,15 @@ int64_t ByteDocument::byteCount() {
 
 int ByteDocument::BOMsize() {
     return m_BOMsize;
+}
+
+int64_t ByteDocument::firstByte() {
+    return m_BOMsize;
+}
+
+int64_t ByteDocument::searchEndOfLineFromStart(int64_t startOffset) {
+    if (isNewlineChar(m_addr[startOffset]))
+        return startOffset;
+    else
+        return searchEndOfLine(startOffset);
 }

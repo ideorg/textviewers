@@ -14,6 +14,10 @@ namespace vl {
 class IDeque {
 public:
     virtual bool empty() = 0;
+    virtual int64_t getMinimum() = 0;
+    virtual int64_t getWrapMinimum(int wrapIndex) = 0;
+    virtual int64_t getMaximum() = 0;
+    virtual int64_t getWrapMaximum(int wrapIndex) = 0;
     virtual bool frontAtStart() = 0;
     virtual void pushFront(const Wrap &wrap) = 0;
     virtual void popFront() = 0;

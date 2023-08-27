@@ -15,11 +15,7 @@ optional<string_view> LineIndexedDocument::line(int n) {
         return nullopt;;
     int64_t offset = wholeIndex[n];
     int64_t end = wholeIndex[n+1];
-    int64_t eol;
-    if (isNewlineChar(m_addr[end-1]))
-        eol = firstOfCRLF(end-1);
-    else
-        eol = end;
+    int64_t eol = firstOfCRLF(end-1);
     string_view view(m_content.data() + offset, eol-offset);
     return make_optional(view);
 }
@@ -40,9 +36,9 @@ void LineIndexedDocument::createIndex(std::string_view source) {
     int position = m_BOMsize;
     while (position < source_size) {
         wholeIndex.push_back(position);
-        int eolPos = searchEndOfLine(position);
+        int eolPos = searchEndOfLineFromStart(position);
         int len = eolPos - position;
-        position = skipLineBreakEx(eolPos, len);
+        position = skipLineBreak(eolPos);
     }
     assert(position == source_size);
     wholeIndex.push_back(position);

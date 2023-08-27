@@ -138,3 +138,11 @@ std::u32string AbstractView::at(int n) {
     return DString::substr(lineView, 0, m_screenLineLen);
 }
 
+int64_t AbstractView::getRange() {
+    return getMaximum() - getMinimum();
+}
+
+int64_t AbstractView::getWindowedRange() {
+    return getWindowedMaximum() - getWindowedMinimum();
+}
+
