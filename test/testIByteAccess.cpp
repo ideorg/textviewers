@@ -21,15 +21,19 @@ TEST (IByteAccess, lineAfter) {
             string s = genSample(lineLens, lineBreaksKind);
             ByteDocument doc(s.c_str(), s.size(), 0);
             IByteAccess *idoc = &doc;
-            auto optFirstLine = idoc->firstLine();
-            EXPECT_EQ(optFirstLine.has_value(), lineCount>0);
-            if (!optFirstLine)
-                continue;
-            auto lpFirstLine = optFirstLine.value();
-            EXPECT_EQ(lpFirstLine.offset,idoc->firstByte());
-            EXPECT_EQ(lpFirstLine.len, lineLens[0]);
-            EXPECT_EQ(lpFirstLine.fullLen, lineLens[0] + lenBreaks);
-            auto optLineAfter = idoc->lineAfter(lpFirstLine);
+            auto optLine = idoc->firstLine();
+            EXPECT_EQ(lineCount > 0, optLine.has_value());
+            int counter = 0;
+            int prevOffset = idoc->firstByte();
+            while (optLine) {
+                auto lpLine = optLine.value();
+                EXPECT_EQ(prevOffset, lpLine.offset);
+                EXPECT_EQ(lineLens[counter], lpLine.len);
+                EXPECT_EQ(lineLens[counter] + lenBreaks, lpLine.fullLen);
+                counter++;
+                prevOffset += lpLine.fullLen;
+                optLine = idoc->lineAfter(lpLine);
+            }
         }
     }
 }
@@ -47,15 +51,19 @@ TEST (IByteAccess, lineBefore) {
             string s = genSample(lineLens, lineBreaksKind);
             ByteDocument doc(s.c_str(), s.size(), 0);
             IByteAccess *idoc = &doc;
-            auto optFirstLine = idoc->lastLine();
-            EXPECT_EQ(optFirstLine.has_value(), lineCount>0);
-            if (!optFirstLine)
-                continue;
-            auto lpLastLine = optFirstLine.value();
-            EXPECT_EQ(lpLastLine.offset + lpLastLine.fullLen, idoc->byteCount());
-            EXPECT_EQ(lpLastLine.len, lineLens.back());
-            EXPECT_EQ(lpLastLine.fullLen, lpLastLine.len + lenBreaks);
-            auto optLineAfter = idoc->lineAfter(lpLastLine);
+            auto optLine = idoc->lastLine();
+            EXPECT_EQ(optLine.has_value(), lineCount > 0);
+            int counter = lineCount-1;
+            int nextOffset = idoc->byteCount();
+            while (optLine) {
+                auto lpLine = optLine.value();
+                EXPECT_EQ(nextOffset, lpLine.offset + lpLine.fullLen);
+                EXPECT_EQ(lineLens[counter], lpLine.len);
+                EXPECT_EQ(lineLens[counter] + lenBreaks, lpLine.fullLen);
+                counter--;
+                nextOffset = lpLine.offset;
+                optLine = idoc->lineBefore(lpLine);
+            }
         }
     }
 }
