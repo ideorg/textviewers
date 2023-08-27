@@ -178,11 +178,14 @@ std::optional<LinePoints> ByteDocument::lastLine() {
     if (fileIsEmpty())
         return nullopt;
     LinePoints lp;
-    int64_t eolPos = firstOfCRLF(m_fileSize - 1);
+    int64_t eolPos;
+    if (isNewlineChar(m_addr[m_fileSize - 1]))
+        eolPos = firstOfCRLF(m_fileSize - 1);
+    else
+        eolPos = m_fileSize;
     lp.offset = gotoBeginLine(eolPos, elTrueEol);
     lp.len = eolPos - lp.offset;
     lp.fullLen = m_fileSize - lp.offset;
-
     return make_optional(lp);
 }
 

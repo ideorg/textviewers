@@ -9,6 +9,7 @@ using namespace std;
 
 namespace vl {
 TEST (ByteDocument, lineIsEmpty) {
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -18,14 +19,17 @@ TEST (ByteDocument, lineIsEmpty) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
-            string s = genSample(lineLens, lineBreaksKind);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
-                next = eolExpected + lenBreaks;
+                if (lineBreakAtEnd || i < lineCount - 1)
+                    next = eolExpected + lenBreaks;
+                else
+                    next = eolExpected;
                 for (int64_t j = firstLineByte; j < eolExpected; j++) {
                     EXPECT_FALSE(doc.lineIsEmpty(j));
                 }
@@ -41,6 +45,7 @@ TEST (ByteDocument, lineIsEmpty) {
 }
 
 TEST (ByteDocument, forward) {
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -50,14 +55,17 @@ TEST (ByteDocument, forward) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
-            string s = genSample(lineLens, lineBreaksKind);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
-                next = eolExpected + lenBreaks;
+                if (lineBreakAtEnd || i < lineCount - 1)
+                    next = eolExpected + lenBreaks;
+                else
+                    next = eolExpected;
                 for (int64_t j = firstLineByte; j < eolExpected; j++) {
                     int64_t eolActual = doc.searchEndOfLine(j);
                     EXPECT_EQ(eolExpected, eolActual);
@@ -77,6 +85,7 @@ TEST (ByteDocument, forward) {
 }
 
 TEST (ByteDocument, backward) {
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -86,14 +95,17 @@ TEST (ByteDocument, backward) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
-            string s = genSample(lineLens, lineBreaksKind);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
-                next = eolExpected + lenBreaks;
+                if (lineBreakAtEnd || i < lineCount - 1)
+                    next = eolExpected + lenBreaks;
+                else
+                    next = eolExpected;
                 for (int64_t j = firstLineByte; j < eolExpected; j++) {
                     int64_t startLineActual = doc.gotoBeginLine(j, ByteDocument::elMaybeInside);
                     EXPECT_EQ(firstLineByte, startLineActual);

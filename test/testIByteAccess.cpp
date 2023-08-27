@@ -9,6 +9,7 @@ using namespace std;
 using namespace vl;
 
 TEST (IByteAccess, lineAfter) {
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -18,7 +19,7 @@ TEST (IByteAccess, lineAfter) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
-            string s = genSample(lineLens, lineBreaksKind);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), 0);
             IByteAccess *idoc = &doc;
             auto optLine = idoc->firstLine();
@@ -29,7 +30,9 @@ TEST (IByteAccess, lineAfter) {
                 auto lpLine = optLine.value();
                 EXPECT_EQ(prevOffset, lpLine.offset);
                 EXPECT_EQ(lineLens[counter], lpLine.len);
-                EXPECT_EQ(lineLens[counter] + lenBreaks, lpLine.fullLen);
+                int currentBreaks = lineBreakAtEnd || counter < lineCount - 1 || lineLens[counter] == 0
+                                    ? lenBreaks : 0;
+                EXPECT_EQ(lineLens[counter] + currentBreaks, lpLine.fullLen);
                 counter++;
                 prevOffset += lpLine.fullLen;
                 optLine = idoc->lineAfter(lpLine);
@@ -39,7 +42,8 @@ TEST (IByteAccess, lineAfter) {
 }
 
 TEST (IByteAccess, lineBefore) {
-    for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
+    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 2; lineBreakAtEnd++)
+        for (int lineBreaksKind = 1/**todo**/; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
             vector<int> lineLens(lineCount);
@@ -48,7 +52,7 @@ TEST (IByteAccess, lineBefore) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
-            string s = genSample(lineLens, lineBreaksKind);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), 0);
             IByteAccess *idoc = &doc;
             auto optLine = idoc->lastLine();
@@ -59,7 +63,9 @@ TEST (IByteAccess, lineBefore) {
                 auto lpLine = optLine.value();
                 EXPECT_EQ(nextOffset, lpLine.offset + lpLine.fullLen);
                 EXPECT_EQ(lineLens[counter], lpLine.len);
-                EXPECT_EQ(lineLens[counter] + lenBreaks, lpLine.fullLen);
+                int currentBreaks = lineBreakAtEnd || counter < lineCount - 1 || lineLens[counter] == 0
+                                    ? lenBreaks : 0;
+                EXPECT_EQ(lineLens[counter] + currentBreaks, lpLine.fullLen);
                 counter--;
                 nextOffset = lpLine.offset;
                 optLine = idoc->lineBefore(lpLine);

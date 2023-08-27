@@ -260,11 +260,12 @@ vector<u16string> makeExpect(string filename) {
     return v;
 }
 
-string genSample(vector<int> lineLens, int lineBreaksKind) {
+string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, bool lineBreakAtEnd) {
     string s;
     for (int i = 0; i < lineLens.size(); i++) {
         for (int j = 0; j < lineLens[i]; j++)
             s += 'a';
+        if (lineBreakAtEnd || i < lineLens.size() - 1 || lineLens[i] == 0)
         switch (lineBreaksKind) {
             case 0:
                 s += '\n';
