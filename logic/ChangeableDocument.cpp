@@ -22,8 +22,8 @@ void ChangeableDocument::createStringList(std::string_view source) {
     auto opt = idoc->firstLine();
     if (!opt)
         return;
-    auto lp = opt.value();
     while (opt) {
+        auto lp = opt.value();
         string str(source.data()+lp.offset, lp.len);
         stringList.push_back(str);
         opt = idoc->lineAfter(lp);

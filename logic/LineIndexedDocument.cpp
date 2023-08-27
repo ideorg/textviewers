@@ -34,8 +34,8 @@ void LineIndexedDocument::createIndex(std::string_view source) {
     auto opt = idoc->firstLine();
     if (!opt)
         return;
-    auto lp = opt.value();
     while (opt) {
+        auto lp = opt.value();
         SmallLinePoints slp;
         slp.offset = lp.offset;
         slp.len = (int)lp.len;
