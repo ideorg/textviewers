@@ -259,3 +259,25 @@ vector<u16string> makeExpect(string filename) {
         throw runtime_error("empty test expect");
     return v;
 }
+
+string genSample(vector<int> lineLens, int lineBreaksKind) {
+    string s;
+    for (int i = 0; i < lineLens.size(); i++) {
+        for (int j = 0; j < lineLens[i]; j++)
+            s += 'a';
+        switch (lineBreaksKind) {
+            case 0:
+                s += '\n';
+                break;
+            case 1:
+                s += '\r';
+                break;
+            case 2:
+                s += "\r\n";
+                break;
+            default:
+                throw logic_error("genSample: lineBreaksKind out of range");
+        }
+    }
+    return s;
+}

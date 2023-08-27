@@ -15,21 +15,22 @@ ChangeableDocument::ChangeableDocument(std::string_view content, int maxLineLen)
 
 void ChangeableDocument::createStringList(std::string_view source) {
     ByteDocument byteDocument(source.data(), source.size());
+    IByteAccess *idoc = &byteDocument;
     int source_size = (int) source.size();
     if (source_size != source.size())
         throw runtime_error("file too large");
-    int position = byteDocument.BOMsize();
-    while (position < source_size) {
-        int eolPos = byteDocument.searchEndOfLine(position);
-        int len = eolPos - position;
-        string str(source.data()+position, len);
+    auto opt = idoc->firstLine();
+    if (!opt)
+        return;
+    auto lp = opt.value();
+    while (opt) {
+        string str(source.data()+lp.offset, lp.len);
         stringList.push_back(str);
-        position = byteDocument.skipLineBreak(eolPos);
+        opt = idoc->lineAfter(lp);
     }
-    assert(position == source_size);
 }
 
-std::optional<std::string_view> ChangeableDocument::line(int n) {
+std::optional<std::string_view> ChangeableDocument::lineByIndex(int n) {
     if (n<0 || n>= lineCount())
         return nullopt;
     auto &str = stringList[n];

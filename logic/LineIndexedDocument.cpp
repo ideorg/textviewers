@@ -10,18 +10,15 @@
 using namespace std;
 using namespace vl;
 
-optional<string_view> LineIndexedDocument::line(int n) {
+optional<string_view> LineIndexedDocument::lineByIndex(int n) {
     if (n < 0 || n  >= lineCount())
         return nullopt;;
-    int64_t offset = wholeIndex[n];
-    int64_t end = wholeIndex[n+1];
-    int64_t eol = firstOfCRLF(end-1);
-    string_view view(m_content.data() + offset, eol-offset);
-    return make_optional(view);
+    auto slp = wholeIndex[n];
+    return line(slp);
 }
 
 int LineIndexedDocument::lineCount() {
-    return max(wholeIndex.size() - 1, 0UL);
+    return wholeIndex.size();
 }
 
 LineIndexedDocument::LineIndexedDocument(string_view content, int maxLineLen)
@@ -30,18 +27,21 @@ LineIndexedDocument::LineIndexedDocument(string_view content, int maxLineLen)
 }
 
 void LineIndexedDocument::createIndex(std::string_view source) {
+    IByteAccess *idoc = this;
     int source_size = (int) source.size();
     if (source_size != source.size())
         throw runtime_error("file too large");
-    int position = m_BOMsize;
-    while (position < source_size) {
-        wholeIndex.push_back(position);
-        int eolPos = searchEndOfLineFromStart(position);
-        int len = eolPos - position;
-        position = skipLineBreak(eolPos);
+    auto opt = idoc->firstLine();
+    if (!opt)
+        return;
+    auto lp = opt.value();
+    while (opt) {
+        SmallLinePoints slp;
+        slp.offset = lp.offset;
+        slp.len = (int)lp.len;
+        wholeIndex.push_back(slp);
+        opt = idoc->lineAfter(lp);
     }
-    assert(position == source_size);
-    wholeIndex.push_back(position);
 }
 
 bool LineIndexedDocument::linesAreEmpty() {

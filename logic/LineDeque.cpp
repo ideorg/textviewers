@@ -24,7 +24,7 @@ void LineDeque::pushFront(const Wrap &wrap) {
         elem.index = m_startLine;
     else
         elem.index = deq[0].index - 1;
-    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->line(elem.index).value());
+    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
     deq.push_front(elem);
 }
 
@@ -48,7 +48,7 @@ void LineDeque::pushBack(const Wrap &wrap) {
         elem.index = m_startLine;
     else
         elem.index = deq.back().index + 1;
-    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->line(elem.index).value());
+    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
     deq.push_back(elem);
 }
 
@@ -79,7 +79,7 @@ int64_t LineDeque::backWrapOffset(int i) {
 }
 
 std::string_view LineDeque::lineAt(int n) {
-    return m_lineAccess->line(deq[n].index).value();
+    return m_lineAccess->lineByIndex(deq[n].index).value();
 }
 
 int64_t LineDeque::getMinimum() {

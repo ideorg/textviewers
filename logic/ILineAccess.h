@@ -13,7 +13,7 @@ namespace vl {
 
 class ILineAccess : public virtual Interface {
 public:
-    virtual std::optional<std::string_view> line(int n) = 0;
+    virtual std::optional<std::string_view> lineByIndex(int n) = 0;
     virtual int lineCount() = 0;
     virtual bool linesAreEmpty() = 0;
     virtual bool isFirstInFile(int n) = 0;

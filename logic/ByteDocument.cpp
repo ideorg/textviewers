@@ -166,7 +166,10 @@ std::optional<LinePoints> ByteDocument::firstLine() {
         return nullopt;
     LinePoints lp;
     lp.offset = m_BOMsize;
-    lp.len = searchEndOfLine(m_BOMsize) - m_BOMsize;
+    if (isNewlineChar(m_addr[lp.offset]))
+        lp.len = 0;
+    else
+        lp.len = searchEndOfLine(m_BOMsize) - m_BOMsize;
     lp.fullLen = skipLineBreak(lp.offset + lp.len);
     return make_optional(lp);
 }
@@ -195,6 +198,11 @@ LinePoints ByteDocument::lineEnclosing(int64_t position) {
 }
 
 std::string_view ByteDocument::line(const LinePoints &linePoints) {
+    std::string_view view(linePoints.offset + m_addr, linePoints.len);
+    return view;
+}
+
+std::string_view ByteDocument::line(const SmallLinePoints &linePoints) {
     std::string_view view(linePoints.offset + m_addr, linePoints.len);
     return view;
 }
@@ -241,10 +249,6 @@ int64_t ByteDocument::byteCount() {
     return m_fileSize;
 }
 
-int ByteDocument::BOMsize() {
-    return m_BOMsize;
-}
-
 int64_t ByteDocument::firstByte() {
     return m_BOMsize;
 }
@@ -255,3 +259,4 @@ int64_t ByteDocument::searchEndOfLineFromStart(int64_t startOffset) {
     else
         return searchEndOfLine(startOffset);
 }
+

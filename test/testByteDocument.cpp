@@ -3,32 +3,11 @@
 //
 #include "gtest/gtest.h"
 #include "logic/ByteDocument.h"
+#include "misc/util.h"
 
 using namespace std;
-using namespace vl;
 
-string genSample(vector<int> lineLens, int lineBreaksKind) {
-    string s;
-    for (int i = 0; i < lineLens.size(); i++) {
-        for (int j = 0; j < lineLens[i]; j++)
-            s += 'a';
-        switch (lineBreaksKind) {
-            case 0:
-                s += '\n';
-                break;
-            case 1:
-                s += '\r';
-                break;
-            case 2:
-                s += "\r\n";
-                break;
-            default:
-                throw logic_error("genSample: lineBreaksKind out of range");
-        }
-    }
-    return s;
-}
-
+namespace vl {
 TEST (ByteDocument, lineIsEmpty) {
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
@@ -133,4 +112,5 @@ TEST (ByteDocument, backward) {
             }
         }
     }
+}
 }

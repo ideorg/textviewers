@@ -14,11 +14,11 @@ namespace vl {
 
 class LineIndexedDocument : public virtual ByteDocument, public virtual ILineAccess {
     std::string_view m_content;
-    std::vector<int> wholeIndex;
+    std::vector<SmallLinePoints> wholeIndex;
     void createIndex(std::string_view source);
 public:
     explicit LineIndexedDocument(std::string_view content, int maxLineLen = 0);
-    std::optional<std::string_view> line(int n) override;
+    std::optional<std::string_view> lineByIndex(int n) override;
     int lineCount() override;
     bool linesAreEmpty() override;
     bool isFirstInFile(int n) override;

@@ -16,7 +16,7 @@ class ChangeableDocument : public virtual ILineAccess {
     void createStringList(std::string_view source);
 public:
     explicit ChangeableDocument(std::string_view content, int maxLineLen = 0);
-    std::optional<std::string_view> line(int n) override;
+    std::optional<std::string_view> lineByIndex(int n) override;
     int lineCount() override;
     bool linesAreEmpty() override;
     bool isFirstInFile(int n) override;
