@@ -30,8 +30,21 @@ TEST (IByteAccess, lineAfter) {
                 auto lpLine = optLine.value();
                 EXPECT_EQ(prevOffset, lpLine.offset);
                 EXPECT_EQ(lineLens[counter], lpLine.len);
-                int currentBreaks = lineBreakAtEnd || counter < lineCount - 1 || lineLens[counter] == 0
-                                    ? lenBreaks : 0;
+                int currentBreaks;
+                switch (lineBreakAtEnd) {
+                    case 0:
+                        currentBreaks = counter < lineCount - 1 || lineLens[counter] == 0 ? lenBreaks : 0;
+                        break;
+                    case 1:
+                        currentBreaks = lenBreaks;
+                        break;
+                    default:
+                        if (lineLens.back() == 0)
+                            currentBreaks = counter < lineLens.size() - 2 || counter == lineLens.size() - 1 ? lenBreaks : 0;
+                        else
+                            currentBreaks = counter < lineLens.size() - 1 ? lenBreaks : 0;
+                        break;
+                }
                 EXPECT_EQ(lineLens[counter] + currentBreaks, lpLine.fullLen);
                 counter++;
                 prevOffset += lpLine.fullLen;

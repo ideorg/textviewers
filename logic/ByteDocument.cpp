@@ -177,7 +177,9 @@ std::optional<LinePoints> ByteDocument::firstLine() {
         lp.len = 0;
     else
         lp.len = searchEndOfLine(m_BOMsize) - m_BOMsize;
-    lp.fullLen = skipLineBreak(lp.offset + lp.len);
+    lp.fullLen = skipLineBreak(lp.offset + lp.len) - m_BOMsize;
+    if (m_smartEOL && lp.offset + lp.fullLen == m_fileSize && lp.len > 0)
+        lp.fullLen = lp.len;
     return make_optional(lp);
 }
 
@@ -239,6 +241,8 @@ std::optional<LinePoints> ByteDocument::lineAfter(const LinePoints &linePoints) 
     lp.offset = linePoints.offset + linePoints.fullLen;
     lp.len = searchEndOfLineFromStart(lp.offset) - lp.offset;
     lp.fullLen = skipLineBreak(lp.offset + lp.len) - lp.offset;
+    if (m_smartEOL && lp.offset + lp.fullLen == m_fileSize && lp.len > 0)
+        lp.fullLen = lp.len;
     return make_optional(lp);
 }
 
