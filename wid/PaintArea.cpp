@@ -101,7 +101,7 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
     delete tv;
     switch(logicKind) {
         case 0:
-            doc = new vl::ByteDocument(addr, fileSize);
+            doc = new vl::ByteDocument(addr, fileSize, true);
             tv = new vl::ByteView(dynamic_cast<vl::IByteAccess*>(doc));
             break;
         case 1:
