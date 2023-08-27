@@ -56,7 +56,7 @@ TEST (IByteAccess, lineAfter) {
 
 TEST (IByteAccess, lineBefore) {
     for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
-        for (int lineBreaksKind = 1/**todo**/; lineBreaksKind < 3; lineBreaksKind++) {
+        for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
             vector<int> lineLens(lineCount);
@@ -75,9 +75,23 @@ TEST (IByteAccess, lineBefore) {
             while (optLine) {
                 auto lpLine = optLine.value();
                 EXPECT_EQ(nextOffset, lpLine.offset + lpLine.fullLen);
+                if (lineLens[counter] != lpLine.len)
                 EXPECT_EQ(lineLens[counter], lpLine.len);
-                int currentBreaks = lineBreakAtEnd || counter < lineCount - 1 || lineLens[counter] == 0
-                                    ? lenBreaks : 0;
+                int currentBreaks;
+                switch (lineBreakAtEnd) {
+                    case 0:
+                        currentBreaks = counter < lineCount - 1 || lineLens[counter] == 0 ? lenBreaks : 0;
+                        break;
+                    case 1:
+                        currentBreaks = lenBreaks;
+                        break;
+                    default:
+                        if (lineLens.back() == 0)
+                            currentBreaks = counter < lineLens.size() - 2 || counter == lineLens.size() - 1 ? lenBreaks : 0;
+                        else
+                            currentBreaks = counter < lineLens.size() - 1 ? lenBreaks : 0;
+                        break;
+                }
                 EXPECT_EQ(lineLens[counter] + currentBreaks, lpLine.fullLen);
                 counter--;
                 nextOffset = lpLine.offset;
@@ -105,8 +119,23 @@ TEST (IByteAccess, lineEnclosing) {
                 for (int i = 0; i < lineCount; i++) {
                     eolExpected = firstLineByte + lineLens[i];
                     int64_t next;
+                    int currentBreaks;
+                    switch (lineBreakAtEnd) {
+                        case 0:
+                            currentBreaks = i < lineCount - 1 || lineLens[i] == 0 ? lenBreaks : 0;
+                            break;
+                        case 1:
+                            currentBreaks = lenBreaks;
+                            break;
+                        default:
+                            if (lineLens.back() == 0)
+                                currentBreaks = i < lineLens.size() - 2 || i == lineLens.size() - 1 ? lenBreaks : 0;
+                            else
+                                currentBreaks = i < lineLens.size() - 1 ? lenBreaks : 0;
+                            break;
+                    }
                     if (lineBreakAtEnd || i < lineCount - 1)
-                        next = eolExpected + lenBreaks;
+                        next = eolExpected + currentBreaks;
                     else
                         next = eolExpected;
                     for (int64_t j = firstLineByte; j < eolExpected; j++) {

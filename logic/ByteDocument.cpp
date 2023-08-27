@@ -227,8 +227,14 @@ std::optional<LinePoints> ByteDocument::lineBefore(const LinePoints &linePoints)
     if (isFirstInFile(linePoints))
         return nullopt;
     LinePoints lp;
-    int64_t eolPos = firstOfCRLF(linePoints.offset - 1);
-    lp.offset = gotoBeginLine(eolPos, elTrueEol);
+    int64_t eolPos;
+    if (m_smartEOL && linePoints.offset + linePoints.fullLen == m_fileSize && linePoints.len == 0) {
+        eolPos = linePoints.offset;
+        lp.offset = gotoBeginLine(eolPos-1, elTrueEol);
+    } else {
+        eolPos = firstOfCRLF(linePoints.offset - 1);
+        lp.offset = gotoBeginLine(eolPos, elTrueEol);
+    }
     lp.len = eolPos - lp.offset;
     lp.fullLen = linePoints.offset - lp.offset;
     return make_optional(lp);
