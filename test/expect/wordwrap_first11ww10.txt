@@ -1,0 +1,11 @@
+two spaces\n
+  end\n
+    longwo\n
+rdlongword\n
+longword\n
+a12 b34  \n
+c123 \n
+d12345678\n
+a12+b34-\n
+c123*\n
+d12345678

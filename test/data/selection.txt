@@ -1,0 +1,8 @@
+01 first line
+02 second line
+03 begin selection->01234byte of selection
+04 ths is selected
+05 selected
+06 end selection->01234after selection
+07 after selection,
+08 selection was [0x31,0x79)

@@ -1,0 +1,4 @@
+two spaces  end\n
+    longwordlongwordlongword\n
+a12 b34  c123 d12345678\r\n
+a12+b34-c123*d12345678
