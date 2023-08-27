@@ -146,3 +146,7 @@ int64_t AbstractView::getWindowedRange() {
     return getWindowedMaximum() - getWindowedMinimum();
 }
 
+int64_t AbstractView::getScrollRange() {
+    return getRange() - getWindowedRange();
+}
+

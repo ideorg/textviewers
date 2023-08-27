@@ -25,6 +25,7 @@ TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
     setLayout(vLayout);
     connect(hscroll, &QScrollBar::valueChanged, this, &TextViewer::hscrollChanged);
     connect(vscroll, &QScrollBar::valueChanged, this, &TextViewer::vscrollChanged);
+    connect(paintArea, &PaintArea::sizeChanged, this, &TextViewer::sizeChanged);
 }
 
 void TextViewer::setData(const char *addr, int64_t fileSize) {
@@ -51,6 +52,19 @@ void TextViewer::vscrollChanged() {
     else
         relative = 0;
     paintArea->setVertical(relative);
+}
+
+void TextViewer::sizeChanged() {
+    double factor;
+    int64_t range64 = paintArea->tv->getScrollRange();
+    if (range64 < MAXVSCROLL) {
+        vscroll->setMaximum((int) range64);
+        factor = 1;
+    } else {
+        vscroll->setMaximum(MAXVSCROLL);
+        factor = (double) range64 / MAXVSCROLL;
+    }
+    vscroll->setPageStep(paintArea->tv->getWindowedRange()/factor);
 }
 
 }

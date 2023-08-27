@@ -54,6 +54,7 @@ public:
     virtual int64_t getWindowedMaximum() = 0;
     int64_t getRange();
     int64_t getWindowedRange();
+    int64_t getScrollRange();
 };
 }
 
