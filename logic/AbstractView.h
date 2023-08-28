@@ -31,8 +31,8 @@ protected:
     int64_t m_startY = 0;
     int64_t m_startX = 0;
     std::vector<IndexView> indexView;
-    int m_screenLineCount;
-    int m_screenLineLen;
+    int m_screenLineCount = 0;
+    int m_screenLineLen = 0;
     Wrap wrap;
 public:
     void setScreenLineCount(int screenLineCount);
