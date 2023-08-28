@@ -149,11 +149,11 @@ vector<string> removeLFExpect(const vector<string> &lines) {
     return v;
 }
 
-vector<u16string> toUTF16(const vector<string> &lines) {
-    vector<u16string> v;
+vector<u32string> toUTF32(const vector<string> &lines) {
+    vector<u32string> v;
     UTF utf;
     for (auto &line: lines) {
-        v.push_back(utf.u8to16(line));
+        v.push_back(utf.u8to32(line));
     }
     return v;
 }
@@ -253,8 +253,8 @@ string makeContent(string filename, int nEols, bool rn) {
     return content;
 }
 
-vector<u16string> makeExpect(string filename) {
-    auto v = toUTF16(removeLFExpect(unslashExpect(clear(readLines(filename)))));
+vector<u32string> makeExpect(string filename) {
+    auto v = toUTF32(removeLFExpect(unslashExpect(clear(readLines(filename)))));
     if (v.empty())
         throw runtime_error("empty test expect");
     return v;
