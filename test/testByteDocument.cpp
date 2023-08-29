@@ -176,4 +176,95 @@ TEST (ByteDocument, backward) {
         }
     }
 }
+
+/* test MaxLineLen, for MaxLineLen=40 line breaks will be in multiples of 40 */
+TEST (ByteDocumentML, lineIsEmpty) {
+    for (int firstLen = 9; firstLen < 82; firstLen++) {
+        vector<int> lineLens = {firstLen, 99, 0, 15, 39, 80, 40, 79, 41, 20};
+        auto extLineLens = getLineBreaks(lineLens, 0, 2);
+        auto maxLineLens = getMaxLineBreaks(extLineLens, 40);
+        string s = genSampleLineBreaks(lineLens, 0, 2);
+        ByteDocument doc(s.c_str(), s.size(), true, 40);
+        int64_t offset = 0;
+        for (auto p: maxLineLens) {
+            int64_t eolExpected = offset + p.first;
+            for (int64_t j = offset; j < eolExpected; j++)
+                EXPECT_FALSE(doc.lineIsEmpty(j));
+            int64_t next = eolExpected + p.second;
+            for (int64_t j = eolExpected; j < next; j++) {
+                bool emptyExpected = offset == eolExpected;
+                bool emptyActual = doc.lineIsEmpty(j);
+                EXPECT_EQ(emptyExpected, emptyActual);
+            }
+            offset = next;
+        }
+    }
+}
+
+/*
+searchEndOfLine
+searchEndOfLineFromStart
+skipLineBreak */
+TEST (ByteDocumentML, forward) {
+    for (int firstLen = 0; firstLen < 82; firstLen++) {
+        vector<int> lineLens = {firstLen, 99, 0, 15, 39, 80, 40, 79, 41, 20};
+        auto extLineLens = getLineBreaks(lineLens, 0, 2);
+        auto maxLineLens = getMaxLineBreaks(extLineLens, 40);
+        string s = genSampleLineBreaks(lineLens, 0, 2);
+        ByteDocument doc(s.c_str(), s.size(), true, 40);
+        int64_t offset = 0;
+        for (auto p: maxLineLens) {
+            int64_t eolExpected = offset + p.first;
+            for (int64_t j = offset; j < eolExpected; j++) {
+                int64_t eolActual = doc.searchEndOfLine(j);
+                ASSERT_EQ(eolExpected, eolActual);
+                EXPECT_THROW(doc.firstOfCRLF(j), std::runtime_error);
+            }
+            int64_t next = eolExpected + p.second;
+            for (int64_t j = eolExpected; j < next; j++) {
+                EXPECT_THROW(doc.searchEndOfLine(j), std::runtime_error);
+                int64_t firstOfCrlf = doc.firstOfCRLF(j);
+                EXPECT_EQ(eolExpected, firstOfCrlf);
+                int64_t actualEnd = doc.skipLineBreak(j);
+                EXPECT_EQ(next, actualEnd);
+            }
+            offset = next;
+        }
+    }
+}
+
+/*
+firstOfCRLF
+gotoBeginLine
+gotoBeginNonEmptyLine */
+TEST (ByteDocumentML, backward) {
+    for (int firstLen = 0; firstLen < 82; firstLen++) {
+        vector<int> lineLens = {firstLen, 99, 0, 15, 39, 80, 40, 79, 41, 20};
+        auto extLineLens = getLineBreaks(lineLens, 0, 2);
+        auto maxLineLens = getMaxLineBreaks(extLineLens, 40);
+        string s = genSampleLineBreaks(lineLens, 0, 2);
+        ByteDocument doc(s.c_str(), s.size(), true, 40);
+        int64_t offset = 0;
+        for (auto p: maxLineLens) {
+            int64_t eolExpected = offset + p.first;
+            for (int64_t j = offset; j < eolExpected; j++) {
+                int64_t offsetActual1 = doc.gotoBeginLine(j,ByteDocument::elMaybeInside);
+                int64_t offsetActual2 = doc.gotoBeginNonEmptyLine(j,ByteDocument::elMaybeInside);
+                ASSERT_EQ(offset, offsetActual1);
+                ASSERT_EQ(offset, offsetActual2);
+                EXPECT_THROW(doc.firstOfCRLF(j), std::runtime_error);
+            }
+            int64_t next = eolExpected + p.second;
+            for (int64_t j = eolExpected; j < next; j++) {
+                int64_t offsetActual1 = doc.gotoBeginLine(j,ByteDocument::elTrueEol);
+                ASSERT_EQ(offset, offsetActual1);
+                EXPECT_THROW(doc.gotoBeginNonEmptyLine(j,ByteDocument::elTrueEol), std::runtime_error);
+                int64_t firstOfCrlf = doc.firstOfCRLF(j);
+                EXPECT_EQ(eolExpected, firstOfCrlf);
+            }
+            offset = next;
+        }
+    }
+}
+
 }
