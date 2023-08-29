@@ -24,7 +24,7 @@ int64_t ByteDocument::searchEndOfLine(int64_t startOffset) {
         while (offset < m_fileSize && !isNewlineChar(m_addr[offset]) && offset < possibleBreakCorrected)
             offset++;
         assert(offset == m_fileSize || isNewlineChar(m_addr[offset]) || offset == possibleBreakCorrected);
-        if (offset == possibleBreakCorrected && isFirstChunkStart(startOffset)) {
+        if (offset == possibleBreakCorrected && isFirstChunkStart(startOffset, offset)) {
             possibleBreakAt += m_maxLineLen;
             possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
             while (offset < m_fileSize && !isNewlineChar(m_addr[offset]) && offset < possibleBreakCorrected)
@@ -52,8 +52,15 @@ int64_t ByteDocument::correctPossibleBreak(int64_t possibleBreakAt) {
                                      m_addr + m_fileSize) - m_addr;
 }
 
-bool ByteDocument::isFirstChunkStart(int64_t offset) {
-    return offset <= m_BOMsize || isNewlineChar(m_addr[offset - 1]);
+bool ByteDocument::isFirstChunkStart(int64_t startOffset, int64_t offset) {
+    assert(startOffset <= offset);
+    int64_t pos = startOffset;
+    while (pos>offset-m_maxLineLen+2) {
+        if (pos == m_BOMsize || isNewlineChar(m_addr[pos - 1]))
+            return true;
+        pos--;
+    }
+    return false;
 }
 
 ByteDocument::ByteDocument(const char *addr, int64_t fileSize, bool smartEOL, int64_t maxLineLen) :

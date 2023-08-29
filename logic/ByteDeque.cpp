@@ -103,3 +103,10 @@ int64_t ByteDeque::getWrapMaximum(int wrapIndex) {
     auto elem = deq.front();
     return elem.linePoints.offset + elem.wrapEnds[wrapIndex];
 }
+
+IDeque *ByteDeque::clone() {
+    auto newObj = new ByteDeque(m_byteAccess);
+    newObj->m_startByte = m_startByte;
+    newObj->deq = deq;
+    return newObj;
+}

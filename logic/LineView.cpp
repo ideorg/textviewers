@@ -13,7 +13,7 @@ using namespace std;
 using namespace vl;
 
 LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
-    viewDeque = make_unique<LineDeque>(m_lineAccess);
+    viewDeque = new LineDeque(m_lineAccess);
 }
 
 void LineView::gotoProportional(double relativePos) {

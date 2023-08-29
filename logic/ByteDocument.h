@@ -15,8 +15,11 @@ class ByteDocument: public virtual IByteAccess {
     FRIEND_TEST(ByteDocument, lineIsEmpty);
     FRIEND_TEST(ByteDocument, forward);
     FRIEND_TEST(ByteDocument, backward);
+    FRIEND_TEST(ByteDocumentML, lineIsEmpty);
+    FRIEND_TEST(ByteDocumentML, forward);
+    FRIEND_TEST(ByteDocumentML, backward);
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
-    bool isFirstChunkStart(int64_t offset);
+    bool isFirstChunkStart(int64_t startOffset, int64_t offset);
     bool isFirstChunkInside(int64_t offset);
     bool startInsideSegment(int64_t offset);
     const char *m_addr;

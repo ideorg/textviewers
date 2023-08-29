@@ -97,3 +97,10 @@ int64_t LineDeque::getMaximum() {
 int64_t LineDeque::getWrapMaximum(int wrapIndex) {
     return getMaximum();
 }
+
+IDeque *LineDeque::clone() {
+    auto newObj = new LineDeque(m_lineAccess);
+    newObj->m_startLine = m_startLine;
+    newObj->deq = deq;
+    return newObj;
+}

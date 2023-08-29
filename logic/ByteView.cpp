@@ -13,7 +13,7 @@ using namespace vl;
 using namespace std;
 
 ByteView::ByteView(IByteAccess *byteAccess) : m_byteAccess(byteAccess) {
-    viewDeque = make_unique<ByteDeque>(m_byteAccess);
+    viewDeque = new ByteDeque(m_byteAccess);
 }
 
 int64_t ByteView::beginTail() {
@@ -55,4 +55,15 @@ int64_t ByteView::getWindowedMaximum() {
         return getMinimum();
     else
         return viewDeque->getMaximum();
+}
+
+ByteView *ByteView::clone() {
+    auto newObj = new ByteView(m_byteAccess);
+    cloneFields(newObj);
+    return newObj;
+}
+
+void ByteView::cloneFields(ByteView *other) {
+    AbstractView::cloneFields(other);
+    other->m_byteAccess = m_byteAccess;
 }

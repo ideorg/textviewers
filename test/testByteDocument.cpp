@@ -9,6 +9,7 @@ using namespace std;
 
 namespace vl {
 TEST (ByteDocument, lineIsEmpty) {
+    for (int mul = 1; mul <= 3; mul++)
     for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
@@ -19,6 +20,7 @@ TEST (ByteDocument, lineIsEmpty) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
+            lineLens = multiply(lineLens, mul);
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             int64_t eolExpected = 0;
@@ -60,6 +62,7 @@ TEST (ByteDocument, lineIsEmpty) {
 }
 
 TEST (ByteDocument, forward) {
+    for (int mul = 1; mul <= 3; mul++)
     for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
@@ -70,6 +73,7 @@ TEST (ByteDocument, forward) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
+            lineLens = multiply(lineLens, mul);
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             int64_t eolExpected = 0;
@@ -115,6 +119,7 @@ TEST (ByteDocument, forward) {
 }
 
 TEST (ByteDocument, backward) {
+    for (int mul = 1; mul <= 3; mul++)
     for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
@@ -125,6 +130,7 @@ TEST (ByteDocument, backward) {
                     lineLens[i] = 10;
                 else
                     lineLens[i] = 0;
+            lineLens = multiply(lineLens, mul);
             string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
             ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
             int64_t eolExpected = 0;

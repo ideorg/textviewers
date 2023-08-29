@@ -13,6 +13,8 @@ namespace vl {
 
 class IDeque {
 public:
+    virtual ~IDeque() = default;
+    virtual IDeque* clone() = 0;
     virtual bool empty() = 0;
     virtual int64_t getMinimum() = 0;
     virtual int64_t getWrapMinimum(int wrapIndex) = 0;

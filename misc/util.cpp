@@ -260,6 +260,15 @@ vector<u32string> makeExpect(string filename) {
     return v;
 }
 
+//for test two or more empty lines one after another
+vector<int> multiply(vector<int>& lineLens, int factor) {
+    vector<int> result;
+    for (int i=0; i<lineLens.size(); i++)
+        for (int j=0; j<factor; j++)
+            result.push_back(lineLens[i]);
+    return result;
+}
+
 //lineBreakAtEnd - 1: add line break at end of file 2: smart line break at end of file
 string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
     string s;

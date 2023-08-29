@@ -34,6 +34,8 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         misc/util.cpp
         test/testByteDocument.cpp
         test/testIByteAccess.cpp
+        test/testBasics.cpp
+        test/testBack.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main)

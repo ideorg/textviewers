@@ -15,6 +15,7 @@ std::vector<std::u32string> makeExpect(std::string filename);
 std::vector<int> getSizes(std::string filename);
 std::vector<int> getSizesStr(std::string filename);
 std::string makeStringN(std::string filename, int n);
+std::vector<int> multiply(std::vector<int>& lineLens, int factor);
 std::string genSampleLineBreaks(std::vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd);
 
 #endif //VIEWER_UTIL_H

@@ -13,6 +13,8 @@ namespace vl {
 class ByteView : public AbstractView {
     IByteAccess *m_byteAccess;
     int64_t beginTail();
+protected:
+    void cloneFields(ByteView *other);
 public:
     explicit ByteView(IByteAccess *byteAccess);
     void gotoProportional(double relativePos) override;
@@ -20,6 +22,7 @@ public:
     int64_t getMaximum() override;
     int64_t getWindowedMinimum() override;
     int64_t getWindowedMaximum() override;
+    ByteView *clone();
 };
 }
 

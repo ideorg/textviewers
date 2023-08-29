@@ -23,23 +23,24 @@ struct IndexView {
 
 class AbstractView {
 protected:
-    std::unique_ptr<IDeque> viewDeque;
+    IDeque* viewDeque = nullptr;
     int countWrapBefore = 0;
     int countWrapAfter = 0;
     int m_wrapMode = 0;
-protected:
     int64_t m_startY = 0;
     int64_t m_startX = 0;
     std::vector<IndexView> indexView;
     int m_screenLineCount = 0;
     int m_screenLineLen = 0;
     Wrap wrap;
+    void cloneFields(AbstractView *other);
 public:
+    virtual ~AbstractView();
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
     int screenLineCount();
     int screenLineLen();
-    int size();
+    size_t size();
     int64_t startX();
     int64_t startY();
     double startYproportional();

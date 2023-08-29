@@ -24,6 +24,7 @@ class LineDeque : public IDeque {
     int m_startLine = 0;
 public:
     explicit LineDeque(ILineAccess* lineAccess);
+    IDeque *clone() override;
     bool empty() override;
     int64_t getMinimum() override;
     int64_t getWrapMinimum(int wrapIndex) override;

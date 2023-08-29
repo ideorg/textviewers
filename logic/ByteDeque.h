@@ -23,6 +23,7 @@ class ByteDeque : public IDeque {
     int64_t m_startByte = 0;
 public:
     explicit ByteDeque(IByteAccess* byteAccess);
+    IDeque *clone() override;
     bool empty() override;
     int64_t getMinimum() override;
     int64_t getWrapMinimum(int wrapIndex) override;

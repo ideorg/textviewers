@@ -5,6 +5,7 @@
 #include <string>
 #include "AbstractView.h"
 #include "DString.h"
+#include "ByteDeque.h"
 
 using namespace std;
 using namespace vl;
@@ -101,8 +102,8 @@ void AbstractView::recalcLines() {
     }
 }
 
-int AbstractView::size() {
-    return (int)indexView.size();
+size_t AbstractView::size() {
+    return indexView.size();
 }
 
 std::u32string AbstractView::operator[](int n) {
@@ -135,6 +136,8 @@ bool AbstractView::lastInFile(int row) {
 }
 
 std::u32string AbstractView::at(int n) {
+    if (n < 0)
+        n = (int)indexView.size() + n;
     DString dstr;
     auto iv = indexView[n];
     auto lineView = viewDeque->lineAt(iv.index);
@@ -186,5 +189,22 @@ int64_t AbstractView::startY() {
 
 double AbstractView::startYproportional() {
     return (double)startY() / (double)getScrollRange();
+}
+
+void AbstractView::cloneFields(AbstractView *other) {
+    other->viewDeque = viewDeque->clone();
+    other->countWrapBefore = countWrapBefore;
+    other->countWrapAfter = countWrapAfter;
+    other->m_wrapMode = m_wrapMode;
+    other->m_startY = m_startY;
+    other->m_startX = m_startX;
+    other->indexView = indexView;
+    other->m_screenLineCount = m_screenLineCount;
+    other->m_screenLineLen = m_screenLineLen;
+    other->wrap = wrap;
+}
+
+AbstractView::~AbstractView() {
+    delete viewDeque;
 }
 
