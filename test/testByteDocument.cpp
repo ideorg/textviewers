@@ -177,14 +177,17 @@ TEST (ByteDocument, backward) {
     }
 }
 
+const int MAXLEN = 20;
+
 /* test MaxLineLen, for MaxLineLen=40 line breaks will be in multiples of 40 */
 TEST (ByteDocumentML, lineIsEmpty) {
-    for (int firstLen = 9; firstLen < 82; firstLen++) {
-        vector<int> lineLens = {firstLen, 99, 0, 15, 39, 80, 40, 79, 41, 20};
+    for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
+        vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
+                MAXLEN / 2};
         auto extLineLens = getLineBreaks(lineLens, 0, 2);
-        auto maxLineLens = getMaxLineBreaks(extLineLens, 40);
+        auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN);
         string s = genSampleLineBreaks(lineLens, 0, 2);
-        ByteDocument doc(s.c_str(), s.size(), true, 40);
+        ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
         int64_t offset = 0;
         for (auto p: maxLineLens) {
             int64_t eolExpected = offset + p.first;
@@ -206,12 +209,13 @@ searchEndOfLine
 searchEndOfLineFromStart
 skipLineBreak */
 TEST (ByteDocumentML, forward) {
-    for (int firstLen = 0; firstLen < 82; firstLen++) {
-        vector<int> lineLens = {firstLen, 99, 0, 15, 39, 80, 40, 79, 41, 20};
+    for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
+        vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
+                MAXLEN / 2};
         auto extLineLens = getLineBreaks(lineLens, 0, 2);
-        auto maxLineLens = getMaxLineBreaks(extLineLens, 40);
+        auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN);
         string s = genSampleLineBreaks(lineLens, 0, 2);
-        ByteDocument doc(s.c_str(), s.size(), true, 40);
+        ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
         int64_t offset = 0;
         for (auto p: maxLineLens) {
             int64_t eolExpected = offset + p.first;
@@ -238,12 +242,13 @@ firstOfCRLF
 gotoBeginLine
 gotoBeginNonEmptyLine */
 TEST (ByteDocumentML, backward) {
-    for (int firstLen = 0; firstLen < 82; firstLen++) {
-        vector<int> lineLens = {firstLen, 99, 0, 15, 39, 80, 40, 79, 41, 20};
+    for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
+        vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
+                MAXLEN / 2};
         auto extLineLens = getLineBreaks(lineLens, 0, 2);
-        auto maxLineLens = getMaxLineBreaks(extLineLens, 40);
+        auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN);
         string s = genSampleLineBreaks(lineLens, 0, 2);
-        ByteDocument doc(s.c_str(), s.size(), true, 40);
+        ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
         int64_t offset = 0;
         for (auto p: maxLineLens) {
             int64_t eolExpected = offset + p.first;
