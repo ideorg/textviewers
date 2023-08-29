@@ -17,5 +17,8 @@ std::vector<int> getSizesStr(std::string filename);
 std::string makeStringN(std::string filename, int n);
 std::vector<int> multiply(std::vector<int>& lineLens, int factor);
 std::string genSampleLineBreaks(std::vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd);
+std::vector<int64_t> computeBreakPoints(int64_t offset, int64_t end, int maxLineLen);
+std::vector<std::pair<int,int>> getLineBreaks(std::vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd);
+std::vector<std::pair<int, int>> getMaxLineBreaks(std::vector<std::pair<int, int>> lineBreaks, int maxLineLen);
 
 #endif //VIEWER_UTIL_H

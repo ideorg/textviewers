@@ -307,3 +307,70 @@ string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBre
     }
     return s;
 }
+
+vector<pair<int, int>> getLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
+    int lenBreak = lineBreaksKind == 2 ? 2 : 1;
+    vector<pair<int, int>> result;
+    for (int i = 0; i < lineLens.size(); i++) {
+        bool addLineBreak;
+        switch (lineBreakAtEnd) {
+            case 0:
+                addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
+                break;
+            case 1:
+                addLineBreak = true;
+                break;
+            default:
+                if (lineLens.back() == 0)
+                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                else
+                    addLineBreak = i < lineLens.size() - 1;
+                break;
+        }
+        if (addLineBreak)
+            result.emplace_back(lineLens[i], lenBreak);
+        else
+            result.emplace_back(lineLens[i], 0);
+    }
+    return result;
+}
+
+vector<int64_t> computeBreakPoints(int64_t offset, int64_t end, int maxLineLen) {
+    int64_t first = offset / maxLineLen;
+    int64_t last = end / maxLineLen;
+    vector<int64_t> result;
+    for (int64_t i = first; i <= last; i++) {
+        int64_t n = i * maxLineLen;
+        if (n >= offset && n < end)
+            result.push_back(n);
+    }
+    return result;
+}
+
+//no Unicode, one char = one byte
+vector<pair<int, int>> getMaxLineBreaks(vector<pair<int, int>> lineBreaks, int maxLineLen) {
+    vector<pair<int, int>> result;
+    int64_t offset = 0;
+    for (auto lb: lineBreaks) {
+        if (lb.first <= maxLineLen)
+            result.push_back(lb);
+        else {
+            vector<int64_t> breakPoints = computeBreakPoints(offset, offset + lb.first, maxLineLen);
+            int len = lb.first;
+            int64_t offset2 = offset;
+            for (int j=0; j<breakPoints.size(); j++) {
+                auto bp = breakPoints[j];
+                int partlen = bp - offset2;
+                if (partlen>=maxLineLen || j>0) {
+                    result.emplace_back(partlen, 0);
+                    offset2 = bp;
+                    len -= partlen;
+                }
+            }
+            if (len > 0)
+                result.emplace_back(len, lb.second);
+        }
+        offset += lb.first + lb.second;
+    }
+    return result;
+}
