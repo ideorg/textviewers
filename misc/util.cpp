@@ -308,9 +308,54 @@ string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBre
     return s;
 }
 
-vector<pair<int, int>> getLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
+/* generates with smart line breaks, with BOM and \r\n breaks
+   generate with 1,2,3,4 code byte len, fill
+   see https://r12a.github.io/app-conversion/ */
+string genSampleUnicode(vector<int> lineLens, int utf8len) {
+    char32_t c[5];
+    c[0] = 0xFEFF; //BOM
+    c[1] = 'a';
+    c[2] = 0x105;
+    c[3] = 0x4E2D;
+    c[4] = 0x10348;
+    string u8[5];
+    if (utf8len < 1 || utf8len > 4) throw logic_error("genSampleUnicode: utf8len out of range");
+    UTF utf;
+    char buf[5];
+    for (int i = 0; i <= 4; i++) {
+        int len = utf.one32to8(c[i], buf);
+        if (i == 0)
+            assert(len == 3);
+        else
+            assert(len == i);
+        buf[len] = 0;
+        u8[i] = buf;
+    }
+    string s;
+    for (int i = 0; i < lineLens.size(); i++) {
+        int len = lineLens[i];
+        int residual = len % utf8len;
+        int n = len / utf8len;
+        assert(n * utf8len + residual == len);
+        for (int j = 0; j < n; j++)
+            s += u8[utf8len];
+        if (residual > 0)
+            s += u8[residual];
+        bool addLineBreak;
+        if (lineLens.back() == 0)
+            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+        else
+            addLineBreak = i < lineLens.size() - 1;
+        if (addLineBreak)
+            s += "\r\n";
+    }
+    return s;
+}
+
+deque<LBInfo> getLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
     int lenBreak = lineBreaksKind == 2 ? 2 : 1;
-    vector<pair<int, int>> result;
+    deque<LBInfo> result;
+    int offset = 0;
     for (int i = 0; i < lineLens.size(); i++) {
         bool addLineBreak;
         switch (lineBreakAtEnd) {
@@ -327,10 +372,15 @@ vector<pair<int, int>> getLineBreaks(vector<int> lineLens, int lineBreaksKind, i
                     addLineBreak = i < lineLens.size() - 1;
                 break;
         }
-        if (addLineBreak)
-            result.emplace_back(lineLens[i], lenBreak);
-        else
-            result.emplace_back(lineLens[i], 0);
+        LBInfo lbi;
+        if (addLineBreak) {
+            lbi = {offset, lineLens[i], lenBreak};
+            offset += lineLens[i] + lenBreak;
+        } else {
+            lbi = {offset, lineLens[i], 0};
+            offset += lineLens[i];
+        }
+        result.push_back(lbi);
     }
     return result;
 }
@@ -341,36 +391,69 @@ vector<int64_t> computeBreakPoints(int64_t offset, int64_t end, int maxLineLen) 
     vector<int64_t> result;
     for (int64_t i = first; i <= last; i++) {
         int64_t n = i * maxLineLen;
-        if (n >= offset && n < end)
+        if (n > offset && n < end)
             result.push_back(n);
     }
     return result;
 }
 
-//no Unicode, one char = one byte
-vector<pair<int, int>> getMaxLineBreaks(vector<pair<int, int>> lineBreaks, int maxLineLen) {
-    vector<pair<int, int>> result;
-    int64_t offset = 0;
+deque<LBInfo> getMaxLineBreaks(deque<LBInfo> lineBreaks, int maxLineLen, int utf8len) {
+    deque<LBInfo> result;
+    int offset = 0;
     for (auto lb: lineBreaks) {
-        if (lb.first <= maxLineLen)
+        if (lb.len <= maxLineLen)
             result.push_back(lb);
         else {
-            vector<int64_t> breakPoints = computeBreakPoints(offset, offset + lb.first, maxLineLen);
-            int len = lb.first;
-            int64_t offset2 = offset;
-            for (int j=0; j<breakPoints.size(); j++) {
-                auto bp = breakPoints[j];
-                int partlen = bp - offset2;
-                if (partlen>=maxLineLen || j>0) {
-                    result.emplace_back(partlen, 0);
-                    offset2 = bp;
-                    len -= partlen;
-                }
+            vector<int64_t> breakPoints = computeBreakPoints(offset, offset + lb.len, maxLineLen);
+            auto divided = divideUnicodeToBreaks(lb, breakPoints, utf8len);
+            if (divided.size() >= 2 && divided[0].len < maxLineLen) {
+                LBInfo lbi;
+                lbi.offset = divided[0].offset;
+                lbi.len = divided[0].len + divided[1].len;
+                lbi.breaks = divided[1].breaks;
+                divided.pop_front();
+                divided.pop_front();
+                divided.push_front(lbi);
             }
-            if (len > 0)
-                result.emplace_back(len, lb.second);
+
+
+            for (auto &lbi: divided)
+                result.push_back(lbi);
         }
-        offset += lb.first + lb.second;
+        offset += lb.len + lb.breaks;
+    }
+    return result;
+}
+
+int alignSample(int len, int max, int utf8len) {
+    int residual = len % utf8len;
+    if (residual > 0)
+        len += utf8len - residual;
+    if (len > max)
+        len = max;
+    return len;
+}
+
+
+deque<LBInfo> divideUnicodeToBreaks(LBInfo line, vector<int64_t> breaks, int utf8len) {
+    std::deque<LBInfo> result;
+    int remain = line.len;
+    LBInfo lbi;
+    lbi.offset = line.offset;
+    for (int b: breaks) {
+        int aligned = alignSample(b - lbi.offset, remain, utf8len);
+        assert(aligned <= remain);
+        if (aligned == remain) break;
+        lbi.len = aligned;
+        lbi.breaks = 0;
+        result.push_back(lbi);
+        remain -= lbi.len;
+        lbi.offset += lbi.len;
+    }
+    if (remain > 0) {
+        lbi.len = remain;
+        lbi.breaks = line.breaks;
+        result.push_back(lbi);
     }
     return result;
 }

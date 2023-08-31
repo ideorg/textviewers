@@ -18,6 +18,8 @@ class ByteDocument: public virtual IByteAccess {
     FRIEND_TEST(ByteDocumentML, lineIsEmpty);
     FRIEND_TEST(ByteDocumentML, forward);
     FRIEND_TEST(ByteDocumentML, backward);
+    FRIEND_TEST(ByteDocumentMLunicode, forward);
+    FRIEND_TEST(ByteDocumentMLunicode, backward);
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
     bool isFirstChunkStart(int64_t startOffset, int64_t offset);
     bool isFirstChunkInside(int64_t offset);

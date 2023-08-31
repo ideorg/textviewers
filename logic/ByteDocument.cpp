@@ -65,6 +65,10 @@ bool ByteDocument::isFirstChunkStart(int64_t startOffset, int64_t offset) {
 
 ByteDocument::ByteDocument(const char *addr, int64_t fileSize, bool smartEOL, int64_t maxLineLen) :
         m_addr(addr), m_fileSize(fileSize), m_smartEOL(smartEOL), m_maxLineLen(maxLineLen) {
+    if (m_fileSize >= 3 && m_addr[0] == (char) 0xEF && m_addr[1] == (char) 0xBB && m_addr[2] == (char) 0xBF)
+        m_BOMsize = 3;
+    else
+        m_BOMsize = 0;
 }
 
 int64_t ByteDocument::skipLineBreak(int64_t pos) {
