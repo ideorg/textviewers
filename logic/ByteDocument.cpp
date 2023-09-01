@@ -24,6 +24,13 @@ int64_t ByteDocument::searchEndOfLine(int64_t startOffset) {
         while (offset < m_fileSize && !isNewlineChar(m_addr[offset]) && offset < possibleBreakCorrected)
             offset++;
         assert(offset == m_fileSize || isNewlineChar(m_addr[offset]) || offset == possibleBreakCorrected);
+        if (skipPossibleBreakForward(startOffset, possibleBreakAt)) {
+            possibleBreakAt += m_maxLineLen;
+            possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
+            while (offset < m_fileSize && !isNewlineChar(m_addr[offset]) && offset < possibleBreakCorrected)
+                offset++;
+            assert(offset == m_fileSize || isNewlineChar(m_addr[offset]) || offset == possibleBreakCorrected);
+        }
         return offset;
     } else {
         int64_t offset = startOffset;
@@ -255,5 +262,17 @@ int64_t ByteDocument::searchEndOfLineFromStart(int64_t startOffset) {
         return startOffset;
     else
         return searchEndOfLine(startOffset);
+}
+
+bool ByteDocument::skipPossibleBreakForward(int64_t startOffset, int64_t possibleBreakAt) {
+    int64_t prev = possibleBreakAt - m_maxLineLen;
+    if (prev<m_BOMsize)
+        return true;
+    int64_t prevCorrected = correctPossibleBreak(prev);
+    for (int64_t i = startOffset; i>=prevCorrected; i--) {
+        if (prevCorrected==m_BOMsize || isNewlineChar(m_addr[i-1]))
+            return true;
+    }
+    return false;
 }
 

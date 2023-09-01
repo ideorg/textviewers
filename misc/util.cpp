@@ -382,6 +382,16 @@ deque<LBInfo> getMaxLineBreaks(deque<LBInfo> lineBreaks, int maxLineLen, int utf
     for (auto lb: lineBreaks) {
         vector<int64_t> breakPoints = computeBreakPoints(offset, offset + lb.len, maxLineLen);
         auto divided = divideUnicodeToBreaks(lb, breakPoints, utf8len);
+        assert(divided.size()>=1);
+        if (divided.size() >= 2) {
+            LBInfo lbi;
+            lbi.offset = divided[0].offset;
+            lbi.len = divided[0].len + divided[1].len;
+            lbi.breaks = divided[1].breaks;
+            divided.pop_front();
+            divided.pop_front();
+            divided.push_front(lbi);
+        }
         for (auto &lbi: divided)
             result.push_back(lbi);
         offset += lb.len + lb.breaks;
