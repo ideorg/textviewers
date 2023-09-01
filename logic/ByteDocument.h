@@ -22,6 +22,7 @@ class ByteDocument: public virtual IByteAccess {
     FRIEND_TEST(ByteDocumentMLunicode, backward);
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
     bool skipPossibleBreakForward(int64_t startOffset, int64_t possibleBreakAt);
+    bool skipPossibleBreakBackward(int64_t possibleBreakAt);
     const char *m_addr;
     int64_t m_fileSize;
     int64_t m_maxLineLen;

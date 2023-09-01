@@ -190,9 +190,6 @@ TEST (ByteDocumentML, forward) {
             int64_t eolExpected = offset + p.len;
             for (int64_t j = offset; j < eolExpected; j++) {
                 int64_t eolActual = doc.searchEndOfLine(j);
-                if (eolExpected!= eolActual) {
-                    int64_t eolActual1 = doc.searchEndOfLine(j);
-                }
                 ASSERT_EQ(eolExpected, eolActual);
                 EXPECT_THROW(doc.firstOfCRLF(j), std::runtime_error);
             }
@@ -302,10 +299,6 @@ TEST (ByteDocumentMLunicode, backward) {
                 for (int64_t j = offset; j < eolExpected; j++) {
                     int64_t offsetActual1 = doc.gotoBeginLine(j, ByteDocument::elMaybeInside);
                     int64_t offsetActual2 = doc.gotoBeginNonEmptyLine(j, ByteDocument::elMaybeInside);
-                    if (offset != offsetActual1) {
-                        auto maxLineLens1 = getMaxLineBreaks(extLineLens, MAXLEN, utf8len);
-                        doc.gotoBeginNonEmptyLine(j, ByteDocument::elMaybeInside);
-                    }
                     ASSERT_EQ(offset, offsetActual1);
                     ASSERT_EQ(offset, offsetActual2);
                     EXPECT_THROW(doc.firstOfCRLF(j), std::runtime_error);

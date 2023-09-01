@@ -133,11 +133,15 @@ int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine
             possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
         }
         int64_t offset = start;
-        while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1])) {
-            if (offset == possibleBreakCorrected) {
-                    return offset;
-            }
+        while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1]) && offset > possibleBreakCorrected)
             offset--;
+        assert(offset == m_BOMsize || isNewlineChar(m_addr[offset - 1]) || offset == possibleBreakCorrected);
+        if (skipPossibleBreakBackward(possibleBreakAt)) {
+            possibleBreakAt -= m_maxLineLen;
+            possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
+            while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1]) && offset > possibleBreakCorrected)
+                offset--;
+            assert(offset == m_BOMsize || isNewlineChar(m_addr[offset - 1]) || offset == possibleBreakCorrected);
         }
         return offset;
     } else {
@@ -270,7 +274,20 @@ bool ByteDocument::skipPossibleBreakForward(int64_t startOffset, int64_t possibl
         return true;
     int64_t prevCorrected = correctPossibleBreak(prev);
     for (int64_t i = startOffset; i>=prevCorrected; i--) {
-        if (prevCorrected==m_BOMsize || isNewlineChar(m_addr[i-1]))
+        if (i==m_BOMsize || isNewlineChar(m_addr[i-1]))
+            return true;
+    }
+    return false;
+}
+
+bool ByteDocument::skipPossibleBreakBackward(int64_t possibleBreakAt) {
+    int64_t possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
+    int64_t prev = possibleBreakAt - m_maxLineLen;
+    if (prev<m_BOMsize)
+        return true;
+    int64_t prevCorrected = correctPossibleBreak(prev);
+    for (int64_t i = possibleBreakCorrected; i>=prevCorrected; i--) {
+        if (i==m_BOMsize || isNewlineChar(m_addr[i-1]))
             return true;
     }
     return false;
