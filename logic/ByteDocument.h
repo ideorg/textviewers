@@ -21,9 +21,6 @@ class ByteDocument: public virtual IByteAccess {
     FRIEND_TEST(ByteDocumentMLunicode, forward);
     FRIEND_TEST(ByteDocumentMLunicode, backward);
     int64_t correctPossibleBreak(int64_t possibleBreakAt);
-    bool isFirstChunkStart(int64_t startOffset, int64_t offset);
-    bool isFirstChunkInside(int64_t offset);
-    bool startInsideSegment(int64_t offset);
     const char *m_addr;
     int64_t m_fileSize;
     int64_t m_maxLineLen;

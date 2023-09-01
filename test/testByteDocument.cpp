@@ -185,10 +185,14 @@ TEST (ByteDocumentML, forward) {
         string s = genSampleLineBreaks(lineLens, 0);
         ByteDocument doc(s.c_str(), s.size(), MAXLEN);
         int64_t offset = doc.firstByte();
-        for (auto p: maxLineLens) {
+        for (int i=0; i<maxLineLens.size(); i++) {
+            auto p = maxLineLens[i];
             int64_t eolExpected = offset + p.len;
             for (int64_t j = offset; j < eolExpected; j++) {
                 int64_t eolActual = doc.searchEndOfLine(j);
+                if (eolExpected!= eolActual) {
+                    int64_t eolActual1 = doc.searchEndOfLine(j);
+                }
                 ASSERT_EQ(eolExpected, eolActual);
                 EXPECT_THROW(doc.firstOfCRLF(j), std::runtime_error);
             }

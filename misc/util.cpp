@@ -380,25 +380,10 @@ deque<LBInfo> getMaxLineBreaks(deque<LBInfo> lineBreaks, int maxLineLen, int utf
     deque<LBInfo> result;
     int offset = 0;
     for (auto lb: lineBreaks) {
-        if (lb.len <= maxLineLen)
-            result.push_back(lb);
-        else {
-            vector<int64_t> breakPoints = computeBreakPoints(offset, offset + lb.len, maxLineLen);
-            auto divided = divideUnicodeToBreaks(lb, breakPoints, utf8len);
-            if (divided.size() >= 2 && divided[0].len < maxLineLen) {
-                LBInfo lbi;
-                lbi.offset = divided[0].offset;
-                lbi.len = divided[0].len + divided[1].len;
-                lbi.breaks = divided[1].breaks;
-                divided.pop_front();
-                divided.pop_front();
-                divided.push_front(lbi);
-            }
-
-
-            for (auto &lbi: divided)
-                result.push_back(lbi);
-        }
+        vector<int64_t> breakPoints = computeBreakPoints(offset, offset + lb.len, maxLineLen);
+        auto divided = divideUnicodeToBreaks(lb, breakPoints, utf8len);
+        for (auto &lbi: divided)
+            result.push_back(lbi);
         offset += lb.len + lb.breaks;
     }
     return result;
@@ -429,10 +414,8 @@ deque<LBInfo> divideUnicodeToBreaks(LBInfo line, vector<int64_t> breaks, int utf
         remain -= lbi.len;
         lbi.offset += lbi.len;
     }
-    if (remain > 0) {
-        lbi.len = remain;
-        lbi.breaks = line.breaks;
-        result.push_back(lbi);
-    }
+    lbi.len = remain;
+    lbi.breaks = line.breaks;
+    result.push_back(lbi);
     return result;
 }

@@ -24,13 +24,6 @@ int64_t ByteDocument::searchEndOfLine(int64_t startOffset) {
         while (offset < m_fileSize && !isNewlineChar(m_addr[offset]) && offset < possibleBreakCorrected)
             offset++;
         assert(offset == m_fileSize || isNewlineChar(m_addr[offset]) || offset == possibleBreakCorrected);
-        if (offset == possibleBreakCorrected && isFirstChunkStart(startOffset, offset)) {
-            possibleBreakAt += m_maxLineLen;
-            possibleBreakCorrected = correctPossibleBreak(possibleBreakAt);
-            while (offset < m_fileSize && !isNewlineChar(m_addr[offset]) && offset < possibleBreakCorrected)
-                offset++;
-        }
-        assert(offset == m_fileSize || isNewlineChar(m_addr[offset]) || offset == possibleBreakCorrected);
         return offset;
     } else {
         int64_t offset = startOffset;
@@ -50,17 +43,6 @@ int64_t ByteDocument::correctPossibleBreak(int64_t possibleBreakAt) {
     return utf.findNextUtf8OrTheSame(m_addr + possibleBreakAt,
                                      m_addr + std::max((int64_t) m_BOMsize, possibleBreakAt - (UTF::MAXCHARLEN - 1)),
                                      m_addr + m_fileSize) - m_addr;
-}
-
-bool ByteDocument::isFirstChunkStart(int64_t startOffset, int64_t offset) {
-    assert(startOffset <= offset);
-    int64_t pos = startOffset;
-    while (pos>offset-m_maxLineLen) {
-        if (pos == m_BOMsize || isNewlineChar(m_addr[pos - 1]))
-            return true;
-        pos--;
-    }
-    return false;
 }
 
 ByteDocument::ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen) :
@@ -146,9 +128,7 @@ int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine
         int64_t offset = start;
         while (offset > m_BOMsize && !isNewlineChar(m_addr[offset - 1])) {
             if (offset == possibleBreakCorrected) {
-                if (!isFirstChunkInside(offset)) {
                     return offset;
-                }
             }
             offset--;
         }
@@ -159,21 +139,6 @@ int64_t ByteDocument::gotoBeginNonEmptyLine(int64_t start, ByteDocument::EndLine
             offset--;
         return offset;
     }
-}
-
-bool ByteDocument::isFirstChunkInside(int64_t offset) {
-    return !startInsideSegment(offset - m_maxLineLen);
-}
-
-bool ByteDocument::startInsideSegment(int64_t offset) {
-    int64_t nSegment = offset / m_maxLineLen;
-    int64_t start = max((int64_t) m_BOMsize, nSegment * m_maxLineLen);
-    int64_t end = nSegment * m_maxLineLen + m_maxLineLen;
-    for (int64_t pos = start; pos < end; pos++)
-        if (isNewlineChar(m_addr[pos])) {
-            return false;
-        }
-    return true;
 }
 
 std::optional<LinePoints> ByteDocument::firstLine() {
