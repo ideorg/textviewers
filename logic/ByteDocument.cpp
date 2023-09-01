@@ -212,12 +212,13 @@ std::optional<LinePoints> ByteDocument::lineBefore(const LinePoints &linePoints)
         return nullopt;
     LinePoints lp;
     int64_t eolPos;
-    if (linePoints.offset + linePoints.fullLen == m_fileSize && linePoints.len == 0) {
-        eolPos = linePoints.offset;
-        lp.offset = gotoBeginLine(eolPos-1, elTrueEol);
-    } else {
+
+    if (isNewlineChar(m_addr[linePoints.offset - 1])) {
         eolPos = firstOfCRLF(linePoints.offset - 1);
         lp.offset = gotoBeginLine(eolPos, elTrueEol);
+    } else {
+        eolPos = linePoints.offset;
+        lp.offset = gotoBeginLine(eolPos - 1, elTrueEol);
     }
     lp.len = eolPos - lp.offset;
     lp.fullLen = linePoints.offset - lp.offset;
