@@ -11,19 +11,22 @@
   hasn't eol)
 - start Google tests
 
+0.3
+- max line lens 
+- Unicode
+- BOM
+
 ==== TODO
 
-0.3
+0.4
 - wrap mode
 
-0.4
-- horizontal scroll
-
 0.5
-- autoscroll with timer with mouse selection
+- horizontal scroll
+- selection
 
 0.6
-- BOM 
+- autoscroll with timer with mouse selection
 
 0.7
 - double click: select word
