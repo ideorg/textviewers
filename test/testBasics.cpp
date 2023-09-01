@@ -11,7 +11,7 @@ using namespace vl;
 
 TEST (Width, empties) {
     string content = makeContent("../test/data/empties.txt");
-    ByteDocument doc(content.c_str(), content.length(), true);
+    ByteDocument doc(content.c_str(), content.length());
     auto vexpect = makeExpect("../test/expect/empties_first20w8.txt");
     ByteView vtest(&doc);
     vtest.setScreenLineLen(8);
@@ -25,7 +25,7 @@ TEST (Width, empties) {
 
 TEST(Scroll, width) {
     string content = makeContent("../test/data/midlines.txt");
-    ByteDocument doc(content.c_str(), content.length(), true);
+    ByteDocument doc(content.c_str(), content.length());
     ByteView vtest(&doc);
     vtest.setScreenLineLen(6);
     vtest.setScreenLineCount(3);

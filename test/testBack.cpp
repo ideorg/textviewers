@@ -12,7 +12,7 @@ using namespace vl;
 /* if resize viewer application, if lines takes full screen height*/
 TEST(Back, positions) {
     string content = makeContent("../test/data/empties.txt");
-    ByteDocument doc(content.c_str(), content.length(), true, 0);
+    ByteDocument doc(content.c_str(), content.length(), 0);
     ByteView vexpect(&doc);
     vexpect.setScreenLineLen(8);
     vexpect.setScreenLineCount(50); //enough for all lines
@@ -31,7 +31,7 @@ TEST(Back, positions) {
 
 TEST(Back, createResult) {
     string content = makeContent("../test/data/empties.txt");
-    ByteDocument doc(content.c_str(), content.length(), true, 0);
+    ByteDocument doc(content.c_str(), content.length(), 0);
     ByteView vexpect(&doc);
     vexpect.setScreenLineLen(8);
     vexpect.setScreenLineCount(50);

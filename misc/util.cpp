@@ -269,27 +269,16 @@ vector<int> multiply(vector<int>& lineLens, int factor) {
     return result;
 }
 
-//lineBreakAtEnd - 1: add line break at end of file 2: smart line break at end of file
-string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
+string genSampleLineBreaks(vector<int> lineLens, int lineBreaksKind) {
     string s;
     for (int i = 0; i < lineLens.size(); i++) {
         for (int j = 0; j < lineLens[i]; j++)
             s += 'a';
         bool addLineBreak;
-        switch (lineBreakAtEnd) {
-            case 0:
-                addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
-                break;
-            case 1:
-                addLineBreak = true;
-                break;
-            default:
-                if (lineLens.back() == 0)
-                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
-                else
-                    addLineBreak = i < lineLens.size() - 1;
-                break;
-        }
+        if (lineLens.back() == 0)
+            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+        else
+            addLineBreak = i < lineLens.size() - 1;
         if (addLineBreak)
         switch (lineBreaksKind) {
             case 0:
@@ -352,26 +341,16 @@ string genSampleUnicode(vector<int> lineLens, int utf8len) {
     return s;
 }
 
-deque<LBInfo> getLineBreaks(vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd) {
+deque<LBInfo> getLineBreaks(vector<int> lineLens, int lineBreaksKind) {
     int lenBreak = lineBreaksKind == 2 ? 2 : 1;
     deque<LBInfo> result;
     int offset = 0;
     for (int i = 0; i < lineLens.size(); i++) {
         bool addLineBreak;
-        switch (lineBreakAtEnd) {
-            case 0:
-                addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
-                break;
-            case 1:
-                addLineBreak = true;
-                break;
-            default:
-                if (lineLens.back() == 0)
-                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
-                else
-                    addLineBreak = i < lineLens.size() - 1;
-                break;
-        }
+        if (lineLens.back() == 0)
+            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+        else
+            addLineBreak = i < lineLens.size() - 1;
         LBInfo lbi;
         if (addLineBreak) {
             lbi = {offset, lineLens[i], lenBreak};

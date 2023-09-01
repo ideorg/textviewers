@@ -63,8 +63,8 @@ bool ByteDocument::isFirstChunkStart(int64_t startOffset, int64_t offset) {
     return false;
 }
 
-ByteDocument::ByteDocument(const char *addr, int64_t fileSize, bool smartEOL, int64_t maxLineLen) :
-        m_addr(addr), m_fileSize(fileSize), m_smartEOL(smartEOL), m_maxLineLen(maxLineLen) {
+ByteDocument::ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen) :
+        m_addr(addr), m_fileSize(fileSize), m_maxLineLen(maxLineLen) {
     if (m_fileSize >= 3 && m_addr[0] == (char) 0xEF && m_addr[1] == (char) 0xBB && m_addr[2] == (char) 0xBF)
         m_BOMsize = 3;
     else
@@ -125,11 +125,9 @@ bool ByteDocument::lineIsEmpty(int64_t offset) {
     assert(offset >= m_BOMsize);
     if (offset == m_BOMsize)
         return true;
-    if (m_smartEOL) {
-        auto offset1 = skipLineBreak(offset);
-        if (offset1 == m_fileSize)
-            return true;
-    }
+    auto offset1 = skipLineBreak(offset);
+    if (offset1 == m_fileSize)
+        return true;
     return isNewlineChar(m_addr[offset - 1]);
 }
 
@@ -188,7 +186,7 @@ std::optional<LinePoints> ByteDocument::firstLine() {
     else
         lp.len = searchEndOfLine(m_BOMsize) - m_BOMsize;
     lp.fullLen = skipLineBreak(lp.offset + lp.len) - m_BOMsize;
-    if (m_smartEOL && lp.offset + lp.fullLen == m_fileSize && lp.len > 0)
+    if (lp.offset + lp.fullLen == m_fileSize && lp.len > 0)
         lp.fullLen = lp.len;
     return make_optional(lp);
 }
@@ -238,7 +236,7 @@ std::optional<LinePoints> ByteDocument::lineBefore(const LinePoints &linePoints)
         return nullopt;
     LinePoints lp;
     int64_t eolPos;
-    if (m_smartEOL && linePoints.offset + linePoints.fullLen == m_fileSize && linePoints.len == 0) {
+    if (linePoints.offset + linePoints.fullLen == m_fileSize && linePoints.len == 0) {
         eolPos = linePoints.offset;
         lp.offset = gotoBeginLine(eolPos-1, elTrueEol);
     } else {
@@ -257,7 +255,7 @@ std::optional<LinePoints> ByteDocument::lineAfter(const LinePoints &linePoints) 
     lp.offset = linePoints.offset + linePoints.fullLen;
     lp.len = searchEndOfLineFromStart(lp.offset) - lp.offset;
     lp.fullLen = skipLineBreak(lp.offset + lp.len) - lp.offset;
-    if (m_smartEOL && lp.offset + lp.fullLen == m_fileSize && lp.len > 0)
+    if (lp.offset + lp.fullLen == m_fileSize && lp.len > 0)
         lp.fullLen = lp.len;
     return make_optional(lp);
 }

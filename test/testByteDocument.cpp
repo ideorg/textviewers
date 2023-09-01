@@ -11,7 +11,6 @@ using namespace std;
 namespace vl {
 TEST (ByteDocument, lineIsEmpty) {
     for (int mul = 1; mul <= 3; mul++)
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -22,28 +21,18 @@ TEST (ByteDocument, lineIsEmpty) {
                 else
                     lineLens[i] = 0;
             lineLens = multiply(lineLens, mul);
-            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind);
+            ByteDocument doc(s.c_str(), s.size(), 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
                 bool addLineBreak;
-                switch (lineBreakAtEnd) {
-                    case 0:
-                        addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
-                        break;
-                    case 1:
-                        addLineBreak = true;
-                        break;
-                    default:
-                        if (lineLens.back() == 0)
-                            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
-                        else
-                            addLineBreak = i < lineLens.size() - 1;
-                        break;
-                }
+                if (lineLens.back() == 0)
+                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                else
+                    addLineBreak = i < lineLens.size() - 1;
                 if (addLineBreak)
                     next = eolExpected + lenBreaks;
                 else
@@ -64,7 +53,6 @@ TEST (ByteDocument, lineIsEmpty) {
 
 TEST (ByteDocument, forward) {
     for (int mul = 1; mul <= 3; mul++)
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -75,28 +63,18 @@ TEST (ByteDocument, forward) {
                 else
                     lineLens[i] = 0;
             lineLens = multiply(lineLens, mul);
-            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind);
+            ByteDocument doc(s.c_str(), s.size(), 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
                 bool addLineBreak;
-                switch (lineBreakAtEnd) {
-                    case 0:
-                        addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
-                        break;
-                    case 1:
-                        addLineBreak = true;
-                        break;
-                    default:
-                        if (lineLens.back() == 0)
-                            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
-                        else
-                            addLineBreak = i < lineLens.size() - 1;
-                        break;
-                }
+                if (lineLens.back() == 0)
+                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                else
+                    addLineBreak = i < lineLens.size() - 1;
                 if (addLineBreak)
                     next = eolExpected + lenBreaks;
                 else
@@ -121,7 +99,6 @@ TEST (ByteDocument, forward) {
 
 TEST (ByteDocument, backward) {
     for (int mul = 1; mul <= 3; mul++)
-    for (int lineBreakAtEnd = 0; lineBreakAtEnd < 3; lineBreakAtEnd++)
     for (int lineBreaksKind = 0; lineBreaksKind < 3; lineBreaksKind++) {
         int lenBreaks = lineBreaksKind == 2 ? 2 : 1;
         for (int lineCount = 0; lineCount <= 5; lineCount++) {
@@ -132,28 +109,18 @@ TEST (ByteDocument, backward) {
                 else
                     lineLens[i] = 0;
             lineLens = multiply(lineLens, mul);
-            string s = genSampleLineBreaks(lineLens, lineBreaksKind, lineBreakAtEnd);
-            ByteDocument doc(s.c_str(), s.size(), lineBreakAtEnd == 2, 0);
+            string s = genSampleLineBreaks(lineLens, lineBreaksKind);
+            ByteDocument doc(s.c_str(), s.size(), 0);
             int64_t eolExpected = 0;
             int64_t firstLineByte = 0;
             for (int i = 0; i < lineCount; i++) {
                 eolExpected = firstLineByte + lineLens[i];
                 int64_t next;
                 bool addLineBreak;
-                switch (lineBreakAtEnd) {
-                    case 0:
-                        addLineBreak = i < lineLens.size() - 1 || lineLens[i] == 0;
-                        break;
-                    case 1:
-                        addLineBreak = true;
-                        break;
-                    default:
-                        if (lineLens.back() == 0)
-                            addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
-                        else
-                            addLineBreak = i < lineLens.size() - 1;
-                        break;
-                }
+                if (lineLens.back() == 0)
+                    addLineBreak = i < lineLens.size() - 2 || i == lineLens.size() - 1;
+                else
+                    addLineBreak = i < lineLens.size() - 1;
                 if (addLineBreak)
                     next = eolExpected + lenBreaks;
                 else
@@ -185,10 +152,10 @@ TEST (ByteDocumentML, lineIsEmpty) {
     for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
         vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
                 MAXLEN / 2};
-        auto extLineLens = getLineBreaks(lineLens, 0, 2);
+        auto extLineLens = getLineBreaks(lineLens, 0);
         auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN);
-        string s = genSampleLineBreaks(lineLens, 0, 2);
-        ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
+        string s = genSampleLineBreaks(lineLens, 0);
+        ByteDocument doc(s.c_str(), s.size(), MAXLEN);
         int64_t offset = doc.firstByte();
         for (auto p: maxLineLens) {
             int64_t eolExpected = offset + p.len;
@@ -213,10 +180,10 @@ TEST (ByteDocumentML, forward) {
     for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
         vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
                 MAXLEN / 2};
-        auto extLineLens = getLineBreaks(lineLens, 0, 2);
+        auto extLineLens = getLineBreaks(lineLens, 0);
         auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN);
-        string s = genSampleLineBreaks(lineLens, 0, 2);
-        ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
+        string s = genSampleLineBreaks(lineLens, 0);
+        ByteDocument doc(s.c_str(), s.size(), MAXLEN);
         int64_t offset = doc.firstByte();
         for (auto p: maxLineLens) {
             int64_t eolExpected = offset + p.len;
@@ -246,10 +213,10 @@ TEST (ByteDocumentML, backward) {
     for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
         vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
                 MAXLEN / 2};
-        auto extLineLens = getLineBreaks(lineLens, 0, 2);
+        auto extLineLens = getLineBreaks(lineLens, 0);
         auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN);
-        string s = genSampleLineBreaks(lineLens, 0, 2);
-        ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
+        string s = genSampleLineBreaks(lineLens, 0);
+        ByteDocument doc(s.c_str(), s.size(), MAXLEN);
         int64_t offset = doc.firstByte();
         for (auto p: maxLineLens) {
             int64_t eolExpected = offset + p.len;
@@ -282,10 +249,10 @@ TEST (ByteDocumentMLunicode, forward) {
         for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
             vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
                     MAXLEN / 2};
-            auto extLineLens = getLineBreaks(lineLens, 2, 2);
+            auto extLineLens = getLineBreaks(lineLens, 2);
             auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN, utf8len);
             string s = genSampleUnicode(lineLens, utf8len);
-            ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
+            ByteDocument doc(s.c_str(), s.size(), MAXLEN);
             int64_t offset = doc.firstByte();
             for (int i = 0; i < maxLineLens.size(); i++) {
                 auto p = maxLineLens[i];
@@ -319,10 +286,10 @@ TEST (ByteDocumentMLunicode, backward) {
         for (int firstLen = 0; firstLen < 2 * MAXLEN + 2; firstLen++) {
             vector<int> lineLens = {firstLen, 99, 0, 15, MAXLEN - 1, 2 * MAXLEN, MAXLEN, 2 * MAXLEN - 1, MAXLEN + 1,
                     MAXLEN / 2};
-            auto extLineLens = getLineBreaks(lineLens, 2, 2);
+            auto extLineLens = getLineBreaks(lineLens, 2);
             auto maxLineLens = getMaxLineBreaks(extLineLens, MAXLEN, utf8len);
             string s = genSampleUnicode(lineLens, utf8len);
-            ByteDocument doc(s.c_str(), s.size(), true, MAXLEN);
+            ByteDocument doc(s.c_str(), s.size(), MAXLEN);
             int64_t offset = doc.firstByte();
             for (int i = 0; i < maxLineLens.size(); i++) {
                 auto p = maxLineLens[i];

@@ -17,7 +17,7 @@ std::vector<int> getSizes(std::string filename);
 std::vector<int> getSizesStr(std::string filename);
 std::string makeStringN(std::string filename, int n);
 std::vector<int> multiply(std::vector<int>& lineLens, int factor);
-std::string genSampleLineBreaks(std::vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd);
+std::string genSampleLineBreaks(std::vector<int> lineLens, int lineBreaksKind);
 std::string genSampleUnicode(std::vector<int> lineLens, int utf8len);
 std::vector<int64_t> computeBreakPoints(int64_t offset, int64_t end, int maxLineLen);
 
@@ -30,7 +30,7 @@ struct LBInfo {
     }
 };
 std::deque<LBInfo> divideUnicodeToBreaks(LBInfo line, std::vector<int64_t> breaks, int utf8len);
-std::deque<LBInfo> getLineBreaks(std::vector<int> lineLens, int lineBreaksKind, int lineBreakAtEnd);
+std::deque<LBInfo> getLineBreaks(std::vector<int> lineLens, int lineBreaksKind);
 std::deque<LBInfo> getMaxLineBreaks(std::deque<LBInfo> lineBreaks, int maxLineLen, int utf8len=1);
 
 #endif //VIEWER_UTIL_H

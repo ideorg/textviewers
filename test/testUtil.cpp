@@ -9,26 +9,14 @@ using namespace std;
 
 TEST (Util, lineBreaks) {
     vector<int> A = {10, 0, 15};
-    deque<LBInfo> Asimple = {{0, 10, 1}, {11, 0, 1}, {12, 15, 1}};
-    auto AsimpleActual = getLineBreaks(A, 0, 1);
-    deque<LBInfo> AbutLast = {{0, 10, 1}, {11, 0, 1}, {12, 15, 0}};
-    auto AbutLastActual = getLineBreaks(A, 0, 0);
-    deque<LBInfo> Asmart = {{0, 10, 1}, {11, 0, 1}, {12, 15, 0}};
-    auto AsmartActual = getLineBreaks(A, 0, 2);
-    EXPECT_EQ(Asimple, AsimpleActual);
-    EXPECT_EQ(AbutLast, AbutLastActual);
-    EXPECT_EQ(Asmart, AsmartActual);
+    deque<LBInfo> Aest = {{0, 10, 1}, {11, 0, 1}, {12, 15, 0}};
+    auto Aactual = getLineBreaks(A, 0);
+    EXPECT_EQ(Aest, Aactual);
 
     vector<int> B = {10, 0, 15, 0};
-    deque<LBInfo> Bsimple = {{0, 10, 1}, {11, 0, 1}, {12, 15, 1}, {28, 0, 1}};
-    auto BsimpleActual = getLineBreaks(B, 0, 1);
-    deque<LBInfo> BbutLast = {{0, 10, 1}, {11, 0, 1}, {12, 15, 1}, {28, 0, 1}};
-    auto BbutLastActual = getLineBreaks(B, 0, 0);
-    deque<LBInfo> Bsmart = {{0, 10, 1}, {11, 0, 1}, {12, 15, 0}, {27, 0, 1}};
-    auto BsmartActual = getLineBreaks(B, 0, 2);
-    EXPECT_EQ(Bsimple, BsimpleActual);
-    EXPECT_EQ(BbutLast, BbutLastActual);
-    EXPECT_EQ(Bsmart, BsmartActual);
+    deque<LBInfo> Best = {{0, 10, 1}, {11, 0, 1}, {12, 15, 0}, {27, 0, 1}};
+    auto Bactual = getLineBreaks(B, 0);
+    EXPECT_EQ(Best, Bactual);
 }
 
 TEST (Util, breakPoints) {
