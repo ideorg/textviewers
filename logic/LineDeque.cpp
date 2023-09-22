@@ -34,7 +34,7 @@ void LineDeque::popFront() {
 }
 
 int LineDeque::frontWrapCount() {
-    return (int) deq[0].wrapEnds.size();
+    return (int) deq.front().wrapEnds.size();
 }
 
 bool LineDeque::backAtEnd() {
