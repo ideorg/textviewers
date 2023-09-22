@@ -6,8 +6,8 @@
 
 using namespace vl;
 
-std::vector<int> Wrap::wrapEnds(std::string_view lineVIew) {
+std::vector<int> Wrap::wrapEnds(std::string_view lineView) {
     std::vector<int> vec;
-    vec.push_back((int)lineVIew.size());
+    vec.push_back((int)lineView.size());
     return vec;
 }
