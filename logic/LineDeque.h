@@ -31,11 +31,11 @@ public:
     int64_t getMaximum() override;
     int64_t getWrapMaximum(int wrapIndex) override;
     bool frontAtStart() override;
-    void pushFront(const Wrap &wrap) override;
+    void pushFront(Wrap *wrap) override;
     void popFront() override;
     int frontWrapCount() override;
     bool backAtEnd() override;
-    void pushBack(const Wrap &wrap) override;
+    void pushBack(Wrap *wrap) override;
     void popBack() override;
     int backWrapCount() override;
     void setFront(int64_t start) override;

@@ -18,13 +18,13 @@ bool LineDeque::frontAtStart() {
     return deq[0].index == 0;
 }
 
-void LineDeque::pushFront(const Wrap &wrap) {
+void LineDeque::pushFront(Wrap *wrap) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
     else
         elem.index = deq[0].index - 1;
-    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
+    elem.wrapEnds = wrap->wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
     deq.push_front(elem);
 }
 
@@ -42,13 +42,13 @@ bool LineDeque::backAtEnd() {
     return m_lineAccess->isLastInFile(lastIndex);
 }
 
-void LineDeque::pushBack(const Wrap &wrap) {
+void LineDeque::pushBack(Wrap *wrap) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
     else
         elem.index = deq.back().index + 1;
-    elem.wrapEnds = wrap.wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
+    elem.wrapEnds = wrap->wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
     deq.push_back(elem);
 }
 

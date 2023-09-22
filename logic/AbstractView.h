@@ -32,7 +32,7 @@ protected:
     std::vector<IndexView> indexView;
     int m_screenLineCount = 0;
     int m_screenLineLen = 0;
-    Wrap wrap;
+    std::unique_ptr<Wrap> wrap;
     void cloneFields(AbstractView *other);
 public:
     virtual ~AbstractView();

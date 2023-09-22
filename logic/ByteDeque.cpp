@@ -18,13 +18,13 @@ bool ByteDeque::frontAtStart() {
     return m_byteAccess->isFirstInFile(deq.front().linePoints);
 }
 
-void ByteDeque::pushFront(const Wrap &wrap) {
+void ByteDeque::pushFront(Wrap *wrap) {
     BDequeElem elem;
     if (deq.empty())
         elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
     else
         elem.linePoints = m_byteAccess->lineBefore(deq.front().linePoints).value();
-    elem.wrapEnds = wrap.wrapEnds(m_byteAccess->line(elem.linePoints));
+    elem.wrapEnds = wrap->wrapEnds(m_byteAccess->line(elem.linePoints));
     deq.push_front(elem);
 }
 
@@ -41,13 +41,13 @@ bool ByteDeque::backAtEnd() {
     return m_byteAccess->isLastInFile(deq.back().linePoints);
 }
 
-void ByteDeque::pushBack(const Wrap &wrap) {
+void ByteDeque::pushBack(Wrap *wrap) {
     BDequeElem elem;
     if (deq.empty())
         elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
     else
         elem.linePoints = m_byteAccess->lineAfter(deq.back().linePoints).value();
-    elem.wrapEnds = wrap.wrapEnds(m_byteAccess->line(elem.linePoints));
+    elem.wrapEnds = wrap->wrapEnds(m_byteAccess->line(elem.linePoints));
     deq.push_back(elem);
 }
 

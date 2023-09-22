@@ -12,7 +12,7 @@ namespace vl {
 
 class Wrap {
 public:
-    static std::vector<int> wrapEnds(std::string_view lineView);
+    std::vector<int> wrapEnds(std::string_view lineView);
 };
 }
 

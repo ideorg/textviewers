@@ -18,7 +18,7 @@ int AbstractView::scrollDown() {
             return 0;
         countWrapAfter--;
         if (countWrapAfter <= 0) {
-            viewDeque->pushBack(wrap);
+            viewDeque->pushBack(wrap.get());
             countWrapAfter = viewDeque->backWrapCount();
         }
         countWrapBefore++;
@@ -31,7 +31,7 @@ int AbstractView::scrollDown() {
     } else {
         if (viewDeque->backAtEnd())
             return 0;
-        viewDeque->pushBack(wrap);
+        viewDeque->pushBack(wrap.get());
         viewDeque->popFront();
         m_startY = viewDeque->getMinimum();
         return 1;
@@ -46,7 +46,7 @@ int AbstractView::scrollUp() {
             return 0;
         countWrapBefore--;
         if (countWrapBefore <= 0) {
-            viewDeque->pushFront(wrap);
+            viewDeque->pushFront(wrap.get());
                 countWrapAfter = viewDeque->frontWrapCount();
         }
         countWrapAfter++;
@@ -59,7 +59,7 @@ int AbstractView::scrollUp() {
     } else {
         if (viewDeque->frontAtStart())
             return 0;
-        viewDeque->pushFront(wrap);
+        viewDeque->pushFront(wrap.get());
         viewDeque->popBack();
         m_startY = viewDeque->getMinimum();
         return 1;
@@ -76,13 +76,13 @@ void AbstractView::fillDeque() {
     if (wrapMode()) {
         int row = 0;
         while (row < m_screenLineCount) {
-            viewDeque->pushBack(wrap);
+            viewDeque->pushBack(wrap.get());
             row += viewDeque->frontWrapCount();
         }
     }
     else {
         for (int i = 0; i < m_screenLineCount; i++) {
-            viewDeque->pushBack(wrap);
+            viewDeque->pushBack(wrap.get());
             if (viewDeque->backAtEnd())
                 break;
         }
@@ -201,7 +201,7 @@ void AbstractView::cloneFields(AbstractView *other) {
     other->indexView = indexView;
     other->m_screenLineCount = m_screenLineCount;
     other->m_screenLineLen = m_screenLineLen;
-    other->wrap = wrap;
+    *other->wrap = *wrap;
 }
 
 AbstractView::~AbstractView() {
