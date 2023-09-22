@@ -150,7 +150,7 @@ std::u32string AbstractView::at(int n) {
     auto lineView = viewDeque->lineAt(iv.index);
     auto wrapLineView = string_view(lineView.cbegin()+iv.wrapOffset, iv.wrapLen);
     UTF utf;
-    return utf.u8to32(wrapLineView);
+    return DString::substr(wrapLineView, 0, m_screenLineLen);
 }
 
 int64_t AbstractView::getRange() {
