@@ -10,8 +10,12 @@
 
 namespace vl {
 
+class AbstractView;
+
 class Wrap {
+    AbstractView *view;
 public:
+    Wrap(AbstractView *view):view(view){}
     std::vector<int> wrapEnds(std::string_view lineView);
 };
 }

@@ -11,7 +11,7 @@ using namespace std;
 using namespace vl;
 
 AbstractView::AbstractView() {
-    wrap = make_unique<Wrap>();
+    wrap = make_unique<Wrap>(this);
 }
 
 AbstractView::~AbstractView() {
@@ -199,7 +199,7 @@ double AbstractView::startYproportional() {
 }
 
 void AbstractView::cloneFields(AbstractView *other) {
-    other->wrap = make_unique<Wrap>();
+    other->wrap = make_unique<Wrap>(other);
     other->viewDeque = viewDeque->clone();
     other->countWrapBefore = countWrapBefore;
     other->countWrapAfter = countWrapAfter;
