@@ -50,7 +50,8 @@ public:
     int scrollUp();
     int scrollNDown(int n);
     int scrollNUp(int n);
-    bool wrapMode();
+    int wrapMode();
+    int setWrapMode(int wrapMode);
     virtual void gotoProportional(double relativePos) = 0;
     void fillDeque();
     void recalcLines();

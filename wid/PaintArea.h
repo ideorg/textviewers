@@ -43,7 +43,7 @@ public:
     void setData(const char *addr, int64_t fileSize);
     void setSize(int width, int height);
     void setKind(int kind);
-    void setWrapMode(int mode);
+    void setWrapMode(int wrapMode);
     ~PaintArea() override;
     void wheelVertical(int delta);
     void wheelHorizontal(int delta);

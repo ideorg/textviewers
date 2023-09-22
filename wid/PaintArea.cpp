@@ -216,8 +216,9 @@ void PaintArea::trySetCaret(QPoint point) {
     update();
 }
 
-void PaintArea::setWrapMode(int mode) {
+void PaintArea::setWrapMode(int wrapMode) {
     double fw = (double) width() / fontWidth;
+    tv->setWrapMode(wrapMode);
     tv->setScreenLineLen(tv->wrapMode() ? floor(fw) : ceil(fw));
     update();
 }

@@ -66,7 +66,7 @@ int AbstractView::scrollUp() {
     }
 }
 
-bool AbstractView::wrapMode() {
+int AbstractView::wrapMode() {
     return m_wrapMode;
 }
 
@@ -206,5 +206,9 @@ void AbstractView::cloneFields(AbstractView *other) {
 
 AbstractView::~AbstractView() {
     delete viewDeque;
+}
+
+int AbstractView::setWrapMode(int wrapMode) {
+    return m_wrapMode = wrapMode;
 }
 
