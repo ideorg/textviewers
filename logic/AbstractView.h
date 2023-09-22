@@ -35,6 +35,7 @@ protected:
     std::unique_ptr<Wrap> wrap;
     void cloneFields(AbstractView *other);
 public:
+    AbstractView();
     virtual ~AbstractView();
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);

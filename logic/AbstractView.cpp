@@ -10,6 +10,13 @@
 using namespace std;
 using namespace vl;
 
+AbstractView::AbstractView() {
+    wrap = make_unique<Wrap>();
+}
+
+AbstractView::~AbstractView() {
+    delete viewDeque;
+}
 int AbstractView::scrollDown() {
     if (viewDeque->empty())
         return 0;
@@ -192,6 +199,7 @@ double AbstractView::startYproportional() {
 }
 
 void AbstractView::cloneFields(AbstractView *other) {
+    other->wrap = make_unique<Wrap>();
     other->viewDeque = viewDeque->clone();
     other->countWrapBefore = countWrapBefore;
     other->countWrapAfter = countWrapAfter;
@@ -202,10 +210,6 @@ void AbstractView::cloneFields(AbstractView *other) {
     other->m_screenLineCount = m_screenLineCount;
     other->m_screenLineLen = m_screenLineLen;
     *other->wrap = *wrap;
-}
-
-AbstractView::~AbstractView() {
-    delete viewDeque;
 }
 
 int AbstractView::setWrapMode(int wrapMode) {
