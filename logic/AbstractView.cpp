@@ -81,11 +81,15 @@ void AbstractView::fillDeque() {
     viewDeque->clear();
     viewDeque->setFront(m_startY);
     if (wrapMode()) {
-        int row = 0;
+        assert(countWrapBefore >= 0);
+        int row = -countWrapBefore;
         while (row < m_screenLineCount) {
             viewDeque->pushBack(wrap.get());
-            row += viewDeque->backWrapCount();
+            int wrapCount = viewDeque->backWrapCount();
+            row += wrapCount;
         }
+        countWrapAfter = row - m_screenLineCount;
+        assert(countWrapAfter >= 0);
     }
     else {
         for (int i = 0; i < m_screenLineCount; i++) {
@@ -111,7 +115,7 @@ void AbstractView::recalcLines() {
 }
 
 size_t AbstractView::size() {
-    return indexView.size();
+    return indexView.size() - countWrapBefore - countWrapAfter;
 }
 
 std::u32string AbstractView::operator[](int n) {
