@@ -11,6 +11,7 @@
 class DString {
 public:
     static std::u32string substr(std::string_view sv, int start, int len);
+    static int64_t utf8len(std::u32string basicString);
 };
 
 

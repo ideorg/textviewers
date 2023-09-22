@@ -18,6 +18,7 @@ namespace vl {
 struct IndexView {
     int index = 0;
     int wrapIndex = 0;
+    int wrapLen = 0;
     int64_t wrapOffset;
 };
 
@@ -52,7 +53,7 @@ public:
     int scrollNDown(int n);
     int scrollNUp(int n);
     int wrapMode();
-    int setWrapMode(int wrapMode);
+    void setWrapMode(int wrapMode);
     virtual void gotoProportional(double relativePos) = 0;
     void fillDeque();
     void recalcLines();

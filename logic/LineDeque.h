@@ -41,8 +41,11 @@ public:
     void setFront(int64_t start) override;
     void clear() override;
     int size() override;
+    int64_t wrapOffset(int n, int i) override;
+    int wrapLen(int n, int i) override;
     int64_t backWrapOffset(int i) override;
     std::string_view lineAt(int n) override;
+    int wrapCount(int n) override;
 };
 }
 

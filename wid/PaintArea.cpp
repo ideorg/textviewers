@@ -113,6 +113,7 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
             tv = new vl::LineView(dynamic_cast<vl::ILineAccess*>(doc));
     }
     setSize(width(), height());
+    tv->setWrapMode(1);
     update();
 }
 

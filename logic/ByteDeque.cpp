@@ -73,8 +73,23 @@ int ByteDeque::size() {
     return (int)deq.size();
 }
 
+int64_t ByteDeque::wrapOffset(int n, int i) {
+    if (i==0)
+        return 0;
+    else
+        return deq[n].wrapEnds[i-1];
+}
+
+int ByteDeque::wrapLen(int n, int i) {
+    return deq[n].wrapEnds[i] - wrapOffset(n, i);
+}
+
 int64_t ByteDeque::backWrapOffset(int i) {
     return (int) deq.back().wrapEnds[i];
+}
+
+int ByteDeque::wrapCount(int n) {
+    return deq[n].wrapEnds.size();
 }
 
 std::string_view ByteDeque::lineAt(int n) {

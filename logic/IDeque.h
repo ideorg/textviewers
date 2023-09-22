@@ -31,8 +31,11 @@ public:
     virtual void setFront(int64_t start) = 0;
     virtual void clear() = 0;
     virtual int size() = 0;
+    virtual int64_t wrapOffset(int n, int i) = 0;
+    virtual int wrapLen(int n, int i) = 0;
     virtual int64_t backWrapOffset(int i) = 0;
     virtual std::string_view lineAt(int n) = 0;
+    virtual int wrapCount(int n) = 0;
 };
 }
 

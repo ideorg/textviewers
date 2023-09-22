@@ -74,8 +74,23 @@ int LineDeque::size() {
     return (int)deq.size();
 }
 
+int64_t LineDeque::wrapOffset(int n, int i) {
+    if (i==0)
+        return 0;
+    else
+        return deq[n].wrapEnds[i-1];
+}
+
+int LineDeque::wrapLen(int n, int i) {
+    return deq[n].wrapEnds[i] - wrapOffset(n, i);
+}
+
 int64_t LineDeque::backWrapOffset(int i) {
     return (int) deq.back().wrapEnds[i];
+}
+
+int LineDeque::wrapCount(int n) {
+    return deq[n].wrapEnds.size();
 }
 
 std::string_view LineDeque::lineAt(int n) {
