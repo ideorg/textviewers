@@ -84,7 +84,8 @@ void AbstractView::fillDeque() {
         assert(countWrapBefore >= 0);
         int row = -countWrapBefore;
         while (row < m_screenLineCount) {
-            viewDeque->pushBack(wrap.get());
+            if (!viewDeque->pushBack(wrap.get()))
+                return;
             int wrapCount = viewDeque->backWrapCount();
             row += wrapCount;
         }
@@ -103,19 +104,23 @@ void AbstractView::fillDeque() {
 void AbstractView::recalcLines() {
     indexView.clear();
     for (int i = 0; i < viewDeque->size(); i++) {
-        for (int j = 0; j < viewDeque->wrapCount(i); j++) {
+        int startj = i == 0 ? countWrapBefore : 0;
+        for (int j = startj; j < viewDeque->wrapCount(i); j++) {
             IndexView iv;
             iv.index = i;
             iv.wrapIndex = j;
             iv.wrapOffset = viewDeque->wrapOffset(i, j);
             iv.wrapLen = viewDeque->wrapLen(i, j);
             indexView.push_back(iv);
+            if (indexView.size() >= m_screenLineCount)
+                break;
         }
     }
+    assert(indexView.size() <= m_screenLineCount);
 }
 
 size_t AbstractView::size() {
-    return indexView.size() - countWrapBefore - countWrapAfter;
+    return indexView.size();
 }
 
 std::u32string AbstractView::operator[](int n) {
@@ -219,6 +224,8 @@ void AbstractView::cloneFields(AbstractView *other) {
 
 void AbstractView::setWrapMode(int wrapMode) {
     m_wrapMode = wrapMode;
+    if (wrapMode == 0)
+        countWrapBefore = 0;
     fillDeque();
     recalcLines();
 }

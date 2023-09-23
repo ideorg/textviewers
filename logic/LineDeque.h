@@ -15,7 +15,7 @@ namespace vl {
 
 struct LDequeElem {
     int index;
-    std::vector<int> wrapEnds;
+    std::vector<int64_t> wrapEnds;
 };
 
 class LineDeque : public IDeque {
@@ -35,7 +35,7 @@ public:
     void popFront() override;
     int frontWrapCount() override;
     bool backAtEnd() override;
-    void pushBack(Wrap *wrap) override;
+    bool pushBack(Wrap *wrap) override;
     void popBack() override;
     int backWrapCount() override;
     void setFront(int64_t start) override;

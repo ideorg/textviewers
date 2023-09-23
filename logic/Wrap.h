@@ -16,7 +16,8 @@ class Wrap {
     AbstractView *view;
 public:
     Wrap(AbstractView *view):view(view){}
-    std::vector<int> wrapEnds(std::string_view lineView);
+    std::vector<int64_t> wrapEnds(std::string_view lineView);
+    static int find(std::vector<int64_t> &v, int64_t pos);
 };
 }
 

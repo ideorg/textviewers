@@ -41,14 +41,20 @@ bool ByteDeque::backAtEnd() {
     return m_byteAccess->isLastInFile(deq.back().linePoints);
 }
 
-void ByteDeque::pushBack(Wrap *wrap) {
+bool ByteDeque::pushBack(Wrap *wrap) {
     BDequeElem elem;
     if (deq.empty())
         elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
-    else
-        elem.linePoints = m_byteAccess->lineAfter(deq.back().linePoints).value();
+    else {
+        auto opt = m_byteAccess->lineAfter(deq.back().linePoints);
+        if (opt)
+            elem.linePoints = opt.value();
+        else
+            return false;
+    }
     elem.wrapEnds = wrap->wrapEnds(m_byteAccess->line(elem.linePoints));
     deq.push_back(elem);
+    return true;
 }
 
 void ByteDeque::popBack() {

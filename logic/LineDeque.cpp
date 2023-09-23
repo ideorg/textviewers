@@ -42,14 +42,19 @@ bool LineDeque::backAtEnd() {
     return m_lineAccess->isLastInFile(lastIndex);
 }
 
-void LineDeque::pushBack(Wrap *wrap) {
+bool LineDeque::pushBack(Wrap *wrap) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
     else
         elem.index = deq.back().index + 1;
-    elem.wrapEnds = wrap->wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
+    auto opt = m_lineAccess->lineByIndex(elem.index);
+    if (opt)
+        elem.wrapEnds = wrap->wrapEnds(opt.value());
+    else
+        return false;
     deq.push_back(elem);
+    return true;
 }
 
 void LineDeque::popBack() {

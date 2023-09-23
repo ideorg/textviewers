@@ -25,7 +25,7 @@ public:
     virtual void popFront() = 0;
     virtual int frontWrapCount() = 0;
     virtual bool backAtEnd() = 0;
-    virtual void pushBack(Wrap *wrap) = 0;
+    virtual bool pushBack(Wrap *wrap) = 0;
     virtual void popBack() = 0;
     virtual int backWrapCount() = 0;
     virtual void setFront(int64_t start) = 0;

@@ -165,3 +165,30 @@ TEST (WrapMode, change) {
     auto firstRow1 = vtest.at(0);
     EXPECT_EQ(firstRow0, firstRow1);
 }
+
+TEST (Std, lowerBound) {
+    vector<int64_t> v = {2,4};
+    EXPECT_EQ(0, lower_bound(v.begin(), v.end(), 0)-v.begin());
+    EXPECT_EQ(0, lower_bound(v.begin(), v.end(), 1)-v.begin());
+    EXPECT_EQ(0, lower_bound(v.begin(), v.end(), 2)-v.begin());
+    EXPECT_EQ(1, lower_bound(v.begin(), v.end(), 3)-v.begin());
+    EXPECT_EQ(1, lower_bound(v.begin(), v.end(), 4)-v.begin());
+}
+
+TEST (Std, upperBound) {
+    vector<int64_t> v = {2,4};
+    EXPECT_EQ(0, upper_bound(v.begin(), v.end(), 0)-v.begin());
+    EXPECT_EQ(0, upper_bound(v.begin(), v.end(), 1)-v.begin());
+    EXPECT_EQ(1, upper_bound(v.begin(), v.end(), 2)-v.begin());
+    EXPECT_EQ(1, upper_bound(v.begin(), v.end(), 3)-v.begin());
+    EXPECT_EQ(2, upper_bound(v.begin(), v.end(), 4)-v.begin());
+}
+
+TEST (Wrap, find) {
+    vector<int64_t> v = {2,4};
+    EXPECT_EQ(0, Wrap::find(v, 0) );
+    EXPECT_EQ(0, Wrap::find(v, 1) );
+    EXPECT_EQ(1, Wrap::find(v, 2) );
+    EXPECT_EQ(1, Wrap::find(v, 3) );
+    EXPECT_EQ(2, Wrap::find(v, 4) );
+}

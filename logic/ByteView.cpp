@@ -21,18 +21,53 @@ int64_t ByteView::beginTail() {
     if (!opt)
         return m_byteAccess->firstByte();
     auto lp = opt.value();
-    for (int i=0; i<screenLineCount()-1; i++) {
-        auto opt = m_byteAccess->lineBefore(lp);
-        if (!opt)
-            break;
-        lp = opt.value();
+    if (wrapMode() == 0) {
+        for (int i = 0; i < screenLineCount() - 1; i++) {
+            auto opt = m_byteAccess->lineBefore(lp);
+            if (!opt)
+                break;
+            lp = opt.value();
+        }
+        return lp.offset;
+    } else {
+        int count = 0;
+        auto line = m_byteAccess->line(lp);
+        auto v = wrap->wrapEnds(line);
+        int countWrap = v.size() - 1;
+        while (count < screenLineCount() - 1) {
+            countWrap--;
+            if (countWrap < 0) {
+                opt = m_byteAccess->lineBefore(lp);
+                if (!opt)
+                    break;
+                lp = opt.value();
+                line = m_byteAccess->line(lp);
+                v = wrap->wrapEnds(line);
+                countWrap = v.size() - 1;
+            }
+            count++;
+        }
+        int64_t position = lp.offset;
+        if (countWrap > 0)
+            position += v[countWrap - 1];
+        return position;
     }
-    return lp.offset;
 }
 
 void ByteView::gotoProportional(double relativePos) {
-    auto lp =  m_byteAccess->lineEnclosing(ceill((long double)beginTail()*relativePos));
-    m_startY = lp.offset;
+    auto startByteInside = (int64_t) ceill((long double) beginTail() * relativePos);
+    auto linePoint = m_byteAccess->lineEnclosing(startByteInside);
+    m_startY = linePoint.offset;
+    if (wrapMode()) {
+        wrap->wrapEnds(m_byteAccess->line(linePoint));
+        if (startByteInside > m_startY) {
+            auto line = m_byteAccess->line(linePoint);
+            auto v = wrap->wrapEnds(line);
+            v = wrap->wrapEnds(line);
+            int64_t wrapOffset = startByteInside - m_startY;
+            countWrapBefore = Wrap::find(v, wrapOffset);
+        }
+    }
 }
 
 int64_t ByteView::getMinimum() {
