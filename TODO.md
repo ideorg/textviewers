@@ -16,10 +16,9 @@
 - Unicode
 - BOM
 
-==== TODO
-
 0.4
 - wrap mode
+==== TODO
 
 0.5
 - horizontal scroll
