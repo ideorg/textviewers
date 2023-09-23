@@ -3,8 +3,11 @@
 //
 #include "gtest/gtest.h"
 #include "logic/ByteDocument.h"
+#include "logic/LineIndexedDocument.h"
+#include "logic/ChangeableDocument.h"
 #include "logic/ByteView.h"
 #include "misc/util.h"
+#include "logic/LineView.h"
 
 using namespace std;
 using namespace vl;
@@ -46,7 +49,7 @@ TEST(Wrap, backward_short) {
         EXPECT_EQ(vexpect[i + 1], vtest[i]);
 }
 
-TEST(Wrap, backward_short_empt) {
+TEST(Wrap, backward_short_empt_byte) {
     string content = makeContent("../test/data/emshortwrap.txt");
     ByteDocument doc(content.c_str(), content.length(), 0);
     ByteView vexpect(&doc);
@@ -56,6 +59,48 @@ TEST(Wrap, backward_short_empt) {
     vexpect.fillDeque();
     vexpect.recalcLines();
     ByteView vtest(&doc);
+    vtest.setWrapMode(1);
+    vtest.setScreenLineLen(7);
+    vtest.setScreenLineCount(vexpect.size() - 1);
+    vtest.gotoProportional(1);
+    vtest.fillDeque();
+    vtest.recalcLines();
+    EXPECT_EQ(vexpect.size() - 1, vtest.size());
+    for (int i = 0; i < min(vtest.size(), vexpect.size() - 1); i++)
+        EXPECT_EQ(vexpect[i + 1], vtest[i]);
+}
+
+TEST(Wrap, backward_short_empt_line) {
+    string content = makeContent("../test/data/emshortwrap.txt");
+    LineIndexedDocument doc(content.c_str(), content.length());
+    LineView vexpect(&doc);
+    vexpect.setWrapMode(1);
+    vexpect.setScreenLineLen(7);
+    vexpect.setScreenLineCount(20);
+    vexpect.fillDeque();
+    vexpect.recalcLines();
+    LineView vtest(&doc);
+    vtest.setWrapMode(1);
+    vtest.setScreenLineLen(7);
+    vtest.setScreenLineCount(vexpect.size() - 1);
+    vtest.gotoProportional(1);
+    vtest.fillDeque();
+    vtest.recalcLines();
+    EXPECT_EQ(vexpect.size() - 1, vtest.size());
+    for (int i = 0; i < min(vtest.size(), vexpect.size() - 1); i++)
+        EXPECT_EQ(vexpect[i + 1], vtest[i]);
+}
+
+TEST(Wrap, backward_short_empt_chg) {
+    string content = makeContent("../test/data/emshortwrap.txt");
+    ChangeableDocument doc(content.c_str(), content.length());
+    LineView vexpect(&doc);
+    vexpect.setWrapMode(1);
+    vexpect.setScreenLineLen(7);
+    vexpect.setScreenLineCount(20);
+    vexpect.fillDeque();
+    vexpect.recalcLines();
+    LineView vtest(&doc);
     vtest.setWrapMode(1);
     vtest.setScreenLineLen(7);
     vtest.setScreenLineCount(vexpect.size() - 1);

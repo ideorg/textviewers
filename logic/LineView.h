@@ -12,6 +12,7 @@ namespace vl {
 
 class LineView : public AbstractView {
     ILineAccess *m_lineAccess;
+    double beginTail();
 public:
     explicit LineView(ILineAccess *lineAccess);
     void gotoProportional(double relativePos) override;

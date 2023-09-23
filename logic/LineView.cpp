@@ -19,10 +19,19 @@ LineView::LineView(ILineAccess *lineAccess): m_lineAccess(lineAccess) {
 void LineView::gotoProportional(double relativePos) {
     if (m_lineAccess->lineCount() == 0)
         return;
-    if (m_lineAccess->lineCount() <= m_screenLineCount) {
-        m_startY = 0;
-    } else {
-        m_startY = round((m_lineAccess->lineCount() - m_screenLineCount) * relativePos);
+    else {
+        if (wrapMode() == 0) {
+            if (m_lineAccess->lineCount() <= m_screenLineCount)
+                m_startY = 0;
+            else
+                m_startY = round((m_lineAccess->lineCount() - m_screenLineCount) * relativePos);
+        } else {
+            double startInside = beginTail() * relativePos;
+            m_startY = (int) startInside;
+            auto line = m_lineAccess->lineByIndex(m_startY).value();
+            auto v = wrap->wrapEnds(line);
+            countWrapBefore = round((startInside - m_startY) * v.size());
+        }
     }
 }
 
@@ -46,4 +55,35 @@ int64_t LineView::getWindowedMaximum() {
         return getMinimum();
     else
         return viewDeque->getMaximum();
+}
+
+double LineView::beginTail() {
+    int n = m_lineAccess->lineCount() - 1;
+    if (n < 0)
+        return 0;
+    if (wrapMode() == 0) {
+        return n - (screenLineCount() - 1);
+    } else {
+        int count = 0;
+        auto line = m_lineAccess->lineByIndex(n).value();
+        auto v = wrap->wrapEnds(line);
+        int countWrap = v.size() - 1;
+        while (count < screenLineCount() - 1) {
+            countWrap--;
+            if (countWrap < 0) {
+                n--;
+                auto opt = m_lineAccess->lineByIndex(n);
+                if (!opt)
+                    break;
+                line = opt.value();
+                v = wrap->wrapEnds(line);
+                countWrap = v.size() - 1;
+            }
+            count++;
+        }
+        double position = n;
+        if (countWrap > 0)
+            position += double(countWrap) / v.size();
+        return position;
+    }
 }
