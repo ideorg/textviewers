@@ -18,14 +18,19 @@ bool ByteDeque::frontAtStart() {
     return m_byteAccess->isFirstInFile(deq.front().linePoints);
 }
 
-void ByteDeque::pushFront(Wrap *wrap) {
+bool ByteDeque::pushFront(Wrap *wrap) {
     BDequeElem elem;
     if (deq.empty())
         elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
-    else
-        elem.linePoints = m_byteAccess->lineBefore(deq.front().linePoints).value();
+    else {
+        auto opt = m_byteAccess->lineBefore(deq.front().linePoints);
+        if (!opt)
+            return false;
+        elem.linePoints = opt.value();
+    }
     elem.wrapEnds = wrap->wrapEnds(m_byteAccess->line(elem.linePoints));
     deq.push_front(elem);
+    return true;
 }
 
 void ByteDeque::popFront() {

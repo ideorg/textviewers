@@ -30,7 +30,7 @@ public:
     int64_t getMaximum() override;
     int64_t getWrapMaximum(int wrapIndex) override;
     bool frontAtStart() override;
-    void pushFront(Wrap *wrap) override;
+    bool pushFront(Wrap *wrap) override;
     void popFront() override;
     int frontWrapCount() override;
     bool backAtEnd() override;

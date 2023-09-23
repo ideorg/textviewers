@@ -18,14 +18,18 @@ bool LineDeque::frontAtStart() {
     return deq[0].index == 0;
 }
 
-void LineDeque::pushFront(Wrap *wrap) {
+bool LineDeque::pushFront(Wrap *wrap) {
     LDequeElem elem;
     if (deq.empty())
         elem.index = m_startLine;
     else
         elem.index = deq[0].index - 1;
-    elem.wrapEnds = wrap->wrapEnds(m_lineAccess->lineByIndex(elem.index).value());
+    auto opt = m_lineAccess->lineByIndex(elem.index);
+    if (opt)
+        return false;
+    elem.wrapEnds = wrap->wrapEnds(opt.value());
     deq.push_front(elem);
+    return true;
 }
 
 void LineDeque::popFront() {

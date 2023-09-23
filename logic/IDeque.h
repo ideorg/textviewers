@@ -21,7 +21,7 @@ public:
     virtual int64_t getMaximum() = 0;
     virtual int64_t getWrapMaximum(int wrapIndex) = 0;
     virtual bool frontAtStart() = 0;
-    virtual void pushFront(Wrap *wrap) = 0;
+    virtual bool pushFront(Wrap *wrap) = 0;
     virtual void popFront() = 0;
     virtual int frontWrapCount() = 0;
     virtual bool backAtEnd() = 0;
