@@ -30,7 +30,6 @@ class ByteDocument: public virtual IByteAccess {
     enum EndLine {
         elMaybeInside, elTrueEol
     };//todo really needed?
-    static bool isNewlineChar(char c);
     bool lineIsEmpty(int64_t offset);
     //forward
     int64_t searchEndOfLine(int64_t startOffset);
@@ -54,6 +53,7 @@ public:
     std::optional<LinePoints> lineAfter(const LinePoints &linePoints) override;
     bool isFirstInFile(const LinePoints &linePoints) override;
     bool isLastInFile(const LinePoints &linePoints) override;
+    static bool isNewlineChar(char c);
 };
 }
 
