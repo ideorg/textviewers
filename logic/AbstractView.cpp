@@ -230,3 +230,11 @@ void AbstractView::setWrapMode(int wrapMode) {
     recalcLines();
 }
 
+int64_t AbstractView::filePosition(int row, int col) {
+    return 0;
+}
+
+std::pair<int, int> AbstractView::locatePosition(int64_t filePosition, bool preferAfter) {
+    return std::pair<int, int>();
+}
+

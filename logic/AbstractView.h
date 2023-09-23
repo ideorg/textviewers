@@ -40,6 +40,8 @@ public:
     virtual ~AbstractView();
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
+    int64_t filePosition(int row, int col);
+    std::pair<int, int> locatePosition(int64_t filePosition, bool preferAfter = false);
     int screenLineCount();
     int screenLineLen();
     size_t size();

@@ -40,6 +40,7 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testIByteAccessML.cpp
         test/testMaxline.cpp
         test/testWrap.cpp
+        test/testPosition.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main)
