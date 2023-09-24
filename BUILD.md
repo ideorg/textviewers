@@ -1,6 +1,3 @@
-# textviewers
-Text viewer especially for huge files
-
 git clone --recurse-submodules https://github.com/ideorg/textviewers.git
 
 Prerequisites:
