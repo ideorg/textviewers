@@ -17,7 +17,7 @@ TEST(beginX, UnicodeX10) {
     vtest.setScreenLineCount(10);
     vtest.setWrapMode(0);
     auto vexpect = makeExpect("../test/expect/utf8_first10w10X10.txt");
-    vtest.setBeginX(10);
+    vtest.setStartX(10);
     EXPECT_EQ(vexpect.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect.size()); i++)
         EXPECT_EQ(vtest[i], vexpect[i]);
@@ -31,7 +31,7 @@ TEST(beginX, UnicodeX12) {
     vtest.setScreenLineCount(10);
     vtest.setWrapMode(0);
     auto vexpect = makeExpect("../test/expect/utf8_first10w10X12.txt");
-    vtest.setBeginX(12);
+    vtest.setStartX(12);
     EXPECT_EQ(vexpect.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect.size()); i++)
         EXPECT_EQ(vtest[i], vexpect[i]);
@@ -45,7 +45,7 @@ TEST(beginX, UnicodeX40) {
     vtest.setScreenLineCount(10);
     vtest.setWrapMode(0);
     auto vexpect = makeExpect("../test/expect/utf8_first10w10X40.txt");
-    vtest.setBeginX(40);
+    vtest.setStartX(40);
     EXPECT_EQ(vexpect.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect.size()); i++)
         EXPECT_EQ(vtest[i], vexpect[i]);
@@ -71,37 +71,37 @@ TEST(beginX, cache) {
     for (int i = 0; i < min(vtest.size(), vexpect0.size()); i++)
         EXPECT_EQ(vtest[i], vexpect0[i]);
 
-    vtest.setBeginX(10);
+    vtest.setStartX(10);
     EXPECT_EQ(vexpect10.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect10.size()); i++)
         EXPECT_EQ(vtest[i], vexpect10[i]);
 
-    vtest.setBeginX(12);
+    vtest.setStartX(12);
     EXPECT_EQ(vexpect12.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect12.size()); i++)
         EXPECT_EQ(vtest[i], vexpect12[i]);
     //only from cache
-    vtest.setBeginX(12);
+    vtest.setStartX(12);
     EXPECT_EQ(vexpect12.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect12.size()); i++)
         EXPECT_EQ(vtest[i], vexpect12[i]);
 
-    vtest.setBeginX(40);
+    vtest.setStartX(40);
     EXPECT_EQ(vexpect40.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect40.size()); i++)
         EXPECT_EQ(vtest[i], vexpect40[i]);
 
-    vtest.setBeginX(12);
+    vtest.setStartX(12);
     EXPECT_EQ(vexpect12.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect12.size()); i++)
         EXPECT_EQ(vtest[i], vexpect12[i]);
 
-    vtest.setBeginX(10);
+    vtest.setStartX(10);
     EXPECT_EQ(vexpect10.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect10.size()); i++)
         EXPECT_EQ(vtest[i], vexpect10[i]);
 
-    vtest.setBeginX(0);
+    vtest.setStartX(0);
     EXPECT_EQ(vexpect0.size(), vtest.size());
     for (int i = 0; i < min(vtest.size(), vexpect0.size()); i++)
         EXPECT_EQ(vtest[i], vexpect0[i]);

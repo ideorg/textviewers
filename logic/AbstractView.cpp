@@ -155,13 +155,13 @@ std::u32string AbstractView::at(int n) {
     if (n < 0)
         n = (int)indexView.size() + n;
     auto iv = indexView[n];
-    if (beginX() >= iv.wrapLen)
+    if (startX() >= iv.wrapLen)
         return {};
     auto lineView = viewDeque->lineAt(iv.index);
     auto wrapLineView = string_view(lineView.cbegin() + iv.wrapOffset, iv.wrapLen);
     UTF utf;
     int64_t actual;
-    const char *s = utf.forwardNcodes(wrapLineView.cbegin(), beginX(), wrapLineView.cend(), actual);
+    const char *s = utf.forwardNcodes(wrapLineView.cbegin(), startX(), wrapLineView.cend(), actual);
     if (s == wrapLineView.cend())
         return {};
     u32string dstr;
@@ -214,6 +214,10 @@ int64_t AbstractView::startY() {
     return m_startY;
 }
 
+int AbstractView::maxTabW() {
+    return m_maxTabW;
+}
+
 double AbstractView::startYproportional() {
     return (double)startY() / (double)getScrollRange();
 }
@@ -246,12 +250,11 @@ void AbstractView::setmaxTabW(int maxTabW) {
     recalcLines();
 }
 
-void AbstractView::setBeginX(int beginX) {
-    m_beginX = beginX;
+void AbstractView::setStartX(int startX) {
+    m_startX = startX;
     fillDeque();
     recalcLines();
 }
-
 
 LinePointers AbstractView::getLinePointers(int n) {
     LinePointers result;
