@@ -158,6 +158,9 @@ void PaintArea::setVertical(double relativePos) {
 }
 
 void PaintArea::wheelHorizontal(int delta) {
+    tv->setStartX(std::max(0, tv->startX() - delta));
+    tv->fillDeque();
+    tv->recalcLines();
     update();
     Q_EMIT scrollVChanged();
 }

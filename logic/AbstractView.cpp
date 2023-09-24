@@ -206,7 +206,7 @@ int AbstractView::scrollNUp(int n) {
     return result;
 }
 
-int64_t AbstractView::startX() {
+int AbstractView::startX() {
     return m_startX;
 }
 

@@ -36,7 +36,7 @@ protected:
     int m_wrapMode = 0;
     int m_maxTabW = 1;
     int64_t m_startY = 0;
-    int64_t m_startX = 0;
+    int m_startX = 0;
     std::vector<IndexView> indexView;
     int m_screenLineCount = 0;
     int m_screenLineLen = 0;
@@ -53,7 +53,7 @@ public:
     int screenLineCount();
     int screenLineLen();
     size_t size();
-    int64_t startX();
+    int startX();
     int64_t startY();
     double startYproportional();
     std::u32string at(int n);
