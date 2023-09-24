@@ -49,6 +49,8 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testStartX.cpp
         test/testScroll.cpp
         test/testScrollL.cpp
+        test/testProportional.cpp
+        test/testProportionalL.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main)
