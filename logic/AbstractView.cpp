@@ -33,6 +33,7 @@ int AbstractView::scrollDown() {
             viewDeque->popFront();
         }
         m_startY = viewDeque->getMinimum();
+        recalcLines();
         return 1;
     } else {
         if (viewDeque->backAtEnd())
@@ -40,6 +41,7 @@ int AbstractView::scrollDown() {
         viewDeque->pushBack(wrap.get());
         viewDeque->popFront();
         m_startY = viewDeque->getMinimum();
+        recalcLines();
         return 1;
     }
 }
@@ -61,6 +63,7 @@ int AbstractView::scrollUp() {
             viewDeque->popBack();
         }
         m_startY = viewDeque->getMinimum();
+        recalcLines();
         return 1;
     } else {
         if (viewDeque->frontAtStart())
@@ -68,6 +71,7 @@ int AbstractView::scrollUp() {
         viewDeque->pushFront(wrap.get());
         viewDeque->popBack();
         m_startY = viewDeque->getMinimum();
+        recalcLines();
         return 1;
     }
 }

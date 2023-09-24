@@ -20,16 +20,19 @@ TEST(Scroll, width) {
     vtest.fillDeque();
     vtest.recalcLines();
     auto orig = vtest.clone();
+    EXPECT_EQ(vtest.size(), orig->size());
     for (int i = 0; i < min(vtest.size(), orig->size()); i++)
-        EXPECT_EQ(vtest[i], (*orig)[i]);
+        EXPECT_EQ((*orig)[i], vtest[i]);
     vtest.scrollDown();
     vtest.scrollUp();
+    EXPECT_EQ(vtest.size(), orig->size());
     for (int i = 0; i < min(vtest.size(), orig->size()); i++)
-        EXPECT_EQ(vtest[i], (*orig)[i]);
+        EXPECT_EQ((*orig)[i], vtest[i]);
     vtest.scrollPageDown();
     vtest.scrollPageUp();
+    EXPECT_EQ(vtest.size(), orig->size());
     for (int i = 0; i < min(vtest.size(), orig->size()); i++)
-        EXPECT_EQ(vtest[i], (*orig)[i]);
+        EXPECT_EQ((*orig)[i], vtest[i]);
 }
 
 TEST(Scroll, wrap) {

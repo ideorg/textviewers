@@ -25,7 +25,7 @@ bool LineDeque::pushFront(Wrap *wrap) {
     else
         elem.index = deq[0].index - 1;
     auto opt = m_lineAccess->lineByIndex(elem.index);
-    if (opt)
+    if (!opt)
         return false;
     elem.wrapEnds = wrap->wrapEnds(opt.value());
     deq.push_front(elem);
