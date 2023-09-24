@@ -18,12 +18,13 @@
 
 0.4
 - wrap mode
-==== TODO
 
 0.5
 - horizontal scroll
 - tab width
 - selection
+
+==== TODO
 
 0.6
 - autoscroll with timer with mouse selection
