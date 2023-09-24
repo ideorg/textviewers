@@ -46,6 +46,7 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testPositionL.cpp
         test/testUnicode.cpp
         test/testTabs.cpp
+        test/testBeginX.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main)

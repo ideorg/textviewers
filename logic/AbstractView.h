@@ -35,6 +35,7 @@ protected:
     int countWrapAfter = 0;
     int m_wrapMode = 0;
     int m_maxTabW = 1;
+    int m_beginX = 0;
     int64_t m_startY = 0;
     int64_t m_startX = 0;
     std::vector<IndexView> indexView;
@@ -65,7 +66,9 @@ public:
     int wrapMode();
     void setWrapMode(int wrapMode);
     void setmaxTabW(int maxTabW);
+    void setBeginX(int beginX);
     int maxTabW() {return m_maxTabW;}
+    int beginX() {return m_beginX;}
     virtual void gotoProportional(double relativePos) = 0;
     void fillDeque();
     void recalcLines();

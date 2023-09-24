@@ -4,6 +4,7 @@
 #include <string>
 #include "AbstractView.h"
 #include "ByteDeque.h"
+#include "UTF/UTF.hpp"
 
 using namespace std;
 using namespace vl;
@@ -154,12 +155,19 @@ std::u32string AbstractView::at(int n) {
     if (n < 0)
         n = (int)indexView.size() + n;
     auto iv = indexView[n];
+    if (beginX() >= iv.wrapLen)
+        return {};
     auto lineView = viewDeque->lineAt(iv.index);
-    auto wrapLineView = string_view(lineView.cbegin()+iv.wrapOffset, iv.wrapLen);
+    auto wrapLineView = string_view(lineView.cbegin() + iv.wrapOffset, iv.wrapLen);
+    UTF utf;
+    int64_t actual;
+    const char *s = utf.forwardNcodes(wrapLineView.cbegin(), beginX(), wrapLineView.cend(), actual);
+    if (s == wrapLineView.cend())
+        return {};
     u32string dstr;
     dstr.resize(screenLineLen());
-    const char *s = wrapLineView.cbegin();
-    int width = wrap->fillDString(s, wrapLineView.end(), dstr);
+    assert(s < wrapLineView.cend());
+    int width = wrap->fillDString(s, wrapLineView.cend(), dstr);
     dstr.resize(width);
     return dstr;
 }
@@ -237,6 +245,13 @@ void AbstractView::setmaxTabW(int maxTabW) {
     fillDeque();
     recalcLines();
 }
+
+void AbstractView::setBeginX(int beginX) {
+    m_beginX = beginX;
+    fillDeque();
+    recalcLines();
+}
+
 
 LinePointers AbstractView::getLinePointers(int n) {
     LinePointers result;
