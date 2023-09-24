@@ -23,12 +23,12 @@ int AbstractView::scrollDown() {
         if (viewDeque->backAtEnd() && countWrapAfter == 0)
             return 0;
         countWrapAfter--;
-        if (countWrapAfter <= 0) {
+        if (countWrapAfter < 0) {
             viewDeque->pushBack(wrap.get());
-            countWrapAfter = viewDeque->backWrapCount();
+            countWrapAfter = viewDeque->backWrapCount() - 1;
         }
         countWrapBefore++;
-        if (countWrapBefore == viewDeque->frontWrapCount()) {
+        if (countWrapBefore >= viewDeque->frontWrapCount()) {
             countWrapBefore = 0;
             viewDeque->popFront();
         }
@@ -51,12 +51,12 @@ int AbstractView::scrollUp() {
         if (viewDeque->frontAtStart() && countWrapBefore == 0)
             return 0;
         countWrapBefore--;
-        if (countWrapBefore <= 0) {
+        if (countWrapBefore < 0) {
             viewDeque->pushFront(wrap.get());
-                countWrapAfter = viewDeque->frontWrapCount();
+            countWrapBefore = viewDeque->frontWrapCount() - 1;
         }
         countWrapAfter++;
-        if (countWrapAfter == viewDeque->backWrapCount()) {
+        if (countWrapAfter >= viewDeque->backWrapCount()) {
             countWrapAfter = 0;
             viewDeque->popBack();
         }
