@@ -92,7 +92,7 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     fontHeight = fm.height();
     this->setFont(font);
     setData(addr, fileSize);
-    selection.setViewLogic(doc);
+    selection.setDocument(doc);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
 }
 
