@@ -206,6 +206,14 @@ int AbstractView::scrollNUp(int n) {
     return result;
 }
 
+int AbstractView::scrollPageDown() {
+    return scrollNDown(screenLineCount());
+}
+
+int AbstractView::scrollPageUp() {
+    return scrollNUp(screenLineCount());
+}
+
 int AbstractView::startX() {
     return m_startX;
 }

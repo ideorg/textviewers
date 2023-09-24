@@ -62,6 +62,8 @@ public:
     int scrollUp();
     int scrollNDown(int n);
     int scrollNUp(int n);
+    int scrollPageDown();
+    int scrollPageUp();
     int wrapMode();
     void setWrapMode(int wrapMode);
     void setmaxTabW(int maxTabW);
