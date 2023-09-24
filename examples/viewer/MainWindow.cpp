@@ -64,12 +64,12 @@ void MainWindow::createMenus() {
     QAction *nowrapAct = wrapMenu->addAction(tr("&No wrap"));
     nowrapAct->setData(0);
     nowrapAct->setCheckable(true);
+    nowrapAct->setChecked(true);
     actionGroup->addAction(nowrapAct);
 
     QAction *wrapAct = wrapMenu->addAction(tr("&Wrap"));
     wrapAct->setData(1);
     wrapAct->setCheckable(true);
-    wrapAct->setChecked(true);
     actionGroup->addAction(wrapAct);
 
     QAction *smartWrapAct = wrapMenu->addAction(tr("&Smart wrap"));

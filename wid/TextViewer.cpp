@@ -41,6 +41,7 @@ void TextViewer::hscrollChanged() {
 
 void TextViewer::setWrapMode(int mode) {
     paintArea->setWrapMode(mode);
+    hscroll->setVisible(paintArea->tv->wrapMode()==0);
 }
 
 void TextViewer::setKind(int kind) {
