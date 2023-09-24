@@ -50,7 +50,7 @@ public:
     void wheelVertical(int delta);
     void wheelHorizontal(int delta);
     void trySetCaret(QPoint point);
-    void setHorizontal(int beginX);
+    void setHorizontal(int startX);
     void setVertical(double relativePos);
     vl::AbstractView *tv = nullptr;
     vl::IBaseAccess *doc = nullptr;

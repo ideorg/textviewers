@@ -108,6 +108,7 @@ int ByteDeque::wrapCount(int n) {
 }
 
 std::string_view ByteDeque::lineAt(int n) {
+    assert(n>=0 && n<deq.size());
     return m_byteAccess->line(deq[n].linePoints);
 }
 

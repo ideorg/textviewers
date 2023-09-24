@@ -146,7 +146,12 @@ void PaintArea::wheelVertical(int delta) {
 
 }
 
-void PaintArea::setHorizontal(int beginX) {
+void PaintArea::setHorizontal(int startX) {
+    if (tv->wrapMode() > 0)
+        return;
+    tv->setStartX(startX);
+    tv->fillDeque();
+    tv->recalcLines();
     update();
 }
 
@@ -158,6 +163,8 @@ void PaintArea::setVertical(double relativePos) {
 }
 
 void PaintArea::wheelHorizontal(int delta) {
+    if (tv->wrapMode() > 0)
+        return;
     tv->setStartX(std::max(0, tv->startX() - delta));
     tv->fillDeque();
     tv->recalcLines();
