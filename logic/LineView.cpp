@@ -57,6 +57,17 @@ int64_t LineView::getWindowedMaximum() {
         return viewDeque->getMaximum();
 }
 
+LineView *LineView::clone() {
+    auto newObj = new LineView(m_lineAccess);
+    cloneFields(newObj);
+    return newObj;
+}
+
+void LineView::cloneFields(LineView *other) {
+    AbstractView::cloneFields(other);
+    other->m_lineAccess = m_lineAccess;
+}
+
 double LineView::beginTail() {
     int n = m_lineAccess->lineCount() - 1;
     if (n < 0)

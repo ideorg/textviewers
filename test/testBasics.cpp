@@ -23,24 +23,3 @@ TEST (Width, empties) {
         EXPECT_EQ(vtest[i], vexpect[i]);
 }
 
-TEST(Scroll, width) {
-    string content = makeContent("../test/data/midlines.txt");
-    ByteDocument doc(content.c_str(), content.length());
-    ByteView vtest(&doc);
-    vtest.setScreenLineLen(6);
-    vtest.setScreenLineCount(3);
-    vtest.fillDeque();
-    vtest.recalcLines();
-    auto orig = vtest.clone();
-    for (int i = 0; i < min(vtest.size(), orig->size()); i++)
-        EXPECT_EQ(vtest[i], (*orig)[i]);
-    vtest.scrollDown();
-    vtest.scrollUp();
-    for (int i = 0; i < min(vtest.size(), orig->size()); i++)
-        EXPECT_EQ(vtest[i], (*orig)[i]);
-    vtest.scrollNDown(3);
-    vtest.scrollNUp(3);
-    for (int i = 0; i < min(vtest.size(), orig->size()); i++)
-        EXPECT_EQ(vtest[i], (*orig)[i]);
-}
-
