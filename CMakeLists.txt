@@ -24,6 +24,10 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/ChangeableDocument.cpp
 )
 
+set(MISC_SOURCES
+        misc/selection.cpp
+)
+
 set(WID_SOURCES
         wid/TextViewer.cpp wid/TextViewer.h wid/PaintArea.cpp wid/PaintArea.h
 )

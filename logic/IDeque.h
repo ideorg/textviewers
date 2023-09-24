@@ -7,16 +7,61 @@
 
 #include <vector>
 #include <string_view>
+#include <cassert>
 #include "Wrap.h"
 
 namespace vl {
 
 union FilePosition {
-    int64_t bytePosition = 0;
+    struct {
+        int64_t bytePosition = 0;
+        int8_t interpretation = 0; //problem with endianness
+    };
     struct {
         int lineNumber;
         int offset;
     };
+
+    bool ge(FilePosition other) const {
+        assert(interpretation > 0);
+        int64_t a, b, c;
+        if (interpretation == 1) {
+            a = bytePosition;
+            b = other.bytePosition;
+        } else {
+            a = ((int64_t) lineNumber << 32) + offset;
+            b = ((int64_t) other.lineNumber << 32) + other.offset;
+        }
+        return a >= b;
+    }
+
+    bool gt(FilePosition other) const {
+        assert(interpretation > 0);
+        int64_t a, b, c;
+        if (interpretation == 1) {
+            a = bytePosition;
+            b = other.bytePosition;
+        } else {
+            a = ((int64_t) lineNumber << 32) + offset;
+            b = ((int64_t) other.lineNumber << 32) + other.offset;
+        }
+        return a > b;
+    }
+
+    bool between(FilePosition begin, FilePosition end) const {
+        assert(interpretation > 0);
+        int64_t a, b, c;
+        if (interpretation == 1) {
+            a = bytePosition;
+            b = begin.bytePosition;
+            c = end.bytePosition;
+        } else {
+            a = ((int64_t) lineNumber << 32) + offset;
+            b = ((int64_t) begin.lineNumber << 32) + begin.offset;
+            c = ((int64_t) end.lineNumber << 32) + end.offset;
+        }
+        return a >= b && a < c;
+    }
 };
 
 class IDeque {

@@ -16,6 +16,10 @@ foreach(source_file ${LOGIC_SOURCES})
     list(APPEND LOGIC_SOURCES_RELATIVE ../../${source_file})
 endforeach()
 
+foreach(source_file ${MISC_SOURCES})
+    list(APPEND MISC_SOURCES_RELATIVE ../../${source_file})
+endforeach()
+
 foreach(source_file ${WID_SOURCES})
     list(APPEND WID_SOURCES_RELATIVE ../../${source_file})
 endforeach()
@@ -24,6 +28,7 @@ set(PROJECT_SOURCES
         main.cpp
         MainWindow.cpp MainWindow.h
         ${LOGIC_SOURCES_RELATIVE}
+        ${MISC_SOURCES_RELATIVE}
         ${WID_SOURCES_RELATIVE}
 )
 
