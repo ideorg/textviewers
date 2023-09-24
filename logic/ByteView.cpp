@@ -123,6 +123,8 @@ std::pair<int, int> ByteView::locatePosition(FilePosition filePosition, bool pre
     int wholeRowNumber = viewDeque->locateRow(filePosition);
     if (wholeRowNumber < 0)
         return {-1, 0};
+    if (wholeRowNumber >= viewDeque->size())
+        return {screenLineCount(), 0};
     auto deqLine = viewDeque->lineAt(wholeRowNumber);
     if (indexView[0].index > wholeRowNumber)
         return {-1, 0};
