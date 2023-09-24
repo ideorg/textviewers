@@ -36,6 +36,7 @@ public:
     virtual std::optional<LinePoints> lineAfter(const LinePoints &linePoints) = 0;
     virtual bool isFirstInFile(const LinePoints &linePoints) = 0;
     virtual bool isLastInFile(const LinePoints &linePoints) = 0;
+    virtual int64_t pointerToOffset(const char *s) = 0;
 };
 }
 

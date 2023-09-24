@@ -53,6 +53,7 @@ public:
     std::optional<LinePoints> lineAfter(const LinePoints &linePoints) override;
     bool isFirstInFile(const LinePoints &linePoints) override;
     bool isLastInFile(const LinePoints &linePoints) override;
+    int64_t pointerToOffset(const char *s) override;
     static bool isNewlineChar(char c);
 };
 }

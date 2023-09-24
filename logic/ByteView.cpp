@@ -105,6 +105,11 @@ void ByteView::cloneFields(ByteView *other) {
 
 FilePosition ByteView::filePosition(int row, int col) {
     FilePosition result;
+    LinePointers lptrs = getLinePointers(row);
+    UTF utf;
+    int64_t actual;
+    result.bytePosition = m_byteAccess->pointerToOffset(
+            utf.forwardNcodes(lptrs.wrapPosition, col, lptrs.lineEnd, actual));
     return result;
 }
 

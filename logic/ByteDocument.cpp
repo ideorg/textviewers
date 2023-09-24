@@ -294,3 +294,7 @@ bool ByteDocument::skipPossibleBreakBackward(int64_t possibleBreakAt) {
     return false;
 }
 
+int64_t ByteDocument::pointerToOffset(const char *s) {
+    return s - m_addr;
+}
+

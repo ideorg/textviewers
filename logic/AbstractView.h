@@ -30,6 +30,12 @@ union FilePosition {
     };
 };
 
+struct LinePointers {
+    const char *lineBegin = nullptr;
+    const char *wrapPosition = nullptr;
+    const char *lineEnd = nullptr;
+};
+
 class AbstractView {
 protected:
     IDeque* viewDeque = nullptr;
@@ -48,6 +54,7 @@ public:
     virtual ~AbstractView();
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
+    LinePointers getLinePointers(int n);
     virtual FilePosition filePosition(int row, int col) = 0;
     virtual std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter = false) = 0;
     int screenLineCount();

@@ -229,3 +229,15 @@ void AbstractView::setWrapMode(int wrapMode) {
     fillDeque();
     recalcLines();
 }
+
+LinePointers AbstractView::getLinePointers(int n) {
+    LinePointers result;
+    if (n < 0)
+        n = indexView.size() + n;
+    IndexView iv = indexView[n];
+    auto deqLine = viewDeque->lineAt(iv.index);
+    result.lineBegin = deqLine.cbegin();
+    result.wrapPosition = result.lineBegin + iv.wrapIndex;
+    result.lineEnd = deqLine.cend();
+    return result;
+}
