@@ -91,6 +91,7 @@ double LineView::beginTail() {
 
 FilePosition LineView::filePosition(int row, int col) {
     FilePosition result;
+    result.interpretation = 2;
     if (row < 0) {
         result.bytePosition = 0;
         return result;

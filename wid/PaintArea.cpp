@@ -19,6 +19,7 @@
 namespace wid {
 
 void PaintArea::paintEvent(QPaintEvent *event) {
+    selection.compute(tv);
     QPainter painter(this);
     painter.setRenderHint(QPainter::TextAntialiasing);
     QRect R = event->rect();
@@ -30,7 +31,11 @@ void PaintArea::paintEvent(QPaintEvent *event) {
 
     QString qstr = updateCaretPos();
     if (oneCharRepaint) {
-
+        if (selection.charSelected(caretPos, tv))
+            painter.fillRect(R, getSelColor());
+        else
+            painter.fillRect(R, Qt::white);
+        painter.drawText(R, Qt::AlignLeft, qstr);
     } else {
         for (int i = 0; i < tv->size(); i++) {
             drawSelBackground(painter, i);
@@ -87,6 +92,7 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     fontHeight = fm.height();
     this->setFont(font);
     setData(addr, fileSize);
+    selection.setViewLogic(doc);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
 }
 
@@ -175,12 +181,12 @@ std::pair<int, int> PaintArea::toScreenPos(std::pair<int, int> point, bool smart
     return std::make_pair(y, smart ? x - (int) (fontWidth / 2) : x);
 }
 
-
 void PaintArea::mousePressEvent(QMouseEvent *event) {
     QWidget::mousePressEvent(event);
     if (event->button() == Qt::LeftButton) {
         setFocus();
         trySetCaret(event->pos());
+        selection.setFirst(toCharPos(event->pos(), true), tv);
         update();
     }
 }
@@ -188,6 +194,7 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
 void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
     auto cp = toCharPos(event->pos(), true);
     if (charInseideArea(cp)) {
+        selection.setSecond(cp, tv);
         update();
     }
 }
@@ -195,6 +202,7 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
     auto cp = toCharPos(event->pos(), true);
     if (charInseideArea(cp)) {
+        selection.setSecond(cp, tv);
         update();
     }
     QWidget::mouseMoveEvent(event);
@@ -242,7 +250,34 @@ bool PaintArea::charInseideArea(std::pair<int, int> cp) {
 }
 
 void PaintArea::drawSelBackground(QPainter &painter, int row) {
-    painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, Qt::white);
+    int selColBeg = selection.selColBeg(row, tv);
+    int selColEnd = selection.selColEnd(row, tv);
+    if (selColBeg == -1) {
+        if (selColEnd == -1)
+            painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, Qt::white);
+        else
+            assert(false);
+    } else if (selColBeg == 0) {
+        if (selColEnd == -1)
+            painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, getSelColor());
+        else {
+            painter.fillRect(0, row * fontHeight, selColEnd * fontWidth, (row + 1) * fontHeight, getSelColor());
+            painter.fillRect(selColEnd * fontWidth, row * fontHeight, QWidget::width() - selColEnd * fontWidth,
+                             (row + 1) * fontHeight, Qt::white);
+        }
+    } else {
+        if (selColEnd == -1) {
+            painter.fillRect(0, row * fontHeight, selColBeg * fontWidth, (row + 1) * fontHeight, Qt::white);
+            painter.fillRect(selColBeg * fontWidth, row * fontHeight, QWidget::width() - selColBeg * fontWidth,
+                             (row + 1) * fontHeight, getSelColor());
+        } else {
+            painter.fillRect(0, row * fontHeight, selColBeg * fontWidth, (row + 1) * fontHeight, Qt::white);
+            painter.fillRect(selColBeg * fontWidth, row * fontHeight, (selColEnd - selColBeg) * fontWidth,
+                             (row + 1) * fontHeight, getSelColor());
+            painter.fillRect(selColEnd * fontWidth, row * fontHeight, QWidget::width() - selColEnd * fontWidth,
+                             (row + 1) * fontHeight, Qt::white);
+        }
+    }
 }
 
 void PaintArea::setKind(int kind) {

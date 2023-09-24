@@ -8,6 +8,7 @@
 #include "logic/LineView.h"
 #include "logic/LineIndexedDocument.h"
 #include "logic/ByteView.h"
+#include "misc/selection.h"
 #include <QWidget>
 #include <QPaintEvent>
 #include <QTimer>
@@ -20,6 +21,7 @@ Q_OBJECT
     qreal fontWidth, fontHeight;
     QTimer timer;
     bool drawCaret = true;
+    Selection selection;
     std::pair<int,int> caretPos;
     void doBlinkMethod();
     static QColor getSelColor();

@@ -3,6 +3,7 @@
 //
 
 #include "selection.h"
+#include "logic/IByteAccess.h"
 
 bool Selection::charSelected(std::pair<int, int> point, vl::AbstractView *vr) {
     vl::FilePosition pos = vr->filePosition(point.first, point.second);
@@ -57,4 +58,15 @@ QByteArray Selection::get() {
         return {};//return QByteArray(doc->addr + selBegin, selEnd - selBegin);
     else
         return {};
+}
+
+void Selection::setViewLogic(vl::Interface *vl) {
+    this->doc = vl;
+    int8_t interpretation;
+    if (dynamic_cast<vl::IByteAccess*>(vl))
+        interpretation = 1;
+    else
+        interpretation = 2;
+    selBegin.interpretation = selEnd.interpretation =
+            firstPos.interpretation = secondPos.interpretation = interpretation;
 }

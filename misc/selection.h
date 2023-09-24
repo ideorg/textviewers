@@ -23,7 +23,7 @@ public:
     void setFirst(std::pair<int,int> pos,  vl::AbstractView *vr);
     void setSecond(std::pair<int,int> pos, vl::AbstractView *vr);
     void compute(vl::AbstractView *vr);
-    void setViewLogic(vl::Interface *vl) { this->doc = vl;}
+    void setViewLogic(vl::Interface *vl);
     int selColBeg(int row, vl::AbstractView *vr);
     int selColEnd(int row, vl::AbstractView *vr);
     QByteArray get();

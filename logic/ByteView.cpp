@@ -106,6 +106,7 @@ void ByteView::cloneFields(ByteView *other) {
 
 FilePosition ByteView::filePosition(int row, int col) {
     FilePosition result;
+    result.interpretation = 1;
     if (row < 0) {
         result.bytePosition = 0;
         return result;
