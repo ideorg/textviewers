@@ -60,7 +60,7 @@ QByteArray Selection::get() {
         return {};
 }
 
-void Selection::setDocument(vl::Interface *doc) {
+void Selection::setDocument(vl::IBaseAccess *doc) {
     this->m_doc = doc;
     int8_t interpretation;
     if (dynamic_cast<vl::IByteAccess*>(doc))

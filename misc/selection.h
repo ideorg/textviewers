@@ -7,11 +7,11 @@
 
 #include <cstdint>
 #include <QByteArray>
-#include "logic/Interface.h"
+#include "logic/IBaseAccess.h"
 #include "logic/AbstractView.h"
 
 class Selection {
-    vl::Interface *m_doc = nullptr;
+    vl::IBaseAccess *m_doc = nullptr;
     vl::FilePosition selBegin; //inclusive
     vl::FilePosition selEnd; //exclusive
     vl::FilePosition firstPos;
@@ -23,7 +23,7 @@ public:
     void setFirst(std::pair<int,int> pos,  vl::AbstractView *view);
     void setSecond(std::pair<int,int> pos, vl::AbstractView *view);
     void compute(vl::AbstractView *view);
-    void setDocument(vl::Interface *doc);
+    void setDocument(vl::IBaseAccess *doc);
     int selColBeg(int row, vl::AbstractView *view);
     int selColEnd(int row, vl::AbstractView *view);
     QByteArray get();

@@ -53,7 +53,7 @@ public:
     void setHorizontal(int beginX);
     void setVertical(double relativePos);
     vl::AbstractView *tv = nullptr;
-    vl::Interface *doc = nullptr;
+    vl::IBaseAccess *doc = nullptr;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:

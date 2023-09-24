@@ -7,7 +7,7 @@
 
 #include <string_view>
 #include <optional>
-#include "Interface.h"
+#include "IBaseAccess.h"
 
 namespace vl {
 
@@ -22,7 +22,7 @@ struct SmallLinePoints {
     int len = 0;
 };
 
-class IByteAccess : public virtual Interface {
+class IByteAccess : public virtual IBaseAccess {
 public:
     virtual int64_t firstByte() = 0;
     virtual int64_t byteCount() = 0;

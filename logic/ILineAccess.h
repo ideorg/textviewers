@@ -7,11 +7,11 @@
 
 #include <string_view>
 #include <optional>
-#include "Interface.h"
+#include "IBaseAccess.h"
 
 namespace vl {
 
-class ILineAccess : public virtual Interface {
+class ILineAccess : public virtual IBaseAccess {
 public:
     virtual std::optional<std::string_view> lineByIndex(int n) = 0;
     virtual int lineCount() = 0;
