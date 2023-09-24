@@ -22,6 +22,7 @@
 
 0.5
 - horizontal scroll
+- tab width
 - selection
 
 0.6

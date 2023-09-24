@@ -6,8 +6,8 @@
 #include <algorithm>
 #include "Wrap.h"
 #include "AbstractView.h"
-#include "DString.h"
 #include "ByteDocument.h"
+#include "UTF/UTF.hpp"
 
 using namespace vl;
 using namespace std;
@@ -16,10 +16,20 @@ int Wrap::fillDString(const char *&s, const char *seol, std::u32string &dstr) {
     UTF utf;
     int width = 0;
     while (s<seol && width < view->screenLineLen()) {
-        const char *end;
-        dstr[width] = utf.one8to32(s, seol, &end);
-        s = end;
-        width++;
+        if (*s == '\t'){
+            dstr[width] = ' '; //minimal space width==1
+            width++;
+            while (width < view->screenLineLen() && (width % view->maxTabW()) != 0) {
+                dstr[width] = ' ';
+                width++;
+            }
+            s++;
+        } else{
+            const char *end;
+            dstr[width] = utf.one8to32(s, seol, &end);
+            s = end;
+            width++;
+        }
     }
     return width;
 }

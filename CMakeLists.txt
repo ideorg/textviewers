@@ -14,8 +14,6 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/IByteAccess.h
         logic/LineDeque.h
         logic/LineDeque.cpp
-        logic/DString.h
-        logic/DString.cpp
         logic/AbstractView.h
         logic/ByteView.cpp
         logic/ByteDeque.h
@@ -46,6 +44,8 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testWrap.cpp
         test/testPosition.cpp
         test/testPositionL.cpp
+        test/testUnicode.cpp
+        test/testTabs.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main)

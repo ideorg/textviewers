@@ -1,10 +1,8 @@
 //
 // Created by andrzej on 8/23/23.
 //
-
 #include <string>
 #include "AbstractView.h"
-#include "DString.h"
 #include "ByteDeque.h"
 
 using namespace std;
@@ -158,8 +156,12 @@ std::u32string AbstractView::at(int n) {
     auto iv = indexView[n];
     auto lineView = viewDeque->lineAt(iv.index);
     auto wrapLineView = string_view(lineView.cbegin()+iv.wrapOffset, iv.wrapLen);
-    UTF utf;
-    return DString::substr(wrapLineView, 0, m_screenLineLen);
+    u32string dstr;
+    dstr.resize(screenLineLen());
+    const char *s = wrapLineView.cbegin();
+    int width = wrap->fillDString(s, wrapLineView.end(), dstr);
+    dstr.resize(width);
+    return dstr;
 }
 
 int64_t AbstractView::getRange() {
@@ -226,6 +228,12 @@ void AbstractView::setWrapMode(int wrapMode) {
     m_wrapMode = wrapMode;
     if (wrapMode == 0)
         countWrapBefore = 0;
+    fillDeque();
+    recalcLines();
+}
+
+void AbstractView::setmaxTabW(int maxTabW) {
+    m_maxTabW = maxTabW;
     fillDeque();
     recalcLines();
 }
