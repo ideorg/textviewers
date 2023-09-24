@@ -102,3 +102,12 @@ void ByteView::cloneFields(ByteView *other) {
     AbstractView::cloneFields(other);
     other->m_byteAccess = m_byteAccess;
 }
+
+FilePosition ByteView::filePosition(int row, int col) {
+    FilePosition result;
+    return result;
+}
+
+std::pair<int, int> ByteView::locatePosition(FilePosition filePosition, bool preferAfter) {
+    return std::pair<int, int>();
+}

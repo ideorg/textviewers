@@ -22,6 +22,14 @@ struct IndexView {
     int64_t wrapOffset;
 };
 
+union FilePosition {
+    int64_t bytePosition = 0;
+    struct {
+        int lineNumber;
+        int column;
+    };
+};
+
 class AbstractView {
 protected:
     IDeque* viewDeque = nullptr;
@@ -40,8 +48,8 @@ public:
     virtual ~AbstractView();
     void setScreenLineCount(int screenLineCount);
     void setScreenLineLen(int screenLineLen);
-    int64_t filePosition(int row, int col);
-    std::pair<int, int> locatePosition(int64_t filePosition, bool preferAfter = false);
+    virtual FilePosition filePosition(int row, int col) = 0;
+    virtual std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter = false) = 0;
     int screenLineCount();
     int screenLineLen();
     size_t size();

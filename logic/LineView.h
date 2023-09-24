@@ -20,6 +20,8 @@ public:
     int64_t getMaximum() override;
     int64_t getWindowedMinimum() override;
     int64_t getWindowedMaximum() override;
+    FilePosition filePosition(int row, int col) override;
+    std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter = false) override;
 };
 }
 

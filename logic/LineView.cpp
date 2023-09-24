@@ -87,3 +87,12 @@ double LineView::beginTail() {
         return position;
     }
 }
+
+FilePosition LineView::filePosition(int row, int col) {
+    FilePosition result;
+    return result;
+}
+
+std::pair<int, int> LineView::locatePosition(FilePosition filePosition, bool preferAfter) {
+    return std::pair<int, int>();
+}

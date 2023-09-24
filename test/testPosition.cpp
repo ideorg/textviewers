@@ -25,7 +25,7 @@ TEST(locatePosition, whole) {
             u32string dstr = vtest[row];
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
-                int64_t filePosition = vtest.filePosition(row, col);
+                FilePosition filePosition = vtest.filePosition(row, col);
                 auto p = vtest.locatePosition(filePosition, row);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
@@ -54,7 +54,7 @@ TEST(locatePosition, fromEnd) {
             UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
-                int64_t filePosition = vtest.filePosition(row, col);
+                FilePosition filePosition = vtest.filePosition(row, col);
                 auto p = vtest.locatePosition(filePosition, row);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
@@ -83,7 +83,7 @@ TEST(locatePosition, maxLine) {
             UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
-                int64_t filePosition = vtest.filePosition(row, col);
+                FilePosition filePosition = vtest.filePosition(row, col);
                 auto p = vtest.locatePosition(filePosition, row);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
@@ -112,7 +112,7 @@ TEST(locatePosition, wrap1) {
             UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
-                int64_t filePosition = vtest.filePosition(row, col);
+                FilePosition filePosition = vtest.filePosition(row, col);
                 auto p = vtest.locatePosition(filePosition, row);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
@@ -142,7 +142,7 @@ TEST(locatePosition, wrap2) {
             UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
-                int64_t filePosition = vtest.filePosition(row, col);
+                FilePosition filePosition = vtest.filePosition(row, col);
                 auto p = vtest.locatePosition(filePosition, col>0);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
@@ -171,7 +171,7 @@ TEST(locatePosition, beginX) {
             UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
-                int64_t filePosition = vtest.filePosition(row, col);
+                FilePosition filePosition = vtest.filePosition(row, col);
                 auto p = vtest.locatePosition(filePosition);
                 if (col < dlen) {
                     EXPECT_EQ(p.first, row);
@@ -195,11 +195,13 @@ TEST(locatePosition, before) {
     vtest.gotoProportional(1);
     vtest.fillDeque();
     vtest.recalcLines();
-    auto p = vtest.locatePosition(0);
+    FilePosition filePosition;
+    auto p = vtest.locatePosition(filePosition);
     EXPECT_EQ(p.first, -1);
     EXPECT_EQ(p.second, 0);
-    int64_t begPos = vtest.filePosition(0, 0);
-    p = vtest.locatePosition(begPos - 1);
+    FilePosition begPos = vtest.filePosition(0, 0);
+    begPos.bytePosition--;
+    p = vtest.locatePosition(begPos);
     EXPECT_EQ(p.first, -1);
     EXPECT_EQ(p.second, 0);
 }
@@ -214,11 +216,13 @@ TEST(locatePosition, beforeWrap) {
     vtest.gotoProportional(1);
     vtest.fillDeque();
     vtest.recalcLines();
-    auto p = vtest.locatePosition(0);
+    FilePosition filePosition;
+    auto p = vtest.locatePosition(filePosition);
     EXPECT_EQ(p.first, -1);
     EXPECT_EQ(p.second, 0);
-    int64_t begPos = vtest.filePosition(0, 0);
-    p = vtest.locatePosition(begPos - 1);
+    FilePosition begPos = vtest.filePosition(0, 0);
+    begPos.bytePosition--;
+    p = vtest.locatePosition(begPos);
     EXPECT_EQ(p.first, -1);
     EXPECT_EQ(p.second, 0);
 }
@@ -232,7 +236,9 @@ TEST(locatePosition, after) {
     vtest.setWrapMode(0);
     vtest.fillDeque();
     vtest.recalcLines();
-    auto p = vtest.locatePosition(doc.byteCount());
+    FilePosition filePosition;
+    filePosition.bytePosition = doc.byteCount();
+    auto p = vtest.locatePosition(filePosition);
     EXPECT_EQ(p.first, vtest.screenLineCount());
     EXPECT_EQ(p.second, 0);
 }
@@ -246,12 +252,14 @@ TEST(locatePosition, afterWrap) {
     vtest.setWrapMode(1);
     vtest.fillDeque();
     vtest.recalcLines();
-    auto p = vtest.locatePosition(doc.byteCount());
+    FilePosition filePosition;
+    filePosition.bytePosition = doc.byteCount();
+    auto p = vtest.locatePosition(filePosition);
     EXPECT_EQ(p.first, vtest.screenLineCount());
     EXPECT_EQ(p.second, 0);
 }
 
-TEST(filePosition, rowLT0) {
+TEST(filePosition, rowLessThanZero) {
     string content = makeContent("../test/data/midlines.txt");
     ByteDocument doc(content.c_str(), content.length(), 0);
     ByteView vtest(&doc);
@@ -261,5 +269,5 @@ TEST(filePosition, rowLT0) {
     vtest.fillDeque();
     vtest.recalcLines();
     auto fpos = vtest.filePosition(-1, 5);
-    EXPECT_EQ(fpos, 0);
+    EXPECT_EQ(fpos.bytePosition, 0);
 }
