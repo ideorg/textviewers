@@ -37,6 +37,7 @@ public:
     virtual bool isFirstInFile(const LinePoints &linePoints) = 0;
     virtual bool isLastInFile(const LinePoints &linePoints) = 0;
     virtual int64_t pointerToOffset(const char *s) = 0;
+    virtual const char *ofsetToPointer(int64_t pos) = 0;
 };
 }
 

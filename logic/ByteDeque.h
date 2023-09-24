@@ -44,6 +44,7 @@ public:
     int wrapLen(int n, int i) override;
     int64_t backWrapOffset(int i) override;
     std::string_view lineAt(int n) override;
+    int locateRow(FilePosition position) override;
     int wrapCount(int n) override;
 };
 }

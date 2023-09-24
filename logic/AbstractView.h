@@ -22,18 +22,9 @@ struct IndexView {
     int64_t wrapOffset;
 };
 
-union FilePosition {
-    int64_t bytePosition = 0;
-    struct {
-        int lineNumber;
-        int column;
-    };
-};
-
 struct LinePointers {
-    const char *lineBegin = nullptr;
     const char *wrapPosition = nullptr;
-    const char *lineEnd = nullptr;
+    const char *wrapEnd = nullptr;
 };
 
 class AbstractView {

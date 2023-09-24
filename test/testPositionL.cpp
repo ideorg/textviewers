@@ -26,7 +26,7 @@ TEST(locatePositionL, whole) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition, row);
+                auto p = vtest.locatePosition(filePosition, col>0);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
                     EXPECT_EQ(p.second, col);
@@ -55,7 +55,7 @@ TEST(locatePositionL, fromEnd) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition, row);
+                auto p = vtest.locatePosition(filePosition, col>0);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
                     EXPECT_EQ(p.second, col);
@@ -84,7 +84,7 @@ TEST(locatePositionL, maxLine) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition, row);
+                auto p = vtest.locatePosition(filePosition, col>0);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
                     EXPECT_EQ(p.second, col);
@@ -113,7 +113,7 @@ TEST(locatePositionL, wrap1) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition, row);
+                auto p = vtest.locatePosition(filePosition, col>0);
                 EXPECT_EQ(p.first, row);
                 if (col < dlen)
                     EXPECT_EQ(p.second, col);

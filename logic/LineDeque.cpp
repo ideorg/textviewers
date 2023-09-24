@@ -128,3 +128,7 @@ IDeque *LineDeque::clone() {
     newObj->deq = deq;
     return newObj;
 }
+
+int LineDeque::locateRow(FilePosition position) {
+    return 0;
+}

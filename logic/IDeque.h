@@ -11,10 +11,18 @@
 
 namespace vl {
 
+union FilePosition {
+    int64_t bytePosition = 0;
+    struct {
+        int lineNumber;
+        int column;
+    };
+};
+
 class IDeque {
 public:
     virtual ~IDeque() = default;
-    virtual IDeque* clone() = 0;
+    virtual IDeque *clone() = 0;
     virtual bool empty() = 0;
     virtual int64_t getMinimum() = 0;
     virtual int64_t getWrapMinimum(int wrapIndex) = 0;
@@ -36,7 +44,7 @@ public:
     virtual int64_t backWrapOffset(int i) = 0;
     virtual std::string_view lineAt(int n) = 0;
     virtual int wrapCount(int n) = 0;
+    virtual int locateRow(FilePosition position) = 0;
 };
 }
-
 #endif //VIEWER_IDEQUE_H

@@ -136,3 +136,22 @@ IDeque *ByteDeque::clone() {
     newObj->deq = deq;
     return newObj;
 }
+
+int ByteDeque::locateRow(FilePosition position) {
+    if (deq.empty())
+        return -1;
+    if (deq.front().linePoints.offset > position.bytePosition)
+        return -1;
+    if (deq.back().linePoints.offset + deq.back().linePoints.len < position.bytePosition)
+        return size();
+    int n = 0;
+    while (n<deq.size()) {
+        auto &lp = deq[n].linePoints;
+        if (lp.offset == position.bytePosition)
+            return n;
+        if (lp.offset > position.bytePosition)
+            return n-1;
+        n++;
+    }
+    return n-1;
+}

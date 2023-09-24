@@ -298,3 +298,7 @@ int64_t ByteDocument::pointerToOffset(const char *s) {
     return s - m_addr;
 }
 
+const char *ByteDocument::ofsetToPointer(int64_t pos) {
+    return m_addr + pos;
+}
+

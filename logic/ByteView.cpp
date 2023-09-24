@@ -8,6 +8,7 @@
 #include <memory>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 using namespace vl;
 using namespace std;
@@ -109,10 +110,49 @@ FilePosition ByteView::filePosition(int row, int col) {
     UTF utf;
     int64_t actual;
     result.bytePosition = m_byteAccess->pointerToOffset(
-            utf.forwardNcodes(lptrs.wrapPosition, col, lptrs.lineEnd, actual));
+            utf.forwardNcodes(lptrs.wrapPosition, col, lptrs.wrapEnd, actual));
     return result;
 }
 
 std::pair<int, int> ByteView::locatePosition(FilePosition filePosition, bool preferAfter) {
-    return std::pair<int, int>();
+    if (indexView.empty()) return {0, 0};
+    int wholeRowNumber = viewDeque->locateRow(filePosition);
+    if (wholeRowNumber < 0)
+        return {-1, 0};
+    auto deqLine = viewDeque->lineAt(wholeRowNumber);
+    if (indexView[0].index > wholeRowNumber)
+        return {-1, 0};
+    int i = 0;
+    while (i < indexView.size() && indexView[i].index < wholeRowNumber) {
+        i++;
+    }
+    if (i == indexView.size())
+        return {screenLineCount(), 0};
+    int64_t offset = filePosition.bytePosition - m_byteAccess->pointerToOffset(deqLine.cbegin());
+    if (indexView[i].wrapOffset > offset)
+        return {-1, 0};
+    pair<int, int> p;
+    int j = i;
+    p.first = -1;
+    while (j < indexView.size() && indexView[j].index == wholeRowNumber) {
+        int64_t ivoffset = indexView[j].wrapOffset;
+        if (ivoffset == offset) {
+            if (preferAfter && j > i)
+                p.first = j - 1;
+            else
+                p.first = j;
+            break;
+        }
+        if (ivoffset > offset) {
+            p.first = j - 1;
+            break;
+        }
+        j++;
+    }
+    if (p.first == -1)
+        p.first = j - 1;
+    UTF utf;
+    p.second = utf.numCodesBetween(deqLine.cbegin() + indexView[p.first].wrapOffset,
+                                   m_byteAccess->ofsetToPointer(filePosition.bytePosition));
+    return p;
 }
