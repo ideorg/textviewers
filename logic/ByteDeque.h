@@ -38,6 +38,7 @@ public:
     void popBack() override;
     int backWrapCount() override;
     void setFront(int64_t start) override;
+    int64_t getFront() override;
     void clear() override;
     int size() override;
     int64_t wrapOffset(int n, int i) override;

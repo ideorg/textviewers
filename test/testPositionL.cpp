@@ -84,12 +84,12 @@ TEST(locatePositionL, maxLine) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition, col>0);
-                EXPECT_EQ(p.first, row);
+                auto p = vtest.locatePosition(filePosition, col > 0);
+                ASSERT_EQ(row, p.first);
                 if (col < dlen)
-                    EXPECT_EQ(p.second, col);
+                    ASSERT_EQ(col, p.second);
                 else
-                    EXPECT_EQ(p.second, dlen);
+                    ASSERT_EQ(dlen, p.second);
             }
         }
     }
@@ -172,7 +172,7 @@ TEST(locatePositionL, beginX) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition);
+                auto p = vtest.locatePosition(filePosition, col > 0);
                 if (col < dlen) {
                     EXPECT_EQ(p.first, row);
                     EXPECT_EQ(p.second, col);

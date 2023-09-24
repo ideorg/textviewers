@@ -76,6 +76,10 @@ void ByteDeque::setFront(int64_t start) {
     assert(deq.empty());
 }
 
+int64_t ByteDeque::getFront() {
+    return m_startByte;
+}
+
 void ByteDeque::clear() {
     deq.clear();
 }

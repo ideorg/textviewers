@@ -15,7 +15,7 @@ union FilePosition {
     int64_t bytePosition = 0;
     struct {
         int lineNumber;
-        int column;
+        int offset;
     };
 };
 
@@ -37,6 +37,7 @@ public:
     virtual void popBack() = 0;
     virtual int backWrapCount() = 0;
     virtual void setFront(int64_t start) = 0;
+    virtual int64_t getFront() = 0;
     virtual void clear() = 0;
     virtual int size() = 0;
     virtual int64_t wrapOffset(int n, int i) = 0;

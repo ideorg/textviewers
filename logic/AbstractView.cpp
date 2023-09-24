@@ -236,6 +236,7 @@ LinePointers AbstractView::getLinePointers(int n) {
         n = indexView.size() + n;
     IndexView iv = indexView[n];
     auto deqLine = viewDeque->lineAt(iv.index);
+    result.beginLine = deqLine.cbegin();
     result.wrapPosition = deqLine.cbegin() + iv.wrapOffset;
     result.wrapEnd = result.wrapPosition + iv.wrapLen;
     return result;

@@ -75,6 +75,10 @@ void LineDeque::setFront(int64_t start) {
     assert(deq.empty());
 }
 
+int64_t LineDeque::getFront() {
+    return m_startLine;
+}
+
 void LineDeque::clear() {
     deq.clear();
 }
@@ -130,5 +134,12 @@ IDeque *LineDeque::clone() {
 }
 
 int LineDeque::locateRow(FilePosition position) {
-    return 0;
+    if (deq.empty())
+        return -1;
+    if (deq.front().index > position.lineNumber)
+        return -1;
+    if (deq.back().index < position.lineNumber)
+        return size();
+    assert(deq.front().index == m_startLine);
+    return position.lineNumber - m_startLine;
 }

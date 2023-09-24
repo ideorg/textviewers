@@ -72,12 +72,13 @@ double LineView::beginTail() {
             countWrap--;
             if (countWrap < 0) {
                 n--;
+                assert(n >= 0);
                 auto opt = m_lineAccess->lineByIndex(n);
-                if (!opt)
-                    break;
                 line = opt.value();
                 v = wrap->wrapEnds(line);
                 countWrap = v.size() - 1;
+                if (n == 0)
+                    break;
             }
             count++;
         }
@@ -90,9 +91,57 @@ double LineView::beginTail() {
 
 FilePosition LineView::filePosition(int row, int col) {
     FilePosition result;
+    if (row < 0) {
+        result.bytePosition = 0;
+        return result;
+    }
+    IndexView iv = indexView[row];
+    result.lineNumber = viewDeque->getFront() + iv.index;
+    LinePointers lptrs = getLinePointers(row);
+    UTF utf;
+    int64_t actual;
+    result.offset = utf.forwardNcodes(lptrs.wrapPosition, col, lptrs.wrapEnd, actual) - lptrs.beginLine;
     return result;
 }
 
 std::pair<int, int> LineView::locatePosition(FilePosition filePosition, bool preferAfter) {
-    return std::pair<int, int>();
+    if (indexView.empty()) return {0, 0};
+    int wholeRowNumber = viewDeque->locateRow(filePosition);
+    if (wholeRowNumber < 0)
+        return {-1, 0};
+    auto deqLine = viewDeque->lineAt(wholeRowNumber);
+    if (indexView[0].index > wholeRowNumber)
+        return {-1, 0};
+    int i = 0;
+    while (i < indexView.size() && indexView[i].index < wholeRowNumber) {
+        i++;
+    }
+    if (i == indexView.size())
+        return {screenLineCount(), 0};
+    if (indexView[i].wrapOffset > filePosition.offset)
+        return {-1, 0};
+    pair<int, int> p;
+    int j = i;
+    p.first = -1;
+    while (j < indexView.size() && indexView[j].index == wholeRowNumber) {
+        int64_t ivoffset = indexView[j].wrapOffset;
+        if (ivoffset == filePosition.offset) {
+            if (preferAfter && j > i)
+                p.first = j - 1;
+            else
+                p.first = j;
+            break;
+        }
+        if (ivoffset > filePosition.offset) {
+            p.first = j - 1;
+            break;
+        }
+        j++;
+    }
+    if (p.first == -1)
+        p.first = j - 1;
+    UTF utf;
+    p.second = utf.numCodesBetween(deqLine.cbegin() + indexView[p.first].wrapOffset,
+                                   deqLine.cbegin() + filePosition.offset);
+    return p;
 }

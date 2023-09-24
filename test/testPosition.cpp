@@ -26,7 +26,7 @@ TEST(locatePosition, whole) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition, col>0);
+                auto p = vtest.locatePosition(filePosition, col > 0);
                 ASSERT_EQ(row, p.first);
                 if (col < dlen)
                     ASSERT_EQ(col, p.second);
@@ -172,7 +172,7 @@ TEST(locatePosition, beginX) {
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
-                auto p = vtest.locatePosition(filePosition);
+                auto p = vtest.locatePosition(filePosition, col > 0);
                 ASSERT_EQ(row, p.first);
                 if (col < dlen)
                     ASSERT_EQ(col, p.second);
@@ -194,12 +194,12 @@ TEST(locatePosition, before) {
     vtest.fillDeque();
     vtest.recalcLines();
     FilePosition filePosition;
-    auto p = vtest.locatePosition(filePosition);
+    auto p = vtest.locatePosition(filePosition, false);
     EXPECT_EQ(-1, p.first);
     EXPECT_EQ(0, p.second);
     FilePosition begPos = vtest.filePosition(0, 0);
     begPos.bytePosition--;
-    p = vtest.locatePosition(begPos);
+    p = vtest.locatePosition(begPos, false);
     EXPECT_EQ(-1, p.first);
     EXPECT_EQ(0, p.second);
 }
@@ -215,12 +215,12 @@ TEST(locatePosition, beforeWrap) {
     vtest.fillDeque();
     vtest.recalcLines();
     FilePosition filePosition;
-    auto p = vtest.locatePosition(filePosition);
+    auto p = vtest.locatePosition(filePosition, false);
     EXPECT_EQ(-1, p.first);
     EXPECT_EQ(0, p.second);
     FilePosition begPos = vtest.filePosition(0, 0);
     begPos.bytePosition--;
-    p = vtest.locatePosition(begPos);
+    p = vtest.locatePosition(begPos, false);
     EXPECT_EQ(-1, p.first);
     EXPECT_EQ(0, p.second);
 }
@@ -236,7 +236,7 @@ TEST(locatePosition, after) {
     vtest.recalcLines();
     FilePosition filePosition;
     filePosition.bytePosition = doc.byteCount();
-    auto p = vtest.locatePosition(filePosition);
+    auto p = vtest.locatePosition(filePosition, false);
     EXPECT_EQ(vtest.screenLineCount(), p.first);
     EXPECT_EQ(0, p.second);
 }
@@ -252,7 +252,7 @@ TEST(locatePosition, afterWrap) {
     vtest.recalcLines();
     FilePosition filePosition;
     filePosition.bytePosition = doc.byteCount();
-    auto p = vtest.locatePosition(filePosition);
+    auto p = vtest.locatePosition(filePosition, false);
     EXPECT_EQ(vtest.screenLineCount(), p.first);
     EXPECT_EQ(0, p.second);
 }

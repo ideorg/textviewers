@@ -23,6 +23,7 @@ struct IndexView {
 };
 
 struct LinePointers {
+    const char *beginLine;
     const char *wrapPosition = nullptr;
     const char *wrapEnd = nullptr;
 };
@@ -47,7 +48,7 @@ public:
     void setScreenLineLen(int screenLineLen);
     LinePointers getLinePointers(int n);
     virtual FilePosition filePosition(int row, int col) = 0;
-    virtual std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter = false) = 0;
+    virtual std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter) = 0;
     int screenLineCount();
     int screenLineLen();
     size_t size();
