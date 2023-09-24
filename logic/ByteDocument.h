@@ -55,6 +55,7 @@ public:
     bool isLastInFile(const LinePoints &linePoints) override;
     int64_t pointerToOffset(const char *s) override;
     const char *ofsetToPointer(int64_t pos) override;
+    std::string_view getBytes(FilePosition from, FilePosition to) override;
     static bool isNewlineChar(char c);
 };
 }

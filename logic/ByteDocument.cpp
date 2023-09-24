@@ -302,3 +302,10 @@ const char *ByteDocument::ofsetToPointer(int64_t pos) {
     return m_addr + pos;
 }
 
+std::string_view ByteDocument::getBytes(FilePosition from, FilePosition to) {
+    if (to.bytePosition <= from.bytePosition)
+        return {};
+    else
+        return {m_addr + from.bytePosition, (size_t) (to.bytePosition - from.bytePosition)};
+}
+

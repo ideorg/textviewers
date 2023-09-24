@@ -53,3 +53,18 @@ bool ChangeableDocument::isFirstInFile(int n) {
 bool ChangeableDocument::isLastInFile(int n) {
     return n == lineCount() - 1;
 }
+
+std::string_view ChangeableDocument::getBytes(FilePosition from, FilePosition to) {
+    if (from.lineNumber == to.lineNumber) {
+        if (to.offset <= from.offset)
+            return {};
+        else
+            getStr = stringList[from.lineNumber].substr(from.offset, to.offset - from.offset);
+    } else {
+        getStr = stringList[from.lineNumber].substr(from.offset);
+        for (size_t i = from.lineNumber; i < to.lineNumber; i++)
+            getStr += "\n" + stringList[i];
+        getStr += "\n" + stringList[to.lineNumber].substr(0, to.offset);
+    }
+    return {getStr};
+}

@@ -12,10 +12,11 @@
 
 namespace vl {
 
-class LineIndexedDocument : public virtual ByteDocument, public virtual ILineAccess {
+class LineIndexedDocument : public virtual ILineAccess {
     std::string_view m_content;
     std::vector<SmallLinePoints> wholeIndex;
     void createIndex(std::string_view source);
+    std::unique_ptr<ByteDocument> byteDocument;
 public:
     explicit LineIndexedDocument(std::string_view content, int maxLineLen = 0);
     std::optional<std::string_view> lineByIndex(int n) override;
@@ -23,6 +24,7 @@ public:
     bool linesAreEmpty() override;
     bool isFirstInFile(int n) override;
     bool isLastInFile(int n) override;
+    std::string_view getBytes(FilePosition from, FilePosition to) override;
 };
 }
 

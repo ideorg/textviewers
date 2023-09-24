@@ -92,7 +92,6 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     fontHeight = fm.height();
     this->setFont(font);
     setData(addr, fileSize);
-    selection.setDocument(doc);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
 }
 
@@ -120,6 +119,7 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
     }
     setSize(width(), height());
     tv->setWrapMode(1);
+    selection.setDocument(doc);
     update();
 }
 
@@ -239,7 +239,9 @@ void PaintArea::contextMenuEvent(QContextMenuEvent *event) {
 
     if (selectedAction == actionCopy) {
         QClipboard *clipboard = QGuiApplication::clipboard();
+        QByteArray data = selection.get();
         QMimeData *mimeData = new QMimeData();
+        mimeData->setData("text/plain", data);
         clipboard->setMimeData(mimeData);
     }
 }
