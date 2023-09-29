@@ -11,6 +11,10 @@
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QActionGroup>
+#include <QCoreApplication>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -22,7 +26,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     hLayout->addWidget(button);
     mainLayout->addLayout(hLayout);
     lineEdit->setText("../../../test/data/textviewer.h0");
-    file = std::make_unique<QFile>(lineEdit->text());
+    fs::path fspath = QCoreApplication::applicationDirPath().toStdString();
+    fspath /= lineEdit->text().toStdString();
+    file = std::make_unique<QFile>(canonical(fspath));
     if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "error open file";
         return;
