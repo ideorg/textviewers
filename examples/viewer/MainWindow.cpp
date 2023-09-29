@@ -45,8 +45,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
 void MainWindow::onButtonCLick() {
     QFileDialog dialog(this, tr("Open File"));
-    QFileInfo fileInfo(lineEdit->text());
-    QString dirPath = fileInfo.absolutePath();
+    fs::path fspath = QCoreApplication::applicationDirPath().toStdString();
+    fspath /= lineEdit->text().toStdString();
+    QString dirPath = canonical(fspath.parent_path()).c_str();
     dialog.setDirectory(dirPath);
     dialog.setOption(QFileDialog::DontUseNativeDialog);
     if (dialog.exec() == QDialog::Accepted) {
