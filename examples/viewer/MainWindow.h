@@ -14,7 +14,6 @@
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
-    //FileMap vmap;
     QPushButton *button;
     QLineEdit *lineEdit;
     wid::TextViewer *widget;
