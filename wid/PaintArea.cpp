@@ -12,7 +12,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QMimeData>
-#include "UTF/UTF.hpp"
+#include "cpg/utf/UTF.hpp"
 #include "logic/ByteView.h"
 #include "logic/ChangeableDocument.h"
 

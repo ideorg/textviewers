@@ -2,7 +2,7 @@
 #include "logic/LineView.h"
 #include "logic/LineIndexedDocument.h"
 #include "misc/util.h"
-#include "UTF/UTF.hpp"
+#include "cpg/utf/UTF.hpp"
 
 using namespace std;
 

@@ -4,7 +4,7 @@
 #include <string>
 #include "AbstractView.h"
 #include "ByteDeque.h"
-#include "UTF/UTF.hpp"
+#include "cpg/utf/UTF.hpp"
 
 using namespace std;
 using namespace vl;

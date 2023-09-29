@@ -4,7 +4,7 @@
 
 #include "LineView.h"
 #include "LineDeque.h"
-#include "UTF/UTF.hpp"
+#include "cpg/utf/UTF.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>

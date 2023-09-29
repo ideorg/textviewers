@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 #include "logic/LineIndexedDocument.h"
 #include "logic/LineView.h"
-#include "UTF/UTF.hpp"
+#include "cpg/utf/UTF.hpp"
 
 using namespace std;
 using namespace vl;

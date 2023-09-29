@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include "logic/ByteDocument.h"
 #include "misc/util.h"
-#include "UTF/UTF.hpp"
+#include "cpg/utf/UTF.hpp"
 
 using namespace std;
 
