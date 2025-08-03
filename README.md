@@ -1,6 +1,8 @@
 # textviewers
 Text viewer especially for huge files
 
+git clone --recursive https://github.com/ideorg/textviewers.git
+
 How to [BUILD.md](BUILD.md)
 
 Twin panel file managers have built in file viewers. Total Commander for Windows and
