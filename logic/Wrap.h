@@ -5,6 +5,7 @@
 #ifndef VIEWER_WRAP_H
 #define VIEWER_WRAP_H
 
+#include <cstdint>
 #include <vector>
 #include <string_view>
 
