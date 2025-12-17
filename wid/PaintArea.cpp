@@ -39,14 +39,34 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     } else {
         for (int i = 0; i < tv->size(); i++) {
             drawSelBackground(painter, i);
-            QRect R(0, i * fontHeight, this->rect().width(), fontHeight);
-            QString qstr = QString::fromUcs4(tv->at(i).c_str(), tv->at(i).size());
-            if (qstr.isEmpty() && tv->lastInFile(i)) {
+            std::u32string dstr = tv->at(i);
+            if (dstr.empty() && tv->lastInFile(i)) {
+                QRect R(0, i * fontHeight, this->rect().width(), fontHeight);
                 QPen pen1(Qt::gray);
                 painter.setPen(pen1);
                 painter.drawText(R, Qt::AlignLeft, pilcrow);
-            } else
-                painter.drawText(R, Qt::AlignLeft, qstr);
+                painter.setPen(pen);
+            } else {
+                int x = 0;
+                size_t start = 0;
+                while (start < dstr.size()) {
+                    bool isHigh = (dstr[start] >= 0x10000);
+                    size_t end = start;
+                    while (end < dstr.size() && (dstr[end] >= 0x10000) == isHigh) {
+                        end++;
+                    }
+                    QString segment = QString::fromUcs4(dstr.c_str() + start, end - start);
+                    int segmentWidth = (end - start) * fontWidth;
+                    QRect R(x, i * fontHeight, segmentWidth, fontHeight);
+                    if (isHigh) {
+                        painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, segment);
+                    } else {
+                        painter.drawText(R, Qt::AlignLeft, segment);
+                    }
+                    x += segmentWidth;
+                    start = end;
+                }
+            }
         }
         int y = tv->size() * fontHeight;
         painter.fillRect(0, y, QWidget::width(), QWidget::height() - y, Qt::white);
