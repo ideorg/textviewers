@@ -82,6 +82,7 @@ int AbstractView::wrapMode() {
 
 void AbstractView::fillDeque() {
     viewDeque->clear();
+    if (m_startY < getMinimum()) m_startY = getMinimum();
     viewDeque->setFront(m_startY);
     if (wrapMode()) {
         assert(countWrapBefore >= 0);
