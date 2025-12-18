@@ -253,8 +253,12 @@ string makeContent(string filename, int nEols, bool rn) {
     return content;
 }
 
-vector<u32string> makeExpect(string filename) {
-    auto v = toUTF32(removeLFExpect(unslashExpect(clear(readLines(filename)))));
+vector<u32string> makeExpect(const std::string &filename) {
+    auto readed = readLines(filename);
+    auto cleared = clear(readed);
+    auto unslashed = unslashExpect(cleared);
+    auto removedLF = removeLFExpect(unslashed);
+    auto v = toUTF32(removedLF);
     if (v.empty())
         throw runtime_error("empty test expect");
     return v;

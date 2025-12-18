@@ -12,7 +12,7 @@
 std::vector<std::string> readLines(std::string filename);
 std::string makeContent(std::string filename, int nEols = 0, bool rn = false);
 std::string makeString(std::string filename, int nEols = 0, bool rn = false);
-std::vector<std::u32string> makeExpect(std::string filename);
+std::vector<std::u32string> makeExpect(const std::string &filename);
 std::vector<int> getSizes(std::string filename);
 std::vector<int> getSizesStr(std::string filename);
 std::string makeStringN(std::string filename, int n);
