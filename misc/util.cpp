@@ -45,13 +45,13 @@ string checkNoTabs(const string &line) {
 }
 
 /* trimRight for all lines
- * remove last empty line if exists
+ * remove last empty lines if exists
  * */
 vector<string> clear(const vector<string> &lines) {
     vector<string> v;
     for (auto &line: lines)
         v.push_back(checkNoTabs(trimRight(line)));
-    if (v.size() > 0 && v.back().empty())
+    while (v.size() > 0 && v.back().empty())
         v.pop_back();
     return v;
 }
