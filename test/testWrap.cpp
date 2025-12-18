@@ -1,6 +1,7 @@
 //
 // Created by Andrzej Borucki on 2022-09-11
 //
+#include <algorithm>
 #include "gtest/gtest.h"
 #include "logic/ByteDocument.h"
 #include "logic/LineIndexedDocument.h"
