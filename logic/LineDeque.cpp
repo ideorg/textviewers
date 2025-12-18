@@ -76,7 +76,9 @@ void LineDeque::setFront(int64_t start) {
 }
 
 int64_t LineDeque::getFront() {
-    return m_startLine;
+    if (deq.empty())
+        return m_startLine;
+    return deq.front().index;
 }
 
 void LineDeque::clear() {
