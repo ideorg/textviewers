@@ -140,6 +140,5 @@ int LineDeque::locateRow(FilePosition position) {
         return -1;
     if (deq.back().index < position.lineNumber)
         return size();
-    assert(deq.front().index == m_startLine);
-    return position.lineNumber - m_startLine;
+    return position.lineNumber - deq.front().index;
 }
