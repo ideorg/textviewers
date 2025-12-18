@@ -69,6 +69,7 @@ void Selection::setDocument(vl::IBaseAccess *doc) {
         interpretation = 1;
     else
         interpretation = 2;
+    selBegin = selEnd = firstPos = secondPos = vl::FilePosition{};
     selBegin.interpretation = selEnd.interpretation =
             firstPos.interpretation = secondPos.interpretation = interpretation;
 }
