@@ -28,6 +28,7 @@ TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
     connect(paintArea, &PaintArea::sizeChanged, this, &TextViewer::sizeChanged);
     connect(paintArea, &PaintArea::scrollHChanged, this, &TextViewer::setHScrollChange);
     connect(paintArea, &PaintArea::scrollVChanged, this, &TextViewer::setVScrollChange);
+    setFocusProxy(paintArea);
 }
 
 void TextViewer::setData(const char *addr, int64_t fileSize) {
