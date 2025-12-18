@@ -8,6 +8,7 @@
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QMenu>
+#include <QKeyEvent>
 #include "PaintArea.h"
 #include <QApplication>
 #include <QClipboard>
@@ -309,6 +310,67 @@ void PaintArea::drawSelBackground(QPainter &painter, int row) {
 void PaintArea::setKind(int kind) {
     logicKind = kind;
     setData(m_addr, m_fileSize);
+}
+
+void PaintArea::keyPressEvent(QKeyEvent *event) {
+    bool ctrl = event->modifiers() & Qt::ControlModifier;
+    switch (event->key()) {
+        case Qt::Key_Up:
+            tv->scrollUp();
+            update();
+            Q_EMIT scrollVChanged();
+            break;
+        case Qt::Key_Down:
+            tv->scrollDown();
+            update();
+            Q_EMIT scrollVChanged();
+            break;
+        case Qt::Key_PageUp:
+            tv->scrollPageUp();
+            update();
+            Q_EMIT scrollVChanged();
+            break;
+        case Qt::Key_PageDown:
+            tv->scrollPageDown();
+            update();
+            Q_EMIT scrollVChanged();
+            break;
+        case Qt::Key_Home:
+            if (ctrl) {
+                tv->gotoProportional(0);
+                tv->fillDeque();
+                tv->recalcLines();
+                update();
+                Q_EMIT scrollVChanged();
+            } else {
+                setHorizontal(0);
+            }
+            break;
+        case Qt::Key_End:
+            if (ctrl) {
+                tv->gotoProportional(1);
+                tv->fillDeque();
+                tv->recalcLines();
+                update();
+                Q_EMIT scrollVChanged();
+            } else {
+                if (caretPos.first >= 0 && caretPos.first < tv->size()) {
+                    auto lp = tv->getLinePointers(caretPos.first);
+                    UTF utf;
+                    int lineLen = utf.numCodesBetween(lp.beginLine, lp.wrapEnd);
+                    setHorizontal(std::max(0, lineLen - tv->screenLineLen()));
+                }
+            }
+            break;
+        case Qt::Key_Left:
+            setHorizontal(std::max(0, tv->startX() - 1));
+            break;
+        case Qt::Key_Right:
+            setHorizontal(tv->startX() + 1);
+            break;
+        default:
+            QWidget::keyPressEvent(event);
+    }
 }
 
 #endif
