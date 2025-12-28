@@ -210,8 +210,10 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
     QWidget::mousePressEvent(event);
     if (event->button() == Qt::LeftButton) {
         setFocus();
+        auto cp = toCharPos(event->pos(), true);
+        if (!charInseideArea(cp)) return;
         trySetCaret(event->pos());
-        selection.setFirst(toCharPos(event->pos(), true), tv);
+        selection.setFirst(cp, tv);
         update();
     }
 }
@@ -273,7 +275,8 @@ void PaintArea::contextMenuEvent(QContextMenuEvent *event) {
 
 //smart "<=" in second<=screenLineLen
 bool PaintArea::charInseideArea(std::pair<int, int> cp) {
-    return cp.first >= 0 && cp.first < tv->screenLineCount() && cp.second >= 0 && cp.second <= tv->screenLineLen();
+    assert(tv->size() <= tv->screenLineCount());
+    return cp.first >= 0 && cp.first < (int)tv->size() && cp.second >= 0 && cp.second <= tv->screenLineLen();
 }
 
 void PaintArea::drawSelBackground(QPainter &painter, int row) {
