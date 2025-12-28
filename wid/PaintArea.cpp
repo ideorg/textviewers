@@ -14,7 +14,6 @@
 #include <QClipboard>
 #include <QMimeData>
 #include <QMessageBox>
-#include <QLocale>
 #include "cpg/utf/UTF.hpp"
 #include "logic/ByteView.h"
 #include "logic/ChangeableDocument.h"
@@ -269,6 +268,26 @@ void PaintArea::contextMenuEvent(QContextMenuEvent *event) {
     QAction *selectedAction = menu.exec(event->globalPos());
 
     if (selectedAction == actionCopy) {
+        copyToClipboard();
+    }
+}
+
+void PaintArea::copyToClipboard() {
+    const int64_t COPY_LIMIT = 10 * 1024 * 1024; // 10 MB
+    int64_t size = selection.selectionSize();
+    bool doCopy = true;
+    if (size > COPY_LIMIT) {
+        QString sizeStr = QString::number(size);
+        for (int i = sizeStr.length() - 3; i > 0; i -= 3)
+            sizeStr.insert(i, '\'');
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Copy confirmation");
+        msgBox.setText(QString("Selection size: %1 bytes.\nCopy to clipboard?").arg(sizeStr));
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        doCopy = (msgBox.exec() == QMessageBox::Yes);
+    }
+    if (doCopy) {
         QClipboard *clipboard = QGuiApplication::clipboard();
         QByteArray data = selection.get();
         QMimeData *mimeData = new QMimeData();
@@ -376,29 +395,8 @@ void PaintArea::keyPressEvent(QKeyEvent *event) {
             setHorizontal(tv->startX() + 1);
             break;
         case Qt::Key_C:
-            if (ctrl) {
-                const int64_t COPY_LIMIT = 10 * 1024 * 1024; // 10 MB
-                int64_t size = selection.selectionSize();
-                bool doCopy = true;
-                if (size > COPY_LIMIT) {
-                    QString sizeStr = QString::number(size);
-                    for (int i = sizeStr.length() - 3; i > 0; i -= 3)
-                        sizeStr.insert(i, '\'');
-                    QMessageBox msgBox(this);
-                    msgBox.setWindowTitle("Copy confirmation");
-                    msgBox.setText(QString("Selection size: %1 bytes.\nCopy to clipboard?").arg(sizeStr));
-                    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-                    msgBox.setDefaultButton(QMessageBox::Cancel);
-                    doCopy = (msgBox.exec() == QMessageBox::Yes);
-                }
-                if (doCopy) {
-                    QClipboard *clipboard = QGuiApplication::clipboard();
-                    QByteArray data = selection.get();
-                    QMimeData *mimeData = new QMimeData();
-                    mimeData->setData("text/plain", data);
-                    clipboard->setMimeData(mimeData);
-                }
-            }
+            if (ctrl)
+                copyToClipboard();
             break;
         case Qt::Key_A:
             if (ctrl) {

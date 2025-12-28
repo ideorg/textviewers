@@ -26,6 +26,7 @@ Q_OBJECT
     void doBlinkMethod();
     static QColor getSelColor();
     QString updateCaretPos();
+    void copyToClipboard();
     std::pair<int,int> toCharPos(QPoint point, bool smart);
     std::pair<int,int> toScreenPos(std::pair<int,int> point, bool smart);
     const char *m_addr;
