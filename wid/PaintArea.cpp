@@ -219,6 +219,7 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
 }
 
 void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
+    if (event->button() != Qt::LeftButton) return;
     auto cp = toCharPos(event->pos(), true);
     if (charInseideArea(cp)) {
         selection.setSecond(cp, tv);
@@ -227,6 +228,7 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
+    if (!(event->buttons() & Qt::LeftButton)) return;
     auto cp = toCharPos(event->pos(), true);
     if (charInseideArea(cp)) {
         selection.setSecond(cp, tv);
