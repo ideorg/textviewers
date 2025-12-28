@@ -373,6 +373,15 @@ void PaintArea::keyPressEvent(QKeyEvent *event) {
         case Qt::Key_Right:
             setHorizontal(tv->startX() + 1);
             break;
+        case Qt::Key_C:
+            if (ctrl) {
+                QClipboard *clipboard = QGuiApplication::clipboard();
+                QByteArray data = selection.get();
+                QMimeData *mimeData = new QMimeData();
+                mimeData->setData("text/plain", data);
+                clipboard->setMimeData(mimeData);
+            }
+            break;
         default:
             QWidget::keyPressEvent(event);
     }
