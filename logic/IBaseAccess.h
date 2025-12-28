@@ -5,6 +5,7 @@
 #define VIEWERS_IBASEACCESS_H
 
 #include <cassert>
+#include <cstdint>
 
 namespace vl {
 union FilePosition {
