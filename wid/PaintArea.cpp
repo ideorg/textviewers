@@ -115,6 +115,7 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     this->setFont(font);
     setData(addr, fileSize);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
+    connect(&autoScrollTimer, &QTimer::timeout, this, &PaintArea::doAutoScroll);
 }
 
 PaintArea::~PaintArea() {
@@ -213,6 +214,9 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         setFocus();
         auto cp = toCharPos(event->pos(), true);
         if (!charInseideArea(cp)) return;
+        selecting = true;
+        lastMousePos = event->pos();
+        grabMouse();
         trySetCaret(event->pos());
         selection.setFirst(cp, tv);
         update();
@@ -221,6 +225,11 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
 
 void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() != Qt::LeftButton) return;
+    if (selecting) {
+        selecting = false;
+        autoScrollTimer.stop();
+        releaseMouse();
+    }
     auto cp = toCharPos(event->pos(), true);
     if (charInseideArea(cp)) {
         selection.setSecond(cp, tv);
@@ -229,13 +238,79 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
-    if (!(event->buttons() & Qt::LeftButton)) return;
+    if (!selecting) return;
+    lastMousePos = event->pos();
     auto cp = toCharPos(event->pos(), true);
-    if (charInseideArea(cp)) {
-        selection.setSecond(cp, tv);
-        update();
+
+    bool needsScroll = false;
+    if (event->pos().y() < 0 || event->pos().y() >= height())
+        needsScroll = true;
+    if (tv->wrapMode() == 0 && (event->pos().x() < 0 || event->pos().x() >= width()))
+        needsScroll = true;
+
+    if (needsScroll) {
+        if (!autoScrollTimer.isActive())
+            autoScrollTimer.start(50);
+    } else {
+        autoScrollTimer.stop();
+        if (charInseideArea(cp)) {
+            selection.setSecond(cp, tv);
+            update();
+        }
     }
     QWidget::mouseMoveEvent(event);
+}
+
+void PaintArea::doAutoScroll() {
+    if (!selecting) {
+        autoScrollTimer.stop();
+        return;
+    }
+
+    bool scrolled = false;
+
+    // Vertical scrolling
+    if (lastMousePos.y() < 0) {
+        tv->scrollUp();
+        scrolled = true;
+    } else if (lastMousePos.y() >= height()) {
+        tv->scrollDown();
+        scrolled = true;
+    }
+
+    // Horizontal scrolling (only when not wrapping)
+    if (tv->wrapMode() == 0) {
+        if (lastMousePos.x() < 0 && tv->startX() > 0) {
+            tv->setStartX(tv->startX() - 1);
+            tv->fillDeque();
+            tv->recalcLines();
+            scrolled = true;
+        } else if (lastMousePos.x() >= width()) {
+            tv->setStartX(tv->startX() + 1);
+            tv->fillDeque();
+            tv->recalcLines();
+            scrolled = true;
+        }
+    }
+
+    if (scrolled) {
+        // Update selection to edge
+        auto cp = toCharPos(lastMousePos, true);
+        if (lastMousePos.y() < 0)
+            cp.first = 0;
+        else if (lastMousePos.y() >= height())
+            cp.first = tv->size() - 1;
+        if (cp.first >= 0 && cp.first < (int)tv->size()) {
+            if (lastMousePos.x() < 0)
+                cp.second = 0;
+            else if (lastMousePos.x() >= width())
+                cp.second = tv->screenLineLen();
+            selection.setSecond(cp, tv);
+        }
+        update();
+        Q_EMIT scrollVChanged();
+        Q_EMIT scrollHChanged();
+    }
 }
 
 #if QT_CONFIG(wheelevent)

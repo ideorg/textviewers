@@ -20,10 +20,14 @@ Q_OBJECT
     int logicKind = 0;
     qreal fontWidth, fontHeight;
     QTimer timer;
+    QTimer autoScrollTimer;
+    bool selecting = false;
+    QPoint lastMousePos;
     bool drawCaret = true;
     Selection selection;
     std::pair<int,int> caretPos;
     void doBlinkMethod();
+    void doAutoScroll();
     static QColor getSelColor();
     QString updateCaretPos();
     void copyToClipboard();
