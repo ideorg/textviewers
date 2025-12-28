@@ -49,6 +49,7 @@ public:
     void setScreenLineLen(int screenLineLen);
     LinePointers getLinePointers(int n);
     virtual FilePosition filePosition(int row, int col) = 0;
+    virtual FilePosition endPosition() = 0;
     virtual std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter) = 0;
     int screenLineCount();
     int screenLineLen();

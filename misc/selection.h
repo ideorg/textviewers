@@ -27,6 +27,8 @@ public:
     int selColBeg(int row, vl::AbstractView *view);
     int selColEnd(int row, vl::AbstractView *view);
     QByteArray get();
+    void selectAll(vl::AbstractView *view);
+    int64_t selectionSize();
 };
 
 

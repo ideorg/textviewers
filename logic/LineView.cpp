@@ -157,3 +157,18 @@ std::pair<int, int> LineView::locatePosition(FilePosition filePosition, bool pre
                                    deqLine.cbegin() + filePosition.offset);
     return p;
 }
+
+FilePosition LineView::endPosition() {
+    FilePosition result;
+    result.interpretation = 2;
+    int lc = m_lineAccess->lineCount();
+    if (lc == 0) {
+        result.lineNumber = 0;
+        result.offset = 0;
+    } else {
+        auto lastLine = m_lineAccess->lineByIndex(lc - 1);
+        result.lineNumber = lc - 1;
+        result.offset = lastLine ? lastLine->size() : 0;
+    }
+    return result;
+}

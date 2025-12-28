@@ -73,3 +73,22 @@ void Selection::setDocument(vl::IBaseAccess *doc) {
     selBegin.interpretation = selEnd.interpretation =
             firstPos.interpretation = secondPos.interpretation = interpretation;
 }
+
+void Selection::selectAll(vl::AbstractView *view) {
+    firstPos = vl::FilePosition{};
+    firstPos.interpretation = selBegin.interpretation;
+    secondPos = view->endPosition();
+    compute(view);
+}
+
+int64_t Selection::selectionSize() {
+    if (selEnd.gt(selBegin)) {
+        if (selBegin.interpretation == 1) {
+            return selEnd.bytePosition - selBegin.bytePosition;
+        } else {
+            auto sv = m_doc->getBytes(selBegin, selEnd);
+            return sv.size();
+        }
+    }
+    return 0;
+}

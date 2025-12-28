@@ -24,6 +24,7 @@ public:
     int64_t getWindowedMaximum() override;
     ByteView *clone();
     FilePosition filePosition(int row, int col) override;
+    FilePosition endPosition() override;
     std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter) override;
 };
 }

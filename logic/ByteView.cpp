@@ -162,3 +162,10 @@ std::pair<int, int> ByteView::locatePosition(FilePosition filePosition, bool pre
                                    m_byteAccess->ofsetToPointer(filePosition.bytePosition));
     return p;
 }
+
+FilePosition ByteView::endPosition() {
+    FilePosition result;
+    result.interpretation = 1;
+    result.bytePosition = m_byteAccess->byteCount();
+    return result;
+}
