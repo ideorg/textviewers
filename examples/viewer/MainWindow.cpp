@@ -16,6 +16,7 @@
 #include <QKeySequence>
 #include <QActionGroup>
 #include <QCoreApplication>
+#include <QCheckBox>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QTimer>
@@ -73,6 +74,9 @@ void MainWindow::createSearchBar(QVBoxLayout *mainLayout) {
     row->addWidget(new QLabel(tr("Find:"), searchBar));
     searchInput = new QLineEdit(searchBar);
     row->addWidget(searchInput, 1);
+    caseBox = new QCheckBox(tr("Aa"), searchBar);
+    caseBox->setToolTip(tr("Case insensitive"));
+    row->addWidget(caseBox);
     auto *prevBtn = new QPushButton(tr("Prev"), searchBar);
     auto *nextBtn = new QPushButton(tr("Next"), searchBar);
     auto *closeBtn = new QPushButton(tr("Close"), searchBar);
@@ -115,9 +119,11 @@ void MainWindow::runSearch(bool forward) {
                                  tr("Search requires Byte position mode."));
         return;
     }
-    if (pattern != m_lastPattern) {
+    bool caseInsensitive = caseBox && caseBox->isChecked();
+    if (pattern != m_lastPattern || caseInsensitive != m_lastCaseInsensitive) {
         m_searchStart = forward ? bytes->firstByte() : bytes->byteCount();
         m_lastPattern = pattern;
+        m_lastCaseInsensitive = caseInsensitive;
     }
 
     auto cancelFlag = std::make_shared<std::atomic<bool>>(false);
@@ -126,7 +132,9 @@ void MainWindow::runSearch(bool forward) {
     int64_t startOffset = m_searchStart;
     std::string patternStr = pattern.toStdString();
 
-    auto future = QtConcurrent::run([bytes, patternStr, startOffset, forward,
+    vl::SearchOptions opts;
+    opts.caseInsensitive = caseInsensitive;
+    auto future = QtConcurrent::run([bytes, patternStr, startOffset, forward, opts,
                                      cancelFlag, progressDone, progressTotal]() {
         vl::Searcher s(bytes);
         auto cb = [cancelFlag, progressDone, progressTotal](int64_t done, int64_t total) {
@@ -135,8 +143,8 @@ void MainWindow::runSearch(bool forward) {
             return !cancelFlag->load(std::memory_order_relaxed);
         };
         return forward
-            ? s.findNext(patternStr, startOffset, cb)
-            : s.findPrev(patternStr, startOffset, cb);
+            ? s.findNext(patternStr, startOffset, cb, opts)
+            : s.findPrev(patternStr, startOffset, cb, opts);
     });
 
     auto *watcher = new QFutureWatcher<std::optional<int64_t>>(this);

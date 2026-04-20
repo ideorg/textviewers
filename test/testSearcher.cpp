@@ -175,6 +175,93 @@ TEST(Searcher, findPrevBom) {
     EXPECT_EQ(3, *r);
 }
 
+TEST(Searcher, findNextCaseInsensitiveAscii) {
+    string content = "Hello World";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ci{true};
+    auto r = s.findNext("hello", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+    r = s.findNext("WORLD", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(6, *r);
+    r = s.findNext("hElLo", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+}
+
+TEST(Searcher, findNextCaseSensitiveDefault) {
+    string content = "Hello World";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    auto r = s.findNext("hello", 0, nullptr);
+    EXPECT_FALSE(r);
+}
+
+TEST(Searcher, findNextCaseInsensitivePolish) {
+    string content = "ala ma Ąśłź KotA";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ci{true};
+    auto r = s.findNext("ąśłź", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ((int64_t) content.find("Ąśłź"), *r);
+    r = s.findNext("KOTA", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ((int64_t) content.find("KotA"), *r);
+}
+
+TEST(Searcher, findNextCaseInsensitiveCyrillic) {
+    string content = "Привет мир";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ci{true};
+    auto r = s.findNext("ПРИВЕТ", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+}
+
+TEST(Searcher, findNextCaseInsensitiveGreek) {
+    string content = "Καλημέρα κόσμε";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ci{true};
+    auto r = s.findNext("καλημέρα", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+}
+
+TEST(Searcher, findPrevCaseInsensitive) {
+    string content = "Apple apple APPLE";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ci{true};
+    auto r = s.findPrev("apple", (int64_t) content.size(), nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(12, *r);
+    r = s.findPrev("apple", 12, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(6, *r);
+    r = s.findPrev("apple", 6, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+}
+
+TEST(Searcher, findNextCaseInsensitiveCrossChunk) {
+    string content(20, 'x');
+    content[14] = 'N';
+    content[15] = 'e';
+    content[16] = 'E';
+    content[17] = 'd';
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc, /*chunkSize=*/16);
+    SearchOptions ci{true};
+    auto r = s.findNext("need", 0, nullptr, ci);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(14, *r);
+}
+
 TEST(Searcher, genomicRepetitive) {
     // ATGC-style short alphabet; naive search degrades, memmem should not.
     string content(10'000, 'A');

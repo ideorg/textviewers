@@ -22,8 +22,10 @@ Q_OBJECT
     wid::TextViewer *widget;
     QWidget *searchBar = nullptr;
     QLineEdit *searchInput = nullptr;
+    class QCheckBox *caseBox = nullptr;
     int64_t m_searchStart = 0;
     QByteArray m_lastPattern;
+    bool m_lastCaseInsensitive = false;
     void createMenus();
     void createSearchBar(QVBoxLayout *mainLayout);
     void runSearch(bool forward);
