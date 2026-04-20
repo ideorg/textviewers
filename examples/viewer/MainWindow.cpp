@@ -77,6 +77,9 @@ void MainWindow::createSearchBar(QVBoxLayout *mainLayout) {
     caseBox = new QCheckBox(tr("Aa"), searchBar);
     caseBox->setToolTip(tr("Case insensitive"));
     row->addWidget(caseBox);
+    wordBox = new QCheckBox(tr("W"), searchBar);
+    wordBox->setToolTip(tr("Whole word"));
+    row->addWidget(wordBox);
     auto *prevBtn = new QPushButton(tr("Prev"), searchBar);
     auto *nextBtn = new QPushButton(tr("Next"), searchBar);
     auto *closeBtn = new QPushButton(tr("Close"), searchBar);
@@ -120,20 +123,30 @@ void MainWindow::runSearch(bool forward) {
         return;
     }
     bool caseInsensitive = caseBox && caseBox->isChecked();
-    if (pattern != m_lastPattern || caseInsensitive != m_lastCaseInsensitive) {
-        m_searchStart = forward ? bytes->firstByte() : bytes->byteCount();
+    bool wholeWord = wordBox && wordBox->isChecked();
+    if (pattern != m_lastPattern || caseInsensitive != m_lastCaseInsensitive
+        || wholeWord != m_lastWholeWord) {
+        m_lastMatchStart = -1;
+        m_lastMatchEnd = -1;
         m_lastPattern = pattern;
         m_lastCaseInsensitive = caseInsensitive;
+        m_lastWholeWord = wholeWord;
+    }
+    int64_t startOffset;
+    if (m_lastMatchStart < 0) {
+        startOffset = forward ? bytes->firstByte() : bytes->byteCount();
+    } else {
+        startOffset = forward ? m_lastMatchEnd : m_lastMatchStart;
     }
 
     auto cancelFlag = std::make_shared<std::atomic<bool>>(false);
     auto progressDone = std::make_shared<std::atomic<int64_t>>(0);
     auto progressTotal = std::make_shared<std::atomic<int64_t>>(0);
-    int64_t startOffset = m_searchStart;
     std::string patternStr = pattern.toStdString();
 
     vl::SearchOptions opts;
     opts.caseInsensitive = caseInsensitive;
+    opts.wholeWord = wholeWord;
     auto future = QtConcurrent::run([bytes, patternStr, startOffset, forward, opts,
                                      cancelFlag, progressDone, progressTotal]() {
         vl::Searcher s(bytes);
@@ -177,7 +190,8 @@ void MainWindow::runSearch(bool forward) {
                 watcher->deleteLater();
                 if (result) {
                     widget->showMatch(*result, patternLen);
-                    m_searchStart = forward ? (*result + patternLen) : *result;
+                    m_lastMatchStart = *result;
+                    m_lastMatchEnd = *result + patternLen;
                 } else if (!wasCancelled) {
                     QMessageBox::information(this, tr("Search"), tr("Not found."));
                 }
@@ -204,7 +218,8 @@ void MainWindow::onButtonCLick() {
         widget->setData((char*) addr, file->size());
         file->close();
         m_lastPattern.clear();
-        m_searchStart = 0;
+        m_lastMatchStart = -1;
+        m_lastMatchEnd = -1;
     }
 }
 

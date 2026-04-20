@@ -23,6 +23,7 @@ public:
     int64_t getWindowedMinimum() override;
     int64_t getWindowedMaximum() override;
     ByteView *clone();
+    void gotoByte(int64_t offset);
     FilePosition filePosition(int row, int col) override;
     FilePosition endPosition() override;
     FilePosition lineStartPosition(int row) override;

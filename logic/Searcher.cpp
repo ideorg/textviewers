@@ -10,6 +10,7 @@
 #include <unicode/uchar.h>
 
 #include "IByteAccess.h"
+#include "Wrap.h"
 
 namespace vl {
 
@@ -52,6 +53,40 @@ std::string Searcher::foldPattern(std::string_view pattern) {
     return out;
 }
 
+// Treat file start/end as a word boundary; otherwise require the adjacent
+// codepoint to be non-word-class (codeClass != 1).
+bool Searcher::isWordBoundary(int64_t matchStart, int64_t matchLen) {
+    int64_t first = m_doc->firstByte();
+    int64_t total = m_doc->byteCount();
+
+    if (matchStart > first) {
+        int64_t lookback = std::min<int64_t>(4, matchStart - first);
+        const char *base = m_doc->ofsetToPointer(matchStart - lookback);
+        auto u8 = reinterpret_cast<const uint8_t *>(base);
+        int32_t i = (int32_t) lookback;
+        U8_BACK_1(u8, 0, i);
+        int32_t decodeAt = i;
+        UChar32 c;
+        U8_NEXT(u8, decodeAt, (int32_t) lookback, c);
+        if (c < 0) c = 0xFFFD;
+        if (Wrap::codeClass((char32_t) c) == 1) return false;
+    }
+
+    int64_t afterOffset = matchStart + matchLen;
+    if (afterOffset < total) {
+        int64_t lookforward = std::min<int64_t>(4, total - afterOffset);
+        const char *base = m_doc->ofsetToPointer(afterOffset);
+        auto u8 = reinterpret_cast<const uint8_t *>(base);
+        int32_t i = 0;
+        UChar32 c;
+        U8_NEXT(u8, i, (int32_t) lookforward, c);
+        if (c < 0) c = 0xFFFD;
+        if (Wrap::codeClass((char32_t) c) == 1) return false;
+    }
+
+    return true;
+}
+
 std::optional<int64_t> Searcher::findNext(std::string_view pattern,
                                           int64_t startOffset,
                                           const ProgressFn &onProgress,
@@ -84,11 +119,21 @@ std::optional<int64_t> Searcher::findNext(std::string_view pattern,
         } else {
             searchBase = origBase;
         }
-        void *hit = memmem(searchBase, chunkLen, patternData, pattern.size());
-        if (hit) {
-            int64_t hitInChunk = (const char *) hit - searchBase;
-            return pos + hitInChunk;
+
+        const char *p = searchBase;
+        size_t remaining = chunkLen;
+        while (remaining >= (size_t) pLen) {
+            void *hit = memmem(p, remaining, patternData, pattern.size());
+            if (!hit) break;
+            const char *hitP = (const char *) hit;
+            int64_t hitOffset = pos + (hitP - searchBase);
+            if (!options.wholeWord || isWordBoundary(hitOffset, pLen)) {
+                return hitOffset;
+            }
+            p = hitP + 1;
+            remaining = (size_t) ((searchBase + chunkLen) - p);
         }
+
         if (chunkEnd == total) break;
         pos += m_chunkSize;
         if (onProgress) {
@@ -142,7 +187,9 @@ std::optional<int64_t> Searcher::findPrev(std::string_view pattern,
             int64_t hitInChunk = hitP - searchBase;
             int64_t hitOffset = begin + hitInChunk;
             if (hitOffset + pLen > end) break;
-            bestOffset = hitOffset;
+            if (!options.wholeWord || isWordBoundary(hitOffset, pLen)) {
+                bestOffset = hitOffset;
+            }
             p = hitP + 1;
             remaining = (size_t) ((searchBase + chunkLen) - p);
         }

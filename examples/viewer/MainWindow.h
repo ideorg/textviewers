@@ -23,9 +23,12 @@ Q_OBJECT
     QWidget *searchBar = nullptr;
     QLineEdit *searchInput = nullptr;
     class QCheckBox *caseBox = nullptr;
-    int64_t m_searchStart = 0;
+    class QCheckBox *wordBox = nullptr;
+    int64_t m_lastMatchStart = -1;
+    int64_t m_lastMatchEnd = -1;
     QByteArray m_lastPattern;
     bool m_lastCaseInsensitive = false;
+    bool m_lastWholeWord = false;
     void createMenus();
     void createSearchBar(QVBoxLayout *mainLayout);
     void runSearch(bool forward);

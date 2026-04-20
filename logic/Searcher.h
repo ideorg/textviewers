@@ -16,6 +16,8 @@ struct SearchOptions {
     // folded; others are left unchanged (so e.g. ASCII A-Z, polish ĄĆĘŁŃÓŚŹŻ,
     // Cyrillic, Greek fold as expected, while İ/ß stay case-sensitive).
     bool caseInsensitive = false;
+    // Only accept matches that are not adjacent to a word-class codepoint.
+    bool wholeWord = false;
 };
 
 class Searcher {
@@ -44,6 +46,7 @@ private:
     int64_t m_chunkSize;
     static void foldByteRange(const char *src, size_t len, char *dst);
     static std::string foldPattern(std::string_view pattern);
+    bool isWordBoundary(int64_t matchStart, int64_t matchLen);
 };
 
 }

@@ -98,6 +98,18 @@ ByteView *ByteView::clone() {
     return newObj;
 }
 
+void ByteView::gotoByte(int64_t offset) {
+    auto linePoint = m_byteAccess->lineEnclosing(offset);
+    m_startY = linePoint.offset;
+    countWrapBefore = 0;
+    if (wrapMode()) {
+        auto line = m_byteAccess->line(linePoint);
+        auto v = wrap->wrapEnds(line);
+        int64_t wrapOffset = offset - m_startY;
+        countWrapBefore = Wrap::find(v, wrapOffset);
+    }
+}
+
 void ByteView::cloneFields(ByteView *other) {
     AbstractView::cloneFields(other);
     other->m_byteAccess = m_byteAccess;
@@ -113,7 +125,8 @@ FilePosition ByteView::filePosition(int row, int col) {
     LinePointers lptrs = getLinePointers(row);
     int32_t length = (int32_t)(lptrs.wrapEnd - lptrs.wrapPosition);
     int32_t i = 0;
-    for (int n = 0; n < col && i < length; n++)
+    int totalAdvance = startX() + col;
+    for (int n = 0; n < totalAdvance && i < length; n++)
         U8_FWD_1(reinterpret_cast<const uint8_t*>(lptrs.wrapPosition), i, length);
     result.bytePosition = m_byteAccess->pointerToOffset(lptrs.wrapPosition + i);
     return result;
@@ -167,7 +180,7 @@ std::pair<int, int> ByteView::locatePosition(FilePosition filePosition, bool pre
         U8_FWD_1(reinterpret_cast<const uint8_t*>(a), ai, length);
         count++;
     }
-    p.second = count;
+    p.second = (int)(count - startX());
     return p;
 }
 

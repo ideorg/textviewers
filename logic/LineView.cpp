@@ -112,7 +112,8 @@ FilePosition LineView::filePosition(int row, int col) {
     LinePointers lptrs = getLinePointers(row);
     int32_t length = (int32_t)(lptrs.wrapEnd - lptrs.wrapPosition);
     int32_t i = 0;
-    for (int n = 0; n < col && i < length; n++)
+    int totalAdvance = startX() + col;
+    for (int n = 0; n < totalAdvance && i < length; n++)
         U8_FWD_1(reinterpret_cast<const uint8_t*>(lptrs.wrapPosition), i, length);
     result.offset = (lptrs.wrapPosition + i) - lptrs.beginLine;
     return result;
@@ -163,7 +164,7 @@ std::pair<int, int> LineView::locatePosition(FilePosition filePosition, bool pre
         U8_FWD_1(reinterpret_cast<const uint8_t*>(a), ai, length);
         count++;
     }
-    p.second = count;
+    p.second = (int)(count - startX());
     return p;
 }
 

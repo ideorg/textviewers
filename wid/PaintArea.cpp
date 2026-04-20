@@ -191,17 +191,43 @@ vl::IByteAccess *PaintArea::byteAccess() {
 void PaintArea::showMatch(int64_t offset, int64_t length) {
     auto *bytes = byteAccess();
     if (!bytes) return;
-    int64_t total = bytes->byteCount();
-    double rel = total > 0 ? (double)offset / (double)total : 0.0;
-    tv->gotoProportional(rel);
+    if (auto *bv = dynamic_cast<vl::ByteView*>(tv)) {
+        bv->gotoByte(offset);
+    } else {
+        int64_t total = bytes->byteCount();
+        double rel = total > 0 ? (double)offset / (double)total : 0.0;
+        tv->gotoProportional(rel);
+    }
     tv->fillDeque();
     tv->recalcLines();
+
     vl::FilePosition begin{};
     begin.interpretation = 1;
     begin.bytePosition = offset;
     vl::FilePosition end{};
     end.interpretation = 1;
     end.bytePosition = offset + length;
+
+    if (tv->wrapMode() == 0) {
+        auto startScreen = tv->locatePosition(begin, false);
+        auto endScreen = tv->locatePosition(end, false);
+        if (startScreen.first >= 0 && startScreen.first < (int)tv->size()
+            && startScreen.first == endScreen.first) {
+            int oldStartX = tv->startX();
+            int startLogical = startScreen.second + oldStartX;
+            int endLogical = endScreen.second + oldStartX;
+            int matchCp = endLogical - startLogical;
+            int fullCols = (int)(width() / fontWidth);
+            int newStartX = 0;
+            if (startLogical + matchCp > fullCols)
+                newStartX = startLogical + matchCp - fullCols;
+            if (newStartX != oldStartX) {
+                tv->setStartX(newStartX);
+                Q_EMIT scrollHChanged();
+            }
+        }
+    }
+
     selection.setRange(begin, end, tv);
     update();
     Q_EMIT scrollVChanged();

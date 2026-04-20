@@ -262,6 +262,74 @@ TEST(Searcher, findNextCaseInsensitiveCrossChunk) {
     EXPECT_EQ(14, *r);
 }
 
+TEST(Searcher, findNextWholeWord) {
+    string content = "cat scatter cat_s cats cat.";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ww{false, true};
+    // "cat" at 0 followed by space -> boundary OK
+    auto r = s.findNext("cat", 0, nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+    // Next "cat" inside "scatter" at 4 -> rejected (both sides are letters);
+    // "cat" inside "cat_s" at 12 -> rejected (followed by '_', class 1);
+    // "cat" inside "cats" at 18 -> rejected (followed by 's');
+    // "cat" at 23 followed by '.' -> accepted.
+    r = s.findNext("cat", 1, nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(23, *r);
+}
+
+TEST(Searcher, findNextWholeWordAtBoundaries) {
+    string content = "cat";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ww{false, true};
+    auto r = s.findNext("cat", 0, nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+}
+
+TEST(Searcher, findNextWholeWordUnicode) {
+    string content = "pies pieseł piesa pies.";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ww{false, true};
+    auto r = s.findNext("pies", 0, nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+    // "pies" followed by 'e' -> rejected; "pies" followed by 'ł' -> rejected
+    // (ł is word class 1); then "piesa" rejected; then "pies" before '.' ok.
+    r = s.findNext("pies", 1, nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ((int64_t) content.rfind("pies"), *r);
+}
+
+TEST(Searcher, findNextWholeWordWithCaseInsensitive) {
+    string content = "Cat Scatter cats";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions opts{true, true};
+    auto r = s.findNext("cat", 0, nullptr, opts);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+    r = s.findNext("cat", 1, nullptr, opts);
+    EXPECT_FALSE(r);
+}
+
+TEST(Searcher, findPrevWholeWord) {
+    string content = "cat scatter cats cat.";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    SearchOptions ww{false, true};
+    auto r = s.findPrev("cat", (int64_t) content.size(), nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(17, *r);
+    r = s.findPrev("cat", 17, nullptr, ww);
+    ASSERT_TRUE(r);
+    EXPECT_EQ(0, *r);
+}
+
 TEST(Searcher, genomicRepetitive) {
     // ATGC-style short alphabet; naive search degrades, memmem should not.
     string content(10'000, 'A');
