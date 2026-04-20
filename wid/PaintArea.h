@@ -9,9 +9,8 @@
 #include "logic/LineIndexedDocument.h"
 #include "logic/ByteView.h"
 #include "logic/IByteAccess.h"
-#include "logic/Highlighter.h"
 #include "misc/selection.h"
-#include "HighlightColors.h"
+#include <qce/IHighlighter.h>
 #include <QWidget>
 #include <QPaintEvent>
 #include <QTimer>
@@ -45,8 +44,7 @@ Q_OBJECT
     qreal m_fontSize = 10.5;
     const char *m_addr;
     int64_t m_fileSize;
-    vl::IHighlighter *m_highlighter = nullptr;
-    HighlightColors m_highlightColors;
+    qce::IHighlighter *m_highlighter = nullptr;
     int64_t m_preludeBytes = 64 * 1024;
     void paintHighlighted(QPainter &painter);
     void paintPlain(QPainter &painter);
@@ -82,7 +80,7 @@ public:
     qreal fontSize() const { return m_fontSize; }
     void setMaxTabW(int w);
     int maxTabW() const;
-    void setHighlighter(vl::IHighlighter *h, HighlightColors colors);
+    void setHighlighter(qce::IHighlighter *h);
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:

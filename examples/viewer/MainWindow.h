@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <memory>
 #include "wid/TextViewer.h"
-#include "logic/XmlHighlighter.h"
+#include <qce/RulesHighlighter.h>
 #include <QFile>
 
 class MainWindow : public QMainWindow {
@@ -31,7 +31,7 @@ Q_OBJECT
     QByteArray m_lastPattern;
     bool m_lastCaseInsensitive = false;
     bool m_lastWholeWord = false;
-    std::unique_ptr<vl::XmlHighlighter> m_xmlHighlighter;
+    std::unique_ptr<qce::RulesHighlighter> m_kateHighlighter;
     void createMenus();
     void createSearchBar(QVBoxLayout *mainLayout);
     void runSearch(bool forward);
@@ -40,6 +40,7 @@ Q_OBJECT
     void zoomBy(qreal delta);
     void askFontSize();
     void askTabWidth();
+    void askLoadKate();
     std::unique_ptr<QFile> file;
 public:
     MainWindow(QWidget *parent = nullptr);

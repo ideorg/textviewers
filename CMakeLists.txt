@@ -7,6 +7,8 @@ add_definitions("-Werror=return-type -Werror=unused-result")
 set(MAIN_PROJECT_DIR ${CMAKE_SOURCE_DIR})
 
 find_package(ICU REQUIRED COMPONENTS uc)
+find_package(qcodeedit REQUIRED)
+find_package(qcodeedit-kate REQUIRED)
 
 set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/AbstractView.cpp
@@ -24,9 +26,6 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/ChangeableDocument.cpp
         logic/Searcher.cpp
         logic/Searcher.h
-        logic/Highlighter.h
-        logic/XmlHighlighter.cpp
-        logic/XmlHighlighter.h
 )
 
 set(MISC_SOURCES
@@ -35,7 +34,6 @@ set(MISC_SOURCES
 
 set(WID_SOURCES
         wid/TextViewer.cpp wid/TextViewer.h wid/PaintArea.cpp wid/PaintArea.h
-        wid/HighlightColors.cpp wid/HighlightColors.h
 )
 
 add_subdirectory(examples/viewer)
@@ -60,9 +58,8 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testProportional.cpp
         test/testProportionalL.cpp
         test/testSearcher.cpp
-        test/testXmlHighlighter.cpp
 )
 
-target_link_libraries(gtest_viewer gtest gtest_main ICU::uc)
+target_link_libraries(gtest_viewer gtest gtest_main ICU::uc qcodeedit::qcodeedit)
 
 target_include_directories(gtest_viewer PRIVATE ${CMAKE_SOURCE_DIR})

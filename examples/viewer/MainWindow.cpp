@@ -29,6 +29,7 @@
 #include <filesystem>
 #include "logic/Searcher.h"
 #include "logic/IByteAccess.h"
+#include <qce/kate/KateXmlReader.h>
 
 namespace fs = std::filesystem;
 
@@ -323,25 +324,28 @@ void MainWindow::createMenus() {
     connect(zoomResetAct, &QAction::triggered, this, [this] { widget->setFontSize(10.5); });
 
     QMenu *hlMenu = menuBar()->addMenu(tr("&Highlighting"));
-    auto actionGroup3 = new QActionGroup(hlMenu);
     QAction *hlNoneAct = hlMenu->addAction(tr("&None"));
-    hlNoneAct->setData(0);
-    hlNoneAct->setCheckable(true);
-    hlNoneAct->setChecked(true);
-    actionGroup3->addAction(hlNoneAct);
-    QAction *hlXmlAct = hlMenu->addAction(tr("&XML"));
-    hlXmlAct->setData(1);
-    hlXmlAct->setCheckable(true);
-    actionGroup3->addAction(hlXmlAct);
-    connect(actionGroup3, &QActionGroup::triggered, this, [this](QAction *action) {
-        int mode = action->data().toInt();
-        if (mode == 1) {
-            if (!m_xmlHighlighter)
-                m_xmlHighlighter = std::make_unique<vl::XmlHighlighter>();
-            widget->setHighlighter(m_xmlHighlighter.get(),
-                                   wid::HighlightColors::xmlDefault());
-        } else {
-            widget->setHighlighter(nullptr, wid::HighlightColors{});
-        }
+    connect(hlNoneAct, &QAction::triggered, this, [this] {
+        widget->setHighlighter(nullptr);
+        m_kateHighlighter.reset();
     });
+    QAction *hlKateAct = hlMenu->addAction(tr("Load &Kate XML..."));
+    connect(hlKateAct, &QAction::triggered, this, &MainWindow::askLoadKate);
+}
+
+void MainWindow::askLoadKate() {
+    QString start = QStringLiteral("/home/%1/.local/share/org.kde.syntax-highlighting/syntax")
+                        .arg(qgetenv("USER").constData());
+    if (!QFile::exists(start)) start.clear();
+    QString path = QFileDialog::getOpenFileName(this, tr("Load Kate syntax XML"),
+                                                start, tr("Kate syntax (*.xml)"));
+    if (path.isEmpty()) return;
+    auto hl = KateXmlReader::load(path);
+    if (!hl) {
+        QMessageBox::warning(this, tr("Load Kate XML"),
+                             tr("Failed to load %1").arg(path));
+        return;
+    }
+    m_kateHighlighter = std::move(hl);
+    widget->setHighlighter(m_kateHighlighter.get());
 }

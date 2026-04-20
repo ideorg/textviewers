@@ -112,11 +112,14 @@ void PaintArea::paintHighlighted(QPainter &painter) {
     }
     const char *buf = bytes->ofsetToPointer(preludeStart);
 
-    std::vector<vl::StyleSpan> tokens;
-    vl::HighlightState endState;
-    m_highlighter->tokenize(buf, bufLen, m_highlighter->initialState(), tokens, endState);
+    QVector<qce::StyleSpan> tokens;
+    qce::HighlightState endState;
+    m_highlighter->tokenizeBytes(buf, (qsizetype) bufLen,
+                                 m_highlighter->initialState(),
+                                 tokens, endState);
+    const auto &palette = m_highlighter->attributes();
 
-    size_t tokIdx = 0;
+    int tokIdx = 0;
     auto attrAt = [&](int64_t offRel) -> int {
         while (tokIdx < tokens.size()
                && offRel >= tokens[tokIdx].start + tokens[tokIdx].length) {
@@ -124,7 +127,7 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         }
         if (tokIdx < tokens.size() && offRel >= tokens[tokIdx].start)
             return tokens[tokIdx].attributeId;
-        return 0;
+        return -1;
     };
 
     int screenLen = tv->screenLineLen();
@@ -183,12 +186,16 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         QFont baseFont = painter.font();
         QFont boldFont = baseFont;
         boldFont.setBold(true);
+        auto attrStyle = [&](int id) -> qce::TextAttribute {
+            if (id < 0 || id >= palette.size()) return {};
+            return palette[id];
+        };
         qreal x = 0;
         size_t start = 0;
         while (start < glyphs.size()) {
             int attr = glyphs[start].attr;
             bool isHigh = (glyphs[start].c >= 0x10000);
-            bool isBold = m_highlightColors.bold(attr);
+            qce::TextAttribute st = attrStyle(attr);
             size_t end = start + 1;
             while (end < glyphs.size()
                    && glyphs[end].attr == attr
@@ -201,8 +208,8 @@ void PaintArea::paintHighlighted(QPainter &painter) {
             QString qseg = QString::fromUcs4(seg.data(), (int) seg.size());
             qreal segW = (end - start) * fontWidth;
             QRectF R(x, r * fontHeight, segW, fontHeight);
-            painter.setPen(m_highlightColors.foreground(attr));
-            painter.setFont(isBold ? boldFont : baseFont);
+            painter.setPen(st.foreground.isValid() ? st.foreground : QColor(Qt::black));
+            painter.setFont(st.bold ? boldFont : baseFont);
             if (isHigh)
                 painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, qseg);
             else
@@ -216,9 +223,8 @@ void PaintArea::paintHighlighted(QPainter &painter) {
     painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
 }
 
-void PaintArea::setHighlighter(vl::IHighlighter *h, HighlightColors colors) {
+void PaintArea::setHighlighter(qce::IHighlighter *h) {
     m_highlighter = h;
-    m_highlightColors = std::move(colors);
     update();
 }
 

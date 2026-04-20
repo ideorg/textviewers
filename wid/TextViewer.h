@@ -22,7 +22,7 @@ namespace wid {
         qreal fontSize() const;
         void setMaxTabW(int w);
         int maxTabW() const;
-        void setHighlighter(vl::IHighlighter *h, HighlightColors colors);
+        void setHighlighter(qce::IHighlighter *h);
     private:
         const int MAXVSCROLL = 10000;
         void hscrollChanged();

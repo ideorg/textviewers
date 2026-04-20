@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent)
 find_package(ICU REQUIRED COMPONENTS uc)
+find_package(qcodeedit REQUIRED)
+find_package(qcodeedit-kate REQUIRED)
 
 foreach(source_file ${LOGIC_SOURCES})
     list(APPEND LOGIC_SOURCES_RELATIVE ../../${source_file})
@@ -38,7 +40,7 @@ qt_add_executable(${EXAMPLE}
         ${PROJECT_SOURCES}
 )
 
-target_link_libraries(${EXAMPLE} PRIVATE Qt6::Widgets Qt6::Concurrent ICU::uc)
+target_link_libraries(${EXAMPLE} PRIVATE Qt6::Widgets Qt6::Concurrent ICU::uc qcodeedit::kate qcodeedit::qcodeedit)
 
 target_include_directories(${EXAMPLE} PRIVATE ../../)
 
