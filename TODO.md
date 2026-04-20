@@ -32,12 +32,12 @@
 0.6
 - autoscroll with timer with mouse selection
 
-==== TODO
-
 0.7
 - double click: select word
 - triple click: select line
- 
+
+==== TODO
+
 0.8
 - search
 
