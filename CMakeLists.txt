@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.13)
 
 project(viewers)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 add_definitions("-Werror=return-type -Werror=unused-result")
 
 set(MAIN_PROJECT_DIR ${CMAKE_SOURCE_DIR})

@@ -55,7 +55,11 @@ Q_OBJECT
     int64_t m_foldCacheBegin = 0;
     int64_t m_foldCacheEnd = 0;
     std::set<int64_t> m_collapsedBegins;
+    std::vector<qreal> m_rowY;
+    qreal m_rowYEnd = 0;
     bool clickOnGutter(QMouseEvent *event);
+    void computeRowLayout();
+    int rowForVisualY(int pixelY) const;
     void paintHighlighted(QPainter &painter);
     void paintPlain(QPainter &painter);
     qreal gutterPx() const { return m_folding ? 16.0 : 0.0; }

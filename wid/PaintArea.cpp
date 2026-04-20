@@ -22,6 +22,7 @@ namespace wid {
 
 void PaintArea::paintEvent(QPaintEvent *event) {
     selection.compute(tv);
+    computeRowLayout();
     QPainter painter(this);
     painter.setRenderHint(QPainter::TextAntialiasing);
     QRect R = event->rect();
@@ -46,9 +47,50 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     }
 
     if (drawCaret && hasFocus()) {
-        auto p = toScreenPos(caretPos, false);
-        painter.fillRect(QRectF(p.second, p.first + 1, 2, fontHeight - 2), Qt::black);
+        if (caretPos.first >= 0 && caretPos.first < (int) m_rowY.size()
+            && m_rowY[caretPos.first] >= 0) {
+            auto p = toScreenPos(caretPos, false);
+            painter.fillRect(QRectF(p.second, p.first + 1, 2, fontHeight - 2), Qt::black);
+        }
     }
+}
+
+void PaintArea::computeRowLayout() {
+    int total = (int) tv->size();
+    m_rowY.assign(total, -1.0);
+    int visIdx = 0;
+    auto *bytes = byteAccess();
+    for (int r = 0; r < total; r++) {
+        bool hidden = false;
+        if (bytes && !m_collapsedBegins.empty()) {
+            auto lp = tv->getLinePointers(r);
+            int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
+            for (const auto &F : m_foldCache) {
+                if (!m_collapsedBegins.count((int64_t) F.beginByte)) continue;
+                if ((int64_t) F.beginByte < wrapStart
+                    && wrapStart < (int64_t) F.endByte) {
+                    hidden = true;
+                    break;
+                }
+            }
+        }
+        if (!hidden) {
+            m_rowY[r] = visIdx * fontHeight;
+            visIdx++;
+        }
+    }
+    m_rowYEnd = visIdx * fontHeight;
+}
+
+int PaintArea::rowForVisualY(int pixelY) const {
+    if (pixelY < 0) return -1;
+    int last = -1;
+    for (int r = 0; r < (int) m_rowY.size(); r++) {
+        if (m_rowY[r] < 0) continue;
+        if (m_rowY[r] > pixelY) break;
+        last = r;
+    }
+    return last;
 }
 
 void PaintArea::paintPlain(QPainter &painter) {
@@ -58,10 +100,12 @@ void PaintArea::paintPlain(QPainter &painter) {
     painter.setPen(pen);
     qreal gx = gutterPx();
     for (int i = 0; i < tv->size(); i++) {
+        if (m_rowY[i] < 0) continue;
+        qreal ry = m_rowY[i];
         drawSelBackground(painter, i);
         std::u32string dstr = tv->at(i);
         if (dstr.empty() && tv->lastInFile(i)) {
-            QRectF R(gx, i * fontHeight, this->rect().width() - gx, fontHeight);
+            QRectF R(gx, ry, this->rect().width() - gx, fontHeight);
             QPen pen1(Qt::gray);
             painter.setPen(pen1);
             painter.drawText(R, Qt::AlignLeft, pilcrow);
@@ -77,7 +121,7 @@ void PaintArea::paintPlain(QPainter &painter) {
                 }
                 QString segment = QString::fromUcs4(dstr.c_str() + start, end - start);
                 qreal segmentWidth = (end - start) * fontWidth;
-                QRectF R(x, i * fontHeight, segmentWidth, fontHeight);
+                QRectF R(x, ry, segmentWidth, fontHeight);
                 if (isHigh) {
                     painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, segment);
                 } else {
@@ -89,8 +133,8 @@ void PaintArea::paintPlain(QPainter &painter) {
         }
         paintGutter(painter, i, false, false);
     }
-    qreal y = tv->size() * fontHeight;
-    painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
+    painter.fillRect(QRectF(0, m_rowYEnd, QWidget::width(),
+                            QWidget::height() - m_rowYEnd), Qt::white);
 }
 
 void PaintArea::paintHighlighted(QPainter &painter) {
@@ -100,15 +144,22 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         return;
     }
 
-    // Visible byte range [topByte, endByte).
+    // Visible byte range [topByte, endByte). For no-wrap mode with very long
+    // logical lines the raw wrapEnd can be many megabytes past topByte even
+    // though we only render `screenLineLen` codepoints per row - cap endByte
+    // at what can actually be visible so tokenize/fold-scan stay bounded.
     auto lp0 = tv->getLinePointers(0);
     int64_t topByte = bytes->pointerToOffset(lp0.beginLine);
     auto lpLast = tv->getLinePointers((int) tv->size() - 1);
-    int64_t endByte = bytes->pointerToOffset(lpLast.wrapEnd);
+    int64_t rawEnd = bytes->pointerToOffset(lpLast.wrapEnd);
+    int64_t visibleBytesCap = topByte +
+                              (int64_t) tv->screenLineCount()
+                              * (int64_t) tv->screenLineLen() * 4;
+    int64_t endByte = std::min(rawEnd, visibleBytesCap);
 
     int64_t preludeStart = std::max(bytes->firstByte(), topByte - m_preludeBytes);
-    int64_t bufLen = endByte - preludeStart;
-    if (bufLen <= 0) {
+    int64_t tokenBufLen = endByte - preludeStart;
+    if (tokenBufLen <= 0) {
         paintPlain(painter);
         return;
     }
@@ -116,23 +167,47 @@ void PaintArea::paintHighlighted(QPainter &painter) {
 
     QVector<qce::StyleSpan> tokens;
     qce::HighlightState endState;
-    m_highlighter->tokenizeBytes(buf, (qsizetype) bufLen,
+    m_highlighter->tokenizeBytes(buf, (qsizetype) tokenBufLen,
                                  m_highlighter->initialState(),
                                  tokens, endState);
     const auto &palette = m_highlighter->attributes();
 
     if (m_folding) {
-        QVector<qce::FoldMarker> markers;
-        qce::HighlightState foldEnd;
-        m_folding->foldersInBytes(buf, (qsizetype) bufLen,
-                                  m_highlighter->initialState(),
-                                  markers, foldEnd);
-        for (auto &m : markers) m.column += (int) preludeStart;
-        m_foldCache = qce::pairFolds(markers, (qsizetype) m_foldMaxBytes);
-        m_foldCacheBegin = preludeStart;
-        m_foldCacheEnd = endByte;
+        bool cacheValid = m_foldCacheEnd > 0
+            && m_foldCacheBegin <= preludeStart
+            && std::min(bytes->byteCount(), endByte + m_foldMaxBytes) <= m_foldCacheEnd;
+        if (!cacheValid) {
+            int64_t scanBegin = std::max(bytes->firstByte(),
+                                         topByte - 2 * m_preludeBytes);
+            int64_t scanEnd = std::min(bytes->byteCount(),
+                                       endByte + 2 * m_foldMaxBytes);
+            const char *scanBuf = bytes->ofsetToPointer(scanBegin);
+            int64_t scanLen = scanEnd - scanBegin;
+            QVector<qce::FoldMarker> markers;
+            qce::HighlightState foldEnd;
+            m_folding->foldersInBytes(scanBuf, (qsizetype) scanLen,
+                                      m_highlighter->initialState(),
+                                      markers, foldEnd);
+            for (auto &m : markers) m.column += (int) scanBegin;
+            QVector<qce::FoldRange> raw = qce::pairFolds(markers, (qsizetype) m_foldMaxBytes);
+            m_foldCache.clear();
+            m_foldCache.reserve(raw.size());
+            for (const auto &r : raw) {
+                int64_t relBegin = (int64_t) r.beginByte - scanBegin;
+                int64_t relEnd = (int64_t) r.endByte - scanBegin;
+                if (relBegin < 0 || relEnd > scanLen) continue;
+                bool multiline = false;
+                for (int64_t k = relBegin; k < relEnd; k++) {
+                    if (scanBuf[k] == '\n') { multiline = true; break; }
+                }
+                if (multiline) m_foldCache.push_back(r);
+            }
+            m_foldCacheBegin = scanBegin;
+            m_foldCacheEnd = scanEnd;
+        }
     } else {
         m_foldCache.clear();
+        m_foldCacheBegin = m_foldCacheEnd = 0;
     }
 
     int tokIdx = 0;
@@ -157,6 +232,8 @@ void PaintArea::paintHighlighted(QPainter &painter) {
     std::sort(foldBegins.begin(), foldBegins.end());
 
     for (int r = 0; r < (int) tv->size(); r++) {
+        if (m_rowY[r] < 0) continue;
+        qreal ry = m_rowY[r];
         drawSelBackground(painter, r);
         auto lp = tv->getLinePointers(r);
         int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
@@ -175,7 +252,7 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         paintGutter(painter, r, hasFoldBegin, collapsed);
 
         if (wrapEnd == wrapStart && tv->lastInFile(r)) {
-            QRectF R(gx, r * fontHeight, this->rect().width() - gx, fontHeight);
+            QRectF R(gx, ry, this->rect().width() - gx, fontHeight);
             QPen pen1(Qt::gray);
             painter.setPen(pen1);
             painter.drawText(R, Qt::AlignLeft, pilcrow);
@@ -240,7 +317,7 @@ void PaintArea::paintHighlighted(QPainter &painter) {
             for (size_t k = start; k < end; k++) seg.push_back(glyphs[k].c);
             QString qseg = QString::fromUcs4(seg.data(), (int) seg.size());
             qreal segW = (end - start) * fontWidth;
-            QRectF R(x, r * fontHeight, segW, fontHeight);
+            QRectF R(x, ry, segW, fontHeight);
             painter.setPen(st.foreground.isValid() ? st.foreground : QColor(Qt::black));
             painter.setFont(st.bold ? boldFont : baseFont);
             if (isHigh)
@@ -251,9 +328,18 @@ void PaintArea::paintHighlighted(QPainter &painter) {
             start = end;
         }
         painter.setFont(baseFont);
+        if (hasFoldBegin && collapsed) {
+            qreal stubW = fontWidth * 3.5;
+            QRectF stubR(x + fontWidth * 0.25, ry + 1, stubW, fontHeight - 2);
+            painter.fillRect(stubR, QColor(0xe0, 0xe0, 0xe0));
+            painter.setPen(QColor(0x60, 0x60, 0x60));
+            painter.drawRect(stubR);
+            painter.setPen(QColor(0x30, 0x30, 0x30));
+            painter.drawText(stubR, Qt::AlignCenter, QStringLiteral("\u2026"));
+        }
     }
-    qreal y = tv->size() * fontHeight;
-    painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
+    painter.fillRect(QRectF(0, m_rowYEnd, QWidget::width(),
+                            QWidget::height() - m_rowYEnd), Qt::white);
 }
 
 void PaintArea::setHighlighter(qce::IHighlighter *h) {
@@ -272,7 +358,7 @@ void PaintArea::setFoldingProvider(qce::IFoldingProvider *f) {
 bool PaintArea::clickOnGutter(QMouseEvent *event) {
     if (!m_folding) return false;
     if (event->pos().x() >= (int) gutterPx()) return false;
-    int row = (int) (event->pos().y() / fontHeight);
+    int row = rowForVisualY(event->pos().y());
     if (row < 0 || row >= (int) tv->size()) return true;
     auto *bytes = byteAccess();
     if (!bytes) return true;
@@ -487,14 +573,26 @@ std::pair<int, int> PaintArea::toCharPos(QPoint point, bool smart) {
     int adjusted = point.x() - (int) gutterPx();
     int px = smart ? adjusted + (int) (fontWidth / 2) : adjusted;
     int x = px < 0 ? 0 : floor(px / fontWidth);
-    int y = floor(point.y() / fontHeight);
+    int y;
+    if (m_rowY.empty()) {
+        y = floor(point.y() / fontHeight);
+    } else {
+        int mapped = rowForVisualY(point.y());
+        y = mapped < 0 ? floor(point.y() / fontHeight) : mapped;
+    }
     return std::make_pair(y, x);
 }
 
 std::pair<int, int> PaintArea::toScreenPos(std::pair<int, int> point, bool smart) {
     int x = (int) gutterPx() + (int) (point.second * fontWidth);
-    int y = (int) (point.first * fontHeight);
-    return std::make_pair(y, smart ? x - (int) (fontWidth / 2) : x);
+    qreal y;
+    if (point.first >= 0 && point.first < (int) m_rowY.size()
+        && m_rowY[point.first] >= 0) {
+        y = m_rowY[point.first];
+    } else {
+        y = point.first * fontHeight;
+    }
+    return std::make_pair((int) y, smart ? x - (int) (fontWidth / 2) : x);
 }
 
 void PaintArea::mousePressEvent(QMouseEvent *event) {
@@ -709,7 +807,9 @@ void PaintArea::drawSelBackground(QPainter &painter, int row) {
     int selColBeg = selection.selColBeg(row, tv);
     int selColEnd = selection.selColEnd(row, tv);
     qreal gx = gutterPx();
-    qreal y = row * fontHeight;
+    qreal y = (row >= 0 && row < (int) m_rowY.size() && m_rowY[row] >= 0)
+                  ? m_rowY[row]
+                  : row * fontHeight;
     qreal h = fontHeight;
     qreal w = QWidget::width() - gx;
     if (selColBeg == -1) {
@@ -742,7 +842,9 @@ void PaintArea::drawSelBackground(QPainter &painter, int row) {
 void PaintArea::paintGutter(QPainter &painter, int row, bool hasFoldBegin, bool collapsed) {
     qreal gx = gutterPx();
     if (gx <= 0) return;
-    qreal y = row * fontHeight;
+    qreal y = (row >= 0 && row < (int) m_rowY.size() && m_rowY[row] >= 0)
+                  ? m_rowY[row]
+                  : row * fontHeight;
     painter.fillRect(QRectF(0, y, gx, fontHeight), QColor(0xf0, 0xf0, 0xf0));
     if (!hasFoldBegin) return;
     QPen savedPen = painter.pen();
