@@ -56,17 +56,18 @@ void PaintArea::paintPlain(QPainter &painter) {
     QPen pen(Qt::black);
     pen.setWidth(1);
     painter.setPen(pen);
+    qreal gx = gutterPx();
     for (int i = 0; i < tv->size(); i++) {
         drawSelBackground(painter, i);
         std::u32string dstr = tv->at(i);
         if (dstr.empty() && tv->lastInFile(i)) {
-            QRectF R(0, i * fontHeight, this->rect().width(), fontHeight);
+            QRectF R(gx, i * fontHeight, this->rect().width() - gx, fontHeight);
             QPen pen1(Qt::gray);
             painter.setPen(pen1);
             painter.drawText(R, Qt::AlignLeft, pilcrow);
             painter.setPen(pen);
         } else {
-            qreal x = 0;
+            qreal x = gx;
             size_t start = 0;
             while (start < dstr.size()) {
                 bool isHigh = (dstr[start] >= 0x10000);
@@ -86,6 +87,7 @@ void PaintArea::paintPlain(QPainter &painter) {
                 start = end;
             }
         }
+        paintGutter(painter, i, false, false);
     }
     qreal y = tv->size() * fontHeight;
     painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
@@ -147,6 +149,12 @@ void PaintArea::paintHighlighted(QPainter &painter) {
     int screenLen = tv->screenLineLen();
     int maxTab = std::max(1, tv->maxTabW());
     QString pilcrow = QChar(182);
+    qreal gx = gutterPx();
+
+    std::vector<int64_t> foldBegins;
+    foldBegins.reserve(m_foldCache.size());
+    for (const auto &fr : m_foldCache) foldBegins.push_back((int64_t) fr.beginByte);
+    std::sort(foldBegins.begin(), foldBegins.end());
 
     for (int r = 0; r < (int) tv->size(); r++) {
         drawSelBackground(painter, r);
@@ -155,8 +163,15 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         int64_t wrapEnd = bytes->pointerToOffset(lp.wrapEnd);
         auto u8 = reinterpret_cast<const uint8_t *>(buf);
 
+        bool hasFoldBegin = false;
+        if (!foldBegins.empty()) {
+            auto it = std::lower_bound(foldBegins.begin(), foldBegins.end(), wrapStart);
+            if (it != foldBegins.end() && *it < wrapEnd) hasFoldBegin = true;
+        }
+        paintGutter(painter, r, hasFoldBegin, false);
+
         if (wrapEnd == wrapStart && tv->lastInFile(r)) {
-            QRectF R(0, r * fontHeight, this->rect().width(), fontHeight);
+            QRectF R(gx, r * fontHeight, this->rect().width() - gx, fontHeight);
             QPen pen1(Qt::gray);
             painter.setPen(pen1);
             painter.drawText(R, Qt::AlignLeft, pilcrow);
@@ -204,7 +219,7 @@ void PaintArea::paintHighlighted(QPainter &painter) {
             if (id < 0 || id >= palette.size()) return {};
             return palette[id];
         };
-        qreal x = 0;
+        qreal x = gx;
         size_t start = 0;
         while (start < glyphs.size()) {
             int attr = glyphs[start].attr;
@@ -439,14 +454,15 @@ void PaintArea::doBlinkMethod() {
 }
 
 std::pair<int, int> PaintArea::toCharPos(QPoint point, bool smart) {
-    int px = smart ? point.x() + (int) (fontWidth / 2) : point.x();
-    int x = floor(px / fontWidth);
+    int adjusted = point.x() - (int) gutterPx();
+    int px = smart ? adjusted + (int) (fontWidth / 2) : adjusted;
+    int x = px < 0 ? 0 : floor(px / fontWidth);
     int y = floor(point.y() / fontHeight);
     return std::make_pair(y, x);
 }
 
 std::pair<int, int> PaintArea::toScreenPos(std::pair<int, int> point, bool smart) {
-    int x = (int) (point.second * fontWidth);
+    int x = (int) gutterPx() + (int) (point.second * fontWidth);
     int y = (int) (point.first * fontHeight);
     return std::make_pair(y, smart ? x - (int) (fontWidth / 2) : x);
 }
@@ -657,34 +673,50 @@ bool PaintArea::charInseideArea(std::pair<int, int> cp) {
 void PaintArea::drawSelBackground(QPainter &painter, int row) {
     int selColBeg = selection.selColBeg(row, tv);
     int selColEnd = selection.selColEnd(row, tv);
+    qreal gx = gutterPx();
     qreal y = row * fontHeight;
     qreal h = fontHeight;
-    qreal w = QWidget::width();
+    qreal w = QWidget::width() - gx;
     if (selColBeg == -1) {
         if (selColEnd == -1)
-            painter.fillRect(QRectF(0, y, w, h), Qt::white);
+            painter.fillRect(QRectF(gx, y, w, h), Qt::white);
         else
             assert(false);
     } else if (selColBeg == 0) {
         if (selColEnd == -1)
-            painter.fillRect(QRectF(0, y, w, h), getSelColor());
+            painter.fillRect(QRectF(gx, y, w, h), getSelColor());
         else {
             qreal endX = selColEnd * fontWidth;
-            painter.fillRect(QRectF(0, y, endX, h), getSelColor());
-            painter.fillRect(QRectF(endX, y, w - endX, h), Qt::white);
+            painter.fillRect(QRectF(gx, y, endX, h), getSelColor());
+            painter.fillRect(QRectF(gx + endX, y, w - endX, h), Qt::white);
         }
     } else {
         qreal begX = selColBeg * fontWidth;
         if (selColEnd == -1) {
-            painter.fillRect(QRectF(0, y, begX, h), Qt::white);
-            painter.fillRect(QRectF(begX, y, w - begX, h), getSelColor());
+            painter.fillRect(QRectF(gx, y, begX, h), Qt::white);
+            painter.fillRect(QRectF(gx + begX, y, w - begX, h), getSelColor());
         } else {
             qreal endX = selColEnd * fontWidth;
-            painter.fillRect(QRectF(0, y, begX, h), Qt::white);
-            painter.fillRect(QRectF(begX, y, endX - begX, h), getSelColor());
-            painter.fillRect(QRectF(endX, y, w - endX, h), Qt::white);
+            painter.fillRect(QRectF(gx, y, begX, h), Qt::white);
+            painter.fillRect(QRectF(gx + begX, y, endX - begX, h), getSelColor());
+            painter.fillRect(QRectF(gx + endX, y, w - endX, h), Qt::white);
         }
     }
+}
+
+void PaintArea::paintGutter(QPainter &painter, int row, bool hasFoldBegin, bool collapsed) {
+    qreal gx = gutterPx();
+    if (gx <= 0) return;
+    qreal y = row * fontHeight;
+    painter.fillRect(QRectF(0, y, gx, fontHeight), QColor(0xf0, 0xf0, 0xf0));
+    if (!hasFoldBegin) return;
+    QPen savedPen = painter.pen();
+    painter.setPen(QColor(0x40, 0x40, 0x40));
+    QRectF R(0, y, gx, fontHeight);
+    QString marker = collapsed ? QStringLiteral("\u25B8")
+                               : QStringLiteral("\u25BE");
+    painter.drawText(R, Qt::AlignCenter, marker);
+    painter.setPen(savedPen);
 }
 
 void PaintArea::setKind(int kind) {

@@ -55,6 +55,8 @@ Q_OBJECT
     int64_t m_foldCacheEnd = 0;
     void paintHighlighted(QPainter &painter);
     void paintPlain(QPainter &painter);
+    qreal gutterPx() const { return m_folding ? 16.0 : 0.0; }
+    void paintGutter(QPainter &painter, int row, bool hasFoldBegin, bool collapsed);
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
