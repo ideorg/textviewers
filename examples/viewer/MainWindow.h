@@ -12,7 +12,9 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <cstdint>
+#include <memory>
 #include "wid/TextViewer.h"
+#include "logic/XmlHighlighter.h"
 #include <QFile>
 
 class MainWindow : public QMainWindow {
@@ -29,6 +31,7 @@ Q_OBJECT
     QByteArray m_lastPattern;
     bool m_lastCaseInsensitive = false;
     bool m_lastWholeWord = false;
+    std::unique_ptr<vl::XmlHighlighter> m_xmlHighlighter;
     void createMenus();
     void createSearchBar(QVBoxLayout *mainLayout);
     void runSearch(bool forward);

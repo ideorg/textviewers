@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     hLayout->addWidget(lineEdit);
     hLayout->addWidget(button);
     mainLayout->addLayout(hLayout);
-    lineEdit->setText("../../../test/data/textviewer.h0");
+    lineEdit->setText("../../../test/data/books.xml");
     fs::path fspath = QCoreApplication::applicationDirPath().toStdString();
     fspath /= lineEdit->text().toStdString();
     file = std::make_unique<QFile>(canonical(fspath));
@@ -321,4 +321,27 @@ void MainWindow::createMenus() {
     QAction *zoomResetAct = settingsMenu->addAction(tr("&Reset zoom"));
     zoomResetAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_0));
     connect(zoomResetAct, &QAction::triggered, this, [this] { widget->setFontSize(10.5); });
+
+    QMenu *hlMenu = menuBar()->addMenu(tr("&Highlighting"));
+    auto actionGroup3 = new QActionGroup(hlMenu);
+    QAction *hlNoneAct = hlMenu->addAction(tr("&None"));
+    hlNoneAct->setData(0);
+    hlNoneAct->setCheckable(true);
+    hlNoneAct->setChecked(true);
+    actionGroup3->addAction(hlNoneAct);
+    QAction *hlXmlAct = hlMenu->addAction(tr("&XML"));
+    hlXmlAct->setData(1);
+    hlXmlAct->setCheckable(true);
+    actionGroup3->addAction(hlXmlAct);
+    connect(actionGroup3, &QActionGroup::triggered, this, [this](QAction *action) {
+        int mode = action->data().toInt();
+        if (mode == 1) {
+            if (!m_xmlHighlighter)
+                m_xmlHighlighter = std::make_unique<vl::XmlHighlighter>();
+            widget->setHighlighter(m_xmlHighlighter.get(),
+                                   wid::HighlightColors::xmlDefault());
+        } else {
+            widget->setHighlighter(nullptr, wid::HighlightColors{});
+        }
+    });
 }

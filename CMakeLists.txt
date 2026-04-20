@@ -35,6 +35,7 @@ set(MISC_SOURCES
 
 set(WID_SOURCES
         wid/TextViewer.cpp wid/TextViewer.h wid/PaintArea.cpp wid/PaintArea.h
+        wid/HighlightColors.cpp wid/HighlightColors.h
 )
 
 add_subdirectory(examples/viewer)

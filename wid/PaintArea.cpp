@@ -26,7 +26,6 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     painter.setRenderHint(QPainter::TextAntialiasing);
     QRect R = event->rect();
     bool oneCharRepaint = R.width() == ceil(fontWidth);
-    QString pilcrow = QChar(182);
     QPen pen(Qt::black);
     pen.setWidth(1);
     painter.setPen(pen);
@@ -39,45 +38,188 @@ void PaintArea::paintEvent(QPaintEvent *event) {
             painter.fillRect(R, Qt::white);
         painter.drawText(R, Qt::AlignLeft, qstr);
     } else {
-        for (int i = 0; i < tv->size(); i++) {
-            drawSelBackground(painter, i);
-            std::u32string dstr = tv->at(i);
-            if (dstr.empty() && tv->lastInFile(i)) {
-                QRectF R(0, i * fontHeight, this->rect().width(), fontHeight);
-                QPen pen1(Qt::gray);
-                painter.setPen(pen1);
-                painter.drawText(R, Qt::AlignLeft, pilcrow);
-                painter.setPen(pen);
-            } else {
-                qreal x = 0;
-                size_t start = 0;
-                while (start < dstr.size()) {
-                    bool isHigh = (dstr[start] >= 0x10000);
-                    size_t end = start;
-                    while (end < dstr.size() && (dstr[end] >= 0x10000) == isHigh) {
-                        end++;
-                    }
-                    QString segment = QString::fromUcs4(dstr.c_str() + start, end - start);
-                    qreal segmentWidth = (end - start) * fontWidth;
-                    QRectF R(x, i * fontHeight, segmentWidth, fontHeight);
-                    if (isHigh) {
-                        painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, segment);
-                    } else {
-                        painter.drawText(R, Qt::AlignLeft, segment);
-                    }
-                    x += segmentWidth;
-                    start = end;
-                }
-            }
+        if (m_highlighter && byteAccess()) {
+            paintHighlighted(painter);
+        } else {
+            paintPlain(painter);
         }
-        qreal y = tv->size() * fontHeight;
-        painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
     }
 
     if (drawCaret && hasFocus()) {
         auto p = toScreenPos(caretPos, false);
         painter.fillRect(QRectF(p.second, p.first + 1, 2, fontHeight - 2), Qt::black);
     }
+}
+
+void PaintArea::paintPlain(QPainter &painter) {
+    QString pilcrow = QChar(182);
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    for (int i = 0; i < tv->size(); i++) {
+        drawSelBackground(painter, i);
+        std::u32string dstr = tv->at(i);
+        if (dstr.empty() && tv->lastInFile(i)) {
+            QRectF R(0, i * fontHeight, this->rect().width(), fontHeight);
+            QPen pen1(Qt::gray);
+            painter.setPen(pen1);
+            painter.drawText(R, Qt::AlignLeft, pilcrow);
+            painter.setPen(pen);
+        } else {
+            qreal x = 0;
+            size_t start = 0;
+            while (start < dstr.size()) {
+                bool isHigh = (dstr[start] >= 0x10000);
+                size_t end = start;
+                while (end < dstr.size() && (dstr[end] >= 0x10000) == isHigh) {
+                    end++;
+                }
+                QString segment = QString::fromUcs4(dstr.c_str() + start, end - start);
+                qreal segmentWidth = (end - start) * fontWidth;
+                QRectF R(x, i * fontHeight, segmentWidth, fontHeight);
+                if (isHigh) {
+                    painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, segment);
+                } else {
+                    painter.drawText(R, Qt::AlignLeft, segment);
+                }
+                x += segmentWidth;
+                start = end;
+            }
+        }
+    }
+    qreal y = tv->size() * fontHeight;
+    painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
+}
+
+void PaintArea::paintHighlighted(QPainter &painter) {
+    auto *bytes = byteAccess();
+    if (!bytes || tv->size() == 0) {
+        paintPlain(painter);
+        return;
+    }
+
+    // Visible byte range [topByte, endByte).
+    auto lp0 = tv->getLinePointers(0);
+    int64_t topByte = bytes->pointerToOffset(lp0.beginLine);
+    auto lpLast = tv->getLinePointers((int) tv->size() - 1);
+    int64_t endByte = bytes->pointerToOffset(lpLast.wrapEnd);
+
+    int64_t preludeStart = std::max(bytes->firstByte(), topByte - m_preludeBytes);
+    int64_t bufLen = endByte - preludeStart;
+    if (bufLen <= 0) {
+        paintPlain(painter);
+        return;
+    }
+    const char *buf = bytes->ofsetToPointer(preludeStart);
+
+    std::vector<vl::StyleSpan> tokens;
+    vl::HighlightState endState;
+    m_highlighter->tokenize(buf, bufLen, m_highlighter->initialState(), tokens, endState);
+
+    size_t tokIdx = 0;
+    auto attrAt = [&](int64_t offRel) -> int {
+        while (tokIdx < tokens.size()
+               && offRel >= tokens[tokIdx].start + tokens[tokIdx].length) {
+            tokIdx++;
+        }
+        if (tokIdx < tokens.size() && offRel >= tokens[tokIdx].start)
+            return tokens[tokIdx].attributeId;
+        return 0;
+    };
+
+    int screenLen = tv->screenLineLen();
+    int maxTab = std::max(1, tv->maxTabW());
+    QString pilcrow = QChar(182);
+
+    for (int r = 0; r < (int) tv->size(); r++) {
+        drawSelBackground(painter, r);
+        auto lp = tv->getLinePointers(r);
+        int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
+        int64_t wrapEnd = bytes->pointerToOffset(lp.wrapEnd);
+        auto u8 = reinterpret_cast<const uint8_t *>(buf);
+
+        if (wrapEnd == wrapStart && tv->lastInFile(r)) {
+            QRectF R(0, r * fontHeight, this->rect().width(), fontHeight);
+            QPen pen1(Qt::gray);
+            painter.setPen(pen1);
+            painter.drawText(R, Qt::AlignLeft, pilcrow);
+            continue;
+        }
+
+        // Skip startX codepoints of this wrap segment.
+        int64_t i = wrapStart - preludeStart;
+        int64_t wrapEndRel = wrapEnd - preludeStart;
+        for (int n = 0; n < tv->startX() && i < wrapEndRel; n++) {
+            int32_t k = 0;
+            UChar32 dummy;
+            U8_NEXT(u8 + i, k, (int32_t) (wrapEndRel - i), dummy);
+            i += k;
+        }
+
+        struct Glyph { char32_t c; int attr; };
+        std::vector<Glyph> glyphs;
+        glyphs.reserve(screenLen);
+        int width = 0;
+        while (i < wrapEndRel && width < screenLen) {
+            int curAttr = attrAt(i);
+            if (u8[i] == '\t') {
+                glyphs.push_back({U' ', curAttr});
+                width++;
+                while (width < screenLen && (width % maxTab) != 0) {
+                    glyphs.push_back({U' ', curAttr});
+                    width++;
+                }
+                i++;
+            } else {
+                int32_t k = 0;
+                UChar32 c;
+                U8_NEXT(u8 + i, k, (int32_t) (wrapEndRel - i), c);
+                glyphs.push_back({c < 0 ? (char32_t) 0xFFFD : (char32_t) c, curAttr});
+                i += k;
+                width++;
+            }
+        }
+
+        QFont baseFont = painter.font();
+        QFont boldFont = baseFont;
+        boldFont.setBold(true);
+        qreal x = 0;
+        size_t start = 0;
+        while (start < glyphs.size()) {
+            int attr = glyphs[start].attr;
+            bool isHigh = (glyphs[start].c >= 0x10000);
+            bool isBold = m_highlightColors.bold(attr);
+            size_t end = start + 1;
+            while (end < glyphs.size()
+                   && glyphs[end].attr == attr
+                   && (glyphs[end].c >= 0x10000) == isHigh) {
+                end++;
+            }
+            std::u32string seg;
+            seg.reserve(end - start);
+            for (size_t k = start; k < end; k++) seg.push_back(glyphs[k].c);
+            QString qseg = QString::fromUcs4(seg.data(), (int) seg.size());
+            qreal segW = (end - start) * fontWidth;
+            QRectF R(x, r * fontHeight, segW, fontHeight);
+            painter.setPen(m_highlightColors.foreground(attr));
+            painter.setFont(isBold ? boldFont : baseFont);
+            if (isHigh)
+                painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, qseg);
+            else
+                painter.drawText(R, Qt::AlignLeft, qseg);
+            x += segW;
+            start = end;
+        }
+        painter.setFont(baseFont);
+    }
+    qreal y = tv->size() * fontHeight;
+    painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
+}
+
+void PaintArea::setHighlighter(vl::IHighlighter *h, HighlightColors colors) {
+    m_highlighter = h;
+    m_highlightColors = std::move(colors);
+    update();
 }
 
 QString PaintArea::updateCaretPos() {

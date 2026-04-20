@@ -72,6 +72,10 @@ int TextViewer::maxTabW() const {
     return paintArea->maxTabW();
 }
 
+void TextViewer::setHighlighter(vl::IHighlighter *h, HighlightColors colors) {
+    paintArea->setHighlighter(h, std::move(colors));
+}
+
 void TextViewer::vscrollChanged() {
     long double relative;
     if (vscroll->maximum() > 0)
