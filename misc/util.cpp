@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include "cpg/utf/UTF.hpp"
+#include <cassert>
+#include "utf_icu.hpp"
 #include "util.h"
 
 #include <vector>

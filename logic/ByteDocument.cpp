@@ -5,7 +5,7 @@
 #include <cassert>
 #include <stdexcept>
 #include "ByteDocument.h"
-#include "cpg/utf/UTF.hpp"
+#include "misc/utf_icu.hpp"
 
 using namespace std;
 using namespace vl;

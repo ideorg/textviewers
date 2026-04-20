@@ -3,7 +3,7 @@
 //
 #include "ByteView.h"
 #include "ByteDeque.h"
-#include "cpg/utf/UTF.hpp"
+#include "misc/utf_icu.hpp"
 #include <memory>
 #include <cmath>
 #include <iostream>

@@ -7,7 +7,7 @@
 #include "Wrap.h"
 #include "AbstractView.h"
 #include "ByteDocument.h"
-#include "cpg/utf/UTF.hpp"
+#include "misc/utf_icu.hpp"
 
 using namespace vl;
 using namespace std;

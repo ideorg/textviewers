@@ -14,7 +14,7 @@
 #include <QClipboard>
 #include <QMimeData>
 #include <QMessageBox>
-#include "cpg/utf/UTF.hpp"
+#include "misc/utf_icu.hpp"
 #include "logic/ByteView.h"
 #include "logic/ChangeableDocument.h"
 

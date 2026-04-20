@@ -4,7 +4,6 @@
 #include <QKeyEvent>
 #include <QFontDatabase>
 #include <QHBoxLayout>
-#include "cpg/utf/UTF.hpp"
 #include <QDebug>
 
 namespace wid {
