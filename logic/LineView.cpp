@@ -4,7 +4,7 @@
 
 #include "LineView.h"
 #include "LineDeque.h"
-#include "misc/utf_icu.hpp"
+#include <unicode/utf8.h>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -110,9 +110,11 @@ FilePosition LineView::filePosition(int row, int col) {
     IndexView iv = indexView[row];
     result.lineNumber = viewDeque->getFront() + iv.index;
     LinePointers lptrs = getLinePointers(row);
-    UTF utf;
-    int64_t actual;
-    result.offset = utf.forwardNcodes(lptrs.wrapPosition, col, lptrs.wrapEnd, actual) - lptrs.beginLine;
+    int32_t length = (int32_t)(lptrs.wrapEnd - lptrs.wrapPosition);
+    int32_t i = 0;
+    for (int n = 0; n < col && i < length; n++)
+        U8_FWD_1(reinterpret_cast<const uint8_t*>(lptrs.wrapPosition), i, length);
+    result.offset = (lptrs.wrapPosition + i) - lptrs.beginLine;
     return result;
 }
 
@@ -152,9 +154,16 @@ std::pair<int, int> LineView::locatePosition(FilePosition filePosition, bool pre
     }
     if (p.first == -1)
         p.first = j - 1;
-    UTF utf;
-    p.second = utf.numCodesBetween(deqLine.cbegin() + indexView[p.first].wrapOffset,
-                                   deqLine.cbegin() + filePosition.offset);
+    const char *a = deqLine.cbegin() + indexView[p.first].wrapOffset;
+    const char *b = deqLine.cbegin() + filePosition.offset;
+    int32_t length = (int32_t)(b - a);
+    int32_t ai = 0;
+    int64_t count = 0;
+    while (ai < length) {
+        U8_FWD_1(reinterpret_cast<const uint8_t*>(a), ai, length);
+        count++;
+    }
+    p.second = count;
     return p;
 }
 

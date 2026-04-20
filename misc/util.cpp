@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include "utf_icu.hpp"
+#include <unicode/utf8.h>
 #include "util.h"
 
 #include <vector>
@@ -152,9 +152,18 @@ vector<string> removeLFExpect(const vector<string> &lines) {
 
 vector<u32string> toUTF32(const vector<string> &lines) {
     vector<u32string> v;
-    UTF utf;
     for (auto &line: lines) {
-        v.push_back(utf.u8to32(line));
+        u32string out;
+        out.reserve(line.size());
+        auto u8 = reinterpret_cast<const uint8_t*>(line.data());
+        int32_t length = (int32_t)line.size();
+        int32_t i = 0;
+        while (i < length) {
+            UChar32 c;
+            U8_NEXT(u8, i, length, c);
+            out.push_back(c < 0 ? 0xFFFD : (char32_t)c);
+        }
+        v.push_back(std::move(out));
     }
     return v;
 }
@@ -314,10 +323,11 @@ string genSampleUnicode(vector<int> lineLens, int utf8len) {
     c[4] = 0x10348;
     string u8[5];
     if (utf8len < 1 || utf8len > 4) throw logic_error("genSampleUnicode: utf8len out of range");
-    UTF utf;
     char buf[5];
     for (int i = 0; i <= 4; i++) {
-        int len = utf.one32to8(c[i], buf);
+        int32_t len = 0;
+        UBool isError = false;
+        U8_APPEND(reinterpret_cast<uint8_t*>(buf), len, 4, (UChar32)c[i], isError);
         if (i == 0)
             assert(len == 3);
         else

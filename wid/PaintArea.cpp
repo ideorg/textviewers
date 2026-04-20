@@ -14,7 +14,7 @@
 #include <QClipboard>
 #include <QMimeData>
 #include <QMessageBox>
-#include "misc/utf_icu.hpp"
+#include <unicode/utf8.h>
 #include "logic/ByteView.h"
 #include "logic/ChangeableDocument.h"
 
@@ -88,7 +88,6 @@ QString PaintArea::updateCaretPos() {
         caretPos.first = tv->size() - 1;
         caretPos.second = width() / fontWidth;
     }
-    UTF utf;
     auto dstr = tv->at(caretPos.first);
     QString qstr;
     if (dstr.size() <= caretPos.second) {
@@ -457,8 +456,13 @@ void PaintArea::keyPressEvent(QKeyEvent *event) {
             } else {
                 if (caretPos.first >= 0 && caretPos.first < tv->size()) {
                     auto lp = tv->getLinePointers(caretPos.first);
-                    UTF utf;
-                    int lineLen = utf.numCodesBetween(lp.beginLine, lp.wrapEnd);
+                    int32_t length = (int32_t)(lp.wrapEnd - lp.beginLine);
+                    int32_t i = 0;
+                    int lineLen = 0;
+                    while (i < length) {
+                        U8_FWD_1(reinterpret_cast<const uint8_t*>(lp.beginLine), i, length);
+                        lineLen++;
+                    }
                     setHorizontal(std::max(0, lineLen - tv->screenLineLen()));
                 }
             }

@@ -4,16 +4,15 @@
 
 #include <cassert>
 #include <algorithm>
+#include <unicode/utf8.h>
 #include "Wrap.h"
 #include "AbstractView.h"
 #include "ByteDocument.h"
-#include "misc/utf_icu.hpp"
 
 using namespace vl;
 using namespace std;
 
 int Wrap::fillDString(const char *&s, const char *seol, std::u32string &dstr) {
-    UTF utf;
     int width = 0;
     while (s<seol && width < view->screenLineLen()) {
         if (*s == '\t'){
@@ -25,9 +24,12 @@ int Wrap::fillDString(const char *&s, const char *seol, std::u32string &dstr) {
             }
             s++;
         } else{
-            const char *end;
-            dstr[width] = utf.one8to32(s, seol, &end);
-            s = end;
+            int32_t length = (int32_t)(seol - s);
+            int32_t i = 0;
+            UChar32 c;
+            U8_NEXT(reinterpret_cast<const uint8_t*>(s), i, length, c);
+            dstr[width] = c < 0 ? 0xFFFD : (char32_t)c;
+            s += i;
             width++;
         }
     }
@@ -40,10 +42,15 @@ const char *Wrap::searchWrapWords(const char *s, const char *seol, const char *s
         int countLast = clLastWidth(dstr, cl);
         int countNext = clNextWidth(s, seol, cl);
         if (countNext > 0 && countLast + countNext <= view->screenLineLen()) {
-            int64_t actual;
-            UTF utf;
-            s = utf.backwardNcodes(s, countLast, sprev, actual);
-            assert(countLast == actual);
+            auto u8 = reinterpret_cast<const uint8_t*>(sprev);
+            int32_t i = (int32_t)(s - sprev);
+            int back = 0;
+            while (back < countLast && i > 0) {
+                U8_BACK_1(u8, 0, i);
+                back++;
+            }
+            assert(countLast == back);
+            s = sprev + i;
         }
     }
     return s;
@@ -103,12 +110,13 @@ int Wrap::clLastWidth(const u32string &dstr, uint32_t cl) {
 int Wrap::clNextWidth(const char *s, const char *seol, uint32_t cl) {
     int countNext = 0;
     const char *s1 = s;
-    UTF utf;
     while (s1 < seol && countNext < view->screenLineLen()) {
-        const char *end;
-        uint d = utf.one8to32(s1, seol, &end);//no need here keep an eye on \t
-        s1 = end;
-        if (codeClass(d) != cl)
+        int32_t length = (int32_t)(seol - s1);
+        int32_t i = 0;
+        UChar32 d;
+        U8_NEXT(reinterpret_cast<const uint8_t*>(s1), i, length, d);
+        s1 += i;
+        if (codeClass(d < 0 ? 0xFFFD : (char32_t)d) != cl)
             break;
         countNext++;
         s1++;

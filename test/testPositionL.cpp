@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 #include "logic/LineIndexedDocument.h"
 #include "logic/LineView.h"
-#include "misc/utf_icu.hpp"
 
 using namespace std;
 using namespace vl;
@@ -51,7 +50,6 @@ TEST(locatePositionL, fromEnd) {
         vtest.recalcLines();
         for (int row = 0; row < vtest.size(); row++) {
             u32string dstr = vtest[row];
-            UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
@@ -80,7 +78,6 @@ TEST(locatePositionL, maxLine) {
         vtest.recalcLines();
         for (int row = 0; row < vtest.size(); row++) {
             u32string dstr = vtest[row];
-            UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
@@ -109,7 +106,6 @@ TEST(locatePositionL, wrap1) {
         vtest.recalcLines();
         for (int row = 0; row < vtest.size(); row++) {
             u32string dstr = vtest[row];
-            UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
@@ -139,7 +135,6 @@ TEST(locatePositionL, wrap2) {
         vtest.recalcLines();
         for (int row = 0; row < vtest.size(); row++) {
             u32string dstr = vtest[row];
-            UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);
@@ -168,7 +163,6 @@ TEST(locatePositionL, beginX) {
         vtest.recalcLines();
         for (int row = 0; row < vtest.size(); row++) {
             u32string dstr = vtest[row];
-            UTF utf;
             int dlen = dstr.size();
             for (int col = 0; col < vtest.screenLineLen(); col++) {
                 FilePosition filePosition = vtest.filePosition(row, col);

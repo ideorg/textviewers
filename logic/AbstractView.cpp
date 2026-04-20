@@ -2,9 +2,9 @@
 // Created by andrzej on 8/23/23.
 //
 #include <string>
+#include <unicode/utf8.h>
 #include "AbstractView.h"
 #include "ByteDeque.h"
-#include "misc/utf_icu.hpp"
 
 using namespace std;
 using namespace vl;
@@ -164,9 +164,12 @@ std::u32string AbstractView::at(int n) {
         return {};
     auto lineView = viewDeque->lineAt(iv.index);
     auto wrapLineView = string_view(lineView.cbegin() + iv.wrapOffset, iv.wrapLen);
-    UTF utf;
-    int64_t actual;
-    const char *s = utf.forwardNcodes(wrapLineView.cbegin(), startX(), wrapLineView.cend(), actual);
+    int32_t length = (int32_t)wrapLineView.size();
+    int32_t i = 0;
+    int target = startX();
+    for (int n = 0; n < target && i < length; n++)
+        U8_FWD_1(reinterpret_cast<const uint8_t*>(wrapLineView.data()), i, length);
+    const char *s = wrapLineView.cbegin() + i;
     if (s == wrapLineView.cend())
         return {};
     u32string dstr;

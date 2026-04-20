@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include "logic/ByteDocument.h"
 #include "misc/util.h"
-#include "misc/utf_icu.hpp"
+#include <unicode/utf8.h>
 
 using namespace std;
 
@@ -262,8 +262,8 @@ TEST (ByteDocumentMLunicode, forward) {
                     int64_t eolActual = doc.searchEndOfLine(j);
                     ASSERT_EQ(eolExpected, eolActual);
                     EXPECT_THROW(doc.firstOfCRLF(j), std::runtime_error);
-                    UTF utf;
-                    j += utf.one8len(s[j]);
+                    uint8_t b = (uint8_t)s[j];
+                    j += U8_IS_SINGLE(b) ? 1 : (U8_COUNT_TRAIL_BYTES(b) + 1);
                 }
                 int64_t next = eolExpected + p.breaks;
                 for (int64_t j = eolExpected; j < next; j++) {

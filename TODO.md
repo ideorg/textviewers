@@ -27,11 +27,9 @@
 0.5.1 (refactor)
 - replace cpg/utf submodule helpers with ICU (via misc/utf_icu.hpp adapter)
 - bump cpg submodule to v1.0.0-3 (drops its nested utf submodule)
+- inline ICU calls at call sites and remove misc/utf_icu.hpp adapter
 
 ==== TODO
-
-0.5.2 (refactor)
-- inline ICU calls at call sites and remove misc/utf_icu.hpp adapter
 
 
 

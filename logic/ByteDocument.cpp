@@ -4,8 +4,8 @@
 
 #include <cassert>
 #include <stdexcept>
+#include <unicode/utf8.h>
 #include "ByteDocument.h"
-#include "misc/utf_icu.hpp"
 
 using namespace std;
 using namespace vl;
@@ -46,10 +46,13 @@ int64_t ByteDocument::correctPossibleBreak(int64_t possibleBreakAt) {
         return possibleBreakAt;
     if (m_addr[possibleBreakAt] == '\n' && possibleBreakAt > m_BOMsize && m_addr[possibleBreakAt - 1] == '\r')
         return possibleBreakAt + 1;
-    UTF utf;
-    return utf.findNextUtf8OrTheSame(m_addr + possibleBreakAt,
-                                     m_addr + std::max((int64_t) m_BOMsize, possibleBreakAt - (UTF::MAXCHARLEN - 1)),
-                                     m_addr + m_fileSize) - m_addr;
+    auto u8 = reinterpret_cast<const uint8_t*>(m_addr);
+    int32_t i = (int32_t)possibleBreakAt;
+    int32_t i_orig = i;
+    U8_SET_CP_START(u8, (int32_t)m_BOMsize, i);
+    if (i != i_orig)
+        U8_FWD_1(u8, i, (int32_t)m_fileSize);
+    return i;
 }
 
 ByteDocument::ByteDocument(const char *addr, int64_t fileSize, int64_t maxLineLen) :
