@@ -29,12 +29,10 @@
 - bump cpg submodule to v1.0.0-3 (drops its nested utf submodule)
 - inline ICU calls at call sites and remove misc/utf_icu.hpp adapter
 
-==== TODO
-
-
-
 0.6
 - autoscroll with timer with mouse selection
+
+==== TODO
 
 0.7
 - double click: select word
