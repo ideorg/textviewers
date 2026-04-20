@@ -22,6 +22,8 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/ByteDeque.cpp
         logic/ChangeableDocument.h
         logic/ChangeableDocument.cpp
+        logic/Searcher.cpp
+        logic/Searcher.h
 )
 
 set(MISC_SOURCES
@@ -53,6 +55,7 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testScrollL.cpp
         test/testProportional.cpp
         test/testProportionalL.cpp
+        test/testSearcher.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main ICU::uc)
