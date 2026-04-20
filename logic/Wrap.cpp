@@ -8,7 +8,6 @@
 #include "AbstractView.h"
 #include "ByteDocument.h"
 #include "cpg/utf/UTF.hpp"
-#include "wid/PaintArea.h"
 
 using namespace vl;
 using namespace std;

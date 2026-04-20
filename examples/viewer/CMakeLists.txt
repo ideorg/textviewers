@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6)
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(ICU REQUIRED COMPONENTS uc)
 
 foreach(source_file ${LOGIC_SOURCES})
     list(APPEND LOGIC_SOURCES_RELATIVE ../../${source_file})
@@ -37,7 +38,7 @@ qt_add_executable(${EXAMPLE}
         ${PROJECT_SOURCES}
 )
 
-target_link_libraries(${EXAMPLE} PRIVATE Qt6::Widgets)
+target_link_libraries(${EXAMPLE} PRIVATE Qt6::Widgets ICU::uc)
 
 target_include_directories(${EXAMPLE} PRIVATE ../../)
 

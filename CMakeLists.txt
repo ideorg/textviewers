@@ -6,6 +6,8 @@ add_definitions("-Werror=return-type -Werror=unused-result")
 
 set(MAIN_PROJECT_DIR ${CMAKE_SOURCE_DIR})
 
+find_package(ICU REQUIRED COMPONENTS uc)
+
 set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/AbstractView.cpp
         logic/LineIndexedDocument.cpp
@@ -53,6 +55,6 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testProportionalL.cpp
 )
 
-target_link_libraries(gtest_viewer gtest gtest_main)
+target_link_libraries(gtest_viewer gtest gtest_main ICU::uc)
 
 target_include_directories(gtest_viewer PRIVATE ${CMAKE_SOURCE_DIR})
