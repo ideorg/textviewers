@@ -36,10 +36,10 @@
 - double click: select word
 - triple click: select line
 
-==== TODO
-
 0.8
 - search
+
+==== TODO
 
 0.9
 - config with font size, tab width

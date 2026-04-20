@@ -48,6 +48,14 @@ void TextViewer::setKind(int kind) {
     paintArea->setKind(kind);
 }
 
+vl::IByteAccess *TextViewer::byteAccess() {
+    return paintArea->byteAccess();
+}
+
+void TextViewer::showMatch(int64_t offset, int64_t length) {
+    paintArea->showMatch(offset, length);
+}
+
 void TextViewer::vscrollChanged() {
     long double relative;
     if (vscroll->maximum() > 0)

@@ -16,6 +16,8 @@ namespace wid {
         void setData(const char *addr, int64_t fileSize);
         void setWrapMode(int mode);
         void setKind(int kind);
+        vl::IByteAccess *byteAccess();
+        void showMatch(int64_t offset, int64_t length);
     private:
         const int MAXVSCROLL = 10000;
         void hscrollChanged();

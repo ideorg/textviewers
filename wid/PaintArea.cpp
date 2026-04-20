@@ -184,6 +184,29 @@ void PaintArea::setVertical(double relativePos) {
     update();
 }
 
+vl::IByteAccess *PaintArea::byteAccess() {
+    return dynamic_cast<vl::IByteAccess*>(doc);
+}
+
+void PaintArea::showMatch(int64_t offset, int64_t length) {
+    auto *bytes = byteAccess();
+    if (!bytes) return;
+    int64_t total = bytes->byteCount();
+    double rel = total > 0 ? (double)offset / (double)total : 0.0;
+    tv->gotoProportional(rel);
+    tv->fillDeque();
+    tv->recalcLines();
+    vl::FilePosition begin{};
+    begin.interpretation = 1;
+    begin.bytePosition = offset;
+    vl::FilePosition end{};
+    end.interpretation = 1;
+    end.bytePosition = offset + length;
+    selection.setRange(begin, end, tv);
+    update();
+    Q_EMIT scrollVChanged();
+}
+
 void PaintArea::wheelHorizontal(int delta) {
     setHorizontal(std::max(0, tv->startX() - delta));
 }

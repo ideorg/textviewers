@@ -24,6 +24,7 @@ public:
     void setSecond(std::pair<int,int> pos, vl::AbstractView *view);
     void selectWord(std::pair<int,int> pos, vl::AbstractView *view);
     void selectLogicalLine(int row, vl::AbstractView *view);
+    void setRange(vl::FilePosition begin, vl::FilePosition end, vl::AbstractView *view);
     void compute(vl::AbstractView *view);
     void setDocument(vl::IBaseAccess *doc);
     int selColBeg(int row, vl::AbstractView *view);

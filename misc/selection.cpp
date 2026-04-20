@@ -68,6 +68,12 @@ void Selection::selectLogicalLine(int row, vl::AbstractView *view) {
     compute(view);
 }
 
+void Selection::setRange(vl::FilePosition begin, vl::FilePosition end, vl::AbstractView *view) {
+    firstPos = begin;
+    secondPos = end;
+    compute(view);
+}
+
 QByteArray Selection::get() {
     if (selEnd.gt(selBegin)) {
         auto sv = m_doc->getBytes(selBegin, selEnd);

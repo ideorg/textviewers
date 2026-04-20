@@ -8,6 +8,7 @@
 #include "logic/LineView.h"
 #include "logic/LineIndexedDocument.h"
 #include "logic/ByteView.h"
+#include "logic/IByteAccess.h"
 #include "misc/selection.h"
 #include <QWidget>
 #include <QPaintEvent>
@@ -63,6 +64,8 @@ public:
     void setVertical(double relativePos);
     vl::AbstractView *tv = nullptr;
     vl::IBaseAccess *doc = nullptr;
+    vl::IByteAccess *byteAccess();
+    void showMatch(int64_t offset, int64_t length);
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:

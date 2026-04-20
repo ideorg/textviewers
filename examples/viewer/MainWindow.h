@@ -9,6 +9,9 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QActionGroup>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <cstdint>
 #include "wid/TextViewer.h"
 #include <QFile>
 
@@ -17,7 +20,15 @@ Q_OBJECT
     QPushButton *button;
     QLineEdit *lineEdit;
     wid::TextViewer *widget;
+    QWidget *searchBar = nullptr;
+    QLineEdit *searchInput = nullptr;
+    int64_t m_searchStart = 0;
+    QByteArray m_lastPattern;
     void createMenus();
+    void createSearchBar(QVBoxLayout *mainLayout);
+    void runSearch(bool forward);
+    void focusSearch();
+    void hideSearch();
     std::unique_ptr<QFile> file;
 public:
     MainWindow(QWidget *parent = nullptr);
