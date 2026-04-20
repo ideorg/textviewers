@@ -1,7 +1,10 @@
 # Handoff — bounded byte-range folding for textviewers
 
-Second handoff, **landing after** `HANDOFF_qcodeedit.md` (byte-range
-highlighter). Goal: let textviewers present Kate-driven code folding
+Second handoff in the chain, **landing after**
+`HANDOFF_qcodeedit.md` (byte-range highlighter, already shipped
+in qce 1.2) and ideally alongside `HANDOFF_qcodeedit_dynamic.md`
+(Kate dynamic rules — see §2.5 below for why the combination
+matters). Goal: let textviewers present Kate-driven code folding
 for regions that fit within a caller-defined byte window, without
 having to scan the whole file.
 
@@ -12,6 +15,8 @@ Reference points in this viewer repo:
 - `HANDOFF_qcodeedit.md` — assumes `qce::IHighlighter::tokenizeBytes`
   from that handoff is already shipped; folding builds on the same
   byte buffer
+- `HANDOFF_qcodeedit_dynamic.md` — some language definitions need
+  dynamic-rule support to reach the `endRegion` that closes a fold
 
 ---
 
@@ -29,11 +34,12 @@ we need not to do.
 
 **Observation.** Every meaningful fold the user wants to toggle is
 close to the top of the viewport — `<page>`, `<revision>`, `<text>`
-in a Wiktionary dump, nested `<div>` chunks in HTML, etc. Their
-begin/end pair typically fits within a few hundred kilobytes. The
-gigantic root we can't fold is also the one the user never wants to
-collapse interactively, because collapsing it would just blank the
-screen.
+in a Wiktionary dump (these all depend on dynamic-rule support, see
+§2.5), nested `<div>` chunks in HTML, `{ … }` blocks in C++, comment
+blocks and CDATA sections in XML. Their begin/end pair typically
+fits within a few hundred kilobytes. The gigantic root we can't
+fold is also the one the user never wants to collapse interactively,
+because collapsing it would just blank the screen.
 
 So: **fold only regions whose begin and end both fall inside a
 bounded window around the viewport**. Outside the window, no marker.
@@ -77,6 +83,33 @@ split on `\n`, delegate per line, translate columns via `Utf8Map`
 For the rule-based provider, byte-native override lets us stream the
 file without any QString allocation. Same scope as handoff #1 §2.2 —
 ASCII rules run on bytes; regex rules fall back to QString per line.
+
+### 2.5 · Interaction with dynamic rules
+
+The motivating Wiktionary example — folding `<page>`, `<revision>`,
+`<text>` — only works once Kate dynamic rules are supported
+(`HANDOFF_qcodeedit_dynamic.md`). `xml.xml`'s opener carries
+`beginRegion="element"` (static region name) but the matching
+`endRegion="element"` lives on the `>` rule inside the `El End`
+context, which is only reached after the closing tag's element
+name is consumed by a dynamic `StringDetect String="%1"`. Without
+dynamic support, elements never close and `pairFolds()` would
+drop every element open as unmatched.
+
+Region kinds that already close via static rules (and therefore
+fold correctly once §2.1–§2.3 land) include:
+
+- `<!-- … -->` comments (xml.xml: `Comment` context, static close)
+- `<? … ?>` processing instructions
+- `<![CDATA[ … ]]>` CDATA sections
+- `<!DOCTYPE … >` doctype
+- `<br/>` self-closing element — its `/>` carries the static
+  `endRegion="element"` so it opens and closes on one byte range
+- `{ … }` braces in `cpp.xml`, etc.
+- `//BEGIN … //END` region markers
+
+So folding lands useful functionality for most languages on its
+own; XML element pair folding rides on top of dynamic-rule work.
 
 ### 2.3 · Pairing helper — the bounded part
 
