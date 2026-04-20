@@ -18,6 +18,10 @@ namespace wid {
         void setKind(int kind);
         vl::IByteAccess *byteAccess();
         void showMatch(int64_t offset, int64_t length);
+        void setFontSize(qreal pt);
+        qreal fontSize() const;
+        void setMaxTabW(int w);
+        int maxTabW() const;
     private:
         const int MAXVSCROLL = 10000;
         void hscrollChanged();

@@ -34,6 +34,9 @@ Q_OBJECT
     void runSearch(bool forward);
     void focusSearch();
     void hideSearch();
+    void zoomBy(qreal delta);
+    void askFontSize();
+    void askTabWidth();
     std::unique_ptr<QFile> file;
 public:
     MainWindow(QWidget *parent = nullptr);

@@ -36,6 +36,8 @@ Q_OBJECT
     void copyToClipboard();
     std::pair<int,int> toCharPos(QPoint point, bool smart);
     std::pair<int,int> toScreenPos(std::pair<int,int> point, bool smart);
+    void applyFont(qreal pt);
+    qreal m_fontSize = 10.5;
     const char *m_addr;
     int64_t m_fileSize;
 protected:
@@ -66,6 +68,10 @@ public:
     vl::IBaseAccess *doc = nullptr;
     vl::IByteAccess *byteAccess();
     void showMatch(int64_t offset, int64_t length);
+    void setFontSize(qreal pt);
+    qreal fontSize() const { return m_fontSize; }
+    void setMaxTabW(int w);
+    int maxTabW() const;
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:

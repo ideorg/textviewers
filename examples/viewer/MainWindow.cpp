@@ -17,6 +17,7 @@
 #include <QActionGroup>
 #include <QCoreApplication>
 #include <QCheckBox>
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QTimer>
@@ -56,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     central->setLayout(mainLayout);
     setCentralWidget(central);
     resize(400, 400);
+    widget->setMaxTabW(4);
     createMenus();
 
     auto *findShortcut = new QShortcut(QKeySequence::Find, this);
@@ -64,6 +66,38 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     connect(nextShortcut, &QShortcut::activated, this, [this] { runSearch(true); });
     auto *prevShortcut = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_F3), this);
     connect(prevShortcut, &QShortcut::activated, this, [this] { runSearch(false); });
+    auto *zoomInSc = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus), this);
+    connect(zoomInSc, &QShortcut::activated, this, [this] { zoomBy(1.0); });
+    auto *zoomInSc2 = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Equal), this);
+    connect(zoomInSc2, &QShortcut::activated, this, [this] { zoomBy(1.0); });
+    auto *zoomOutSc = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus), this);
+    connect(zoomOutSc, &QShortcut::activated, this, [this] { zoomBy(-1.0); });
+    auto *zoomResetSc = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this);
+    connect(zoomResetSc, &QShortcut::activated, this, [this] { widget->setFontSize(10.5); });
+}
+
+void MainWindow::zoomBy(qreal delta) {
+    qreal newSize = widget->fontSize() + delta;
+    if (newSize < 1.0) newSize = 1.0;
+    if (newSize > 72.0) newSize = 72.0;
+    widget->setFontSize(newSize);
+}
+
+void MainWindow::askFontSize() {
+    bool ok = false;
+    double pt = QInputDialog::getDouble(this, tr("Font size"),
+                                        tr("Point size:"),
+                                        widget->fontSize(), 1.0, 72.0, 1, &ok,
+                                        Qt::WindowFlags(), 0.1);
+    if (ok) widget->setFontSize(pt);
+}
+
+void MainWindow::askTabWidth() {
+    bool ok = false;
+    int w = QInputDialog::getInt(this, tr("Tab width"),
+                                 tr("Columns per tab:"),
+                                 widget->maxTabW(), 1, 32, 1, &ok);
+    if (ok) widget->setMaxTabW(w);
 }
 
 void MainWindow::createSearchBar(QVBoxLayout *mainLayout) {
@@ -271,4 +305,20 @@ void MainWindow::createMenus() {
         int kind = action->data().toInt();
         widget->setKind(kind);
     });
+
+    QMenu *settingsMenu = menuBar()->addMenu(tr("&Settings"));
+    QAction *fontSizeAct = settingsMenu->addAction(tr("&Font size..."));
+    connect(fontSizeAct, &QAction::triggered, this, &MainWindow::askFontSize);
+    QAction *tabWidthAct = settingsMenu->addAction(tr("&Tab width..."));
+    connect(tabWidthAct, &QAction::triggered, this, &MainWindow::askTabWidth);
+    settingsMenu->addSeparator();
+    QAction *zoomInAct = settingsMenu->addAction(tr("Zoom &In"));
+    zoomInAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus));
+    connect(zoomInAct, &QAction::triggered, this, [this] { zoomBy(1.0); });
+    QAction *zoomOutAct = settingsMenu->addAction(tr("Zoom &Out"));
+    zoomOutAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus));
+    connect(zoomOutAct, &QAction::triggered, this, [this] { zoomBy(-1.0); });
+    QAction *zoomResetAct = settingsMenu->addAction(tr("&Reset zoom"));
+    zoomResetAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_0));
+    connect(zoomResetAct, &QAction::triggered, this, [this] { widget->setFontSize(10.5); });
 }

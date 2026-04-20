@@ -56,6 +56,22 @@ void TextViewer::showMatch(int64_t offset, int64_t length) {
     paintArea->showMatch(offset, length);
 }
 
+void TextViewer::setFontSize(qreal pt) {
+    paintArea->setFontSize(pt);
+}
+
+qreal TextViewer::fontSize() const {
+    return paintArea->fontSize();
+}
+
+void TextViewer::setMaxTabW(int w) {
+    paintArea->setMaxTabW(w);
+}
+
+int TextViewer::maxTabW() const {
+    return paintArea->maxTabW();
+}
+
 void TextViewer::vscrollChanged() {
     long double relative;
     if (vscroll->maximum() > 0)

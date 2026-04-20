@@ -39,14 +39,15 @@
 0.8
 - search
 
-==== TODO
-
 0.9
 - config with font size, tab width
+
+==== TODO
 
 1.0
 - keyboard using
 - caret position
- 
+- shift+keyboard selection
+
 > 1.0
 - other code pages than UTF8

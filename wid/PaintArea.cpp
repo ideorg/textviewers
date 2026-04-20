@@ -43,13 +43,13 @@ void PaintArea::paintEvent(QPaintEvent *event) {
             drawSelBackground(painter, i);
             std::u32string dstr = tv->at(i);
             if (dstr.empty() && tv->lastInFile(i)) {
-                QRect R(0, i * fontHeight, this->rect().width(), fontHeight);
+                QRectF R(0, i * fontHeight, this->rect().width(), fontHeight);
                 QPen pen1(Qt::gray);
                 painter.setPen(pen1);
                 painter.drawText(R, Qt::AlignLeft, pilcrow);
                 painter.setPen(pen);
             } else {
-                int x = 0;
+                qreal x = 0;
                 size_t start = 0;
                 while (start < dstr.size()) {
                     bool isHigh = (dstr[start] >= 0x10000);
@@ -58,8 +58,8 @@ void PaintArea::paintEvent(QPaintEvent *event) {
                         end++;
                     }
                     QString segment = QString::fromUcs4(dstr.c_str() + start, end - start);
-                    int segmentWidth = (end - start) * fontWidth;
-                    QRect R(x, i * fontHeight, segmentWidth, fontHeight);
+                    qreal segmentWidth = (end - start) * fontWidth;
+                    QRectF R(x, i * fontHeight, segmentWidth, fontHeight);
                     if (isHigh) {
                         painter.drawText(R, Qt::AlignLeft | Qt::AlignVCenter, segment);
                     } else {
@@ -70,8 +70,8 @@ void PaintArea::paintEvent(QPaintEvent *event) {
                 }
             }
         }
-        int y = tv->size() * fontHeight;
-        painter.fillRect(0, y, QWidget::width(), QWidget::height() - y, Qt::white);
+        qreal y = tv->size() * fontHeight;
+        painter.fillRect(QRectF(0, y, QWidget::width(), QWidget::height() - y), Qt::white);
     }
 
     if (drawCaret && hasFocus()) {
@@ -106,15 +106,37 @@ QColor PaintArea::getSelColor() {
 }
 
 PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWidget(parent) {
+    applyFont(m_fontSize);
+    setData(addr, fileSize);
+    connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
+    connect(&autoScrollTimer, &QTimer::timeout, this, &PaintArea::doAutoScroll);
+}
+
+void PaintArea::applyFont(qreal pt) {
     QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    font.setPointSizeF(10.5);
+    font.setPointSizeF(pt);
+    font.setHintingPreference(QFont::PreferNoHinting);
+    font.setStyleStrategy(QFont::StyleStrategy(QFont::PreferAntialias | QFont::PreferOutline));
     QFontMetricsF fm(font, this);
     fontWidth = fm.horizontalAdvance("0");
     fontHeight = fm.height();
     this->setFont(font);
-    setData(addr, fileSize);
-    connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
-    connect(&autoScrollTimer, &QTimer::timeout, this, &PaintArea::doAutoScroll);
+    m_fontSize = pt;
+}
+
+void PaintArea::setFontSize(qreal pt) {
+    applyFont(pt);
+    setSize(width(), height());
+    update();
+}
+
+void PaintArea::setMaxTabW(int w) {
+    tv->setmaxTabW(w);
+    update();
+}
+
+int PaintArea::maxTabW() const {
+    return tv->maxTabW();
 }
 
 PaintArea::~PaintArea() {
@@ -451,30 +473,32 @@ bool PaintArea::charInseideArea(std::pair<int, int> cp) {
 void PaintArea::drawSelBackground(QPainter &painter, int row) {
     int selColBeg = selection.selColBeg(row, tv);
     int selColEnd = selection.selColEnd(row, tv);
+    qreal y = row * fontHeight;
+    qreal h = fontHeight;
+    qreal w = QWidget::width();
     if (selColBeg == -1) {
         if (selColEnd == -1)
-            painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, Qt::white);
+            painter.fillRect(QRectF(0, y, w, h), Qt::white);
         else
             assert(false);
     } else if (selColBeg == 0) {
         if (selColEnd == -1)
-            painter.fillRect(0, row * fontHeight, QWidget::width(), (row + 1) * fontHeight, getSelColor());
+            painter.fillRect(QRectF(0, y, w, h), getSelColor());
         else {
-            painter.fillRect(0, row * fontHeight, selColEnd * fontWidth, (row + 1) * fontHeight, getSelColor());
-            painter.fillRect(selColEnd * fontWidth, row * fontHeight, QWidget::width() - selColEnd * fontWidth,
-                             (row + 1) * fontHeight, Qt::white);
+            qreal endX = selColEnd * fontWidth;
+            painter.fillRect(QRectF(0, y, endX, h), getSelColor());
+            painter.fillRect(QRectF(endX, y, w - endX, h), Qt::white);
         }
     } else {
+        qreal begX = selColBeg * fontWidth;
         if (selColEnd == -1) {
-            painter.fillRect(0, row * fontHeight, selColBeg * fontWidth, (row + 1) * fontHeight, Qt::white);
-            painter.fillRect(selColBeg * fontWidth, row * fontHeight, QWidget::width() - selColBeg * fontWidth,
-                             (row + 1) * fontHeight, getSelColor());
+            painter.fillRect(QRectF(0, y, begX, h), Qt::white);
+            painter.fillRect(QRectF(begX, y, w - begX, h), getSelColor());
         } else {
-            painter.fillRect(0, row * fontHeight, selColBeg * fontWidth, (row + 1) * fontHeight, Qt::white);
-            painter.fillRect(selColBeg * fontWidth, row * fontHeight, (selColEnd - selColBeg) * fontWidth,
-                             (row + 1) * fontHeight, getSelColor());
-            painter.fillRect(selColEnd * fontWidth, row * fontHeight, QWidget::width() - selColEnd * fontWidth,
-                             (row + 1) * fontHeight, Qt::white);
+            qreal endX = selColEnd * fontWidth;
+            painter.fillRect(QRectF(0, y, begX, h), Qt::white);
+            painter.fillRect(QRectF(begX, y, endX - begX, h), getSelColor());
+            painter.fillRect(QRectF(endX, y, w - endX, h), Qt::white);
         }
     }
 }
