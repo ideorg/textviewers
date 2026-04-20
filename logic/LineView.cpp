@@ -196,6 +196,20 @@ FilePosition LineView::lineEndPosition(int row) {
     return result;
 }
 
+FilePosition LineView::filePositionAtOffset(int row, int64_t offsetInLine) {
+    FilePosition result;
+    result.interpretation = 2;
+    if (row < 0) {
+        result.lineNumber = 0;
+        result.offset = 0;
+        return result;
+    }
+    auto iv = indexView[row];
+    result.lineNumber = viewDeque->getFront() + iv.index;
+    result.offset = (int)offsetInLine;
+    return result;
+}
+
 FilePosition LineView::endPosition() {
     FilePosition result;
     result.interpretation = 2;

@@ -27,6 +27,7 @@ public:
     FilePosition endPosition() override;
     FilePosition lineStartPosition(int row) override;
     FilePosition lineEndPosition(int row) override;
+    FilePosition filePositionAtOffset(int row, int64_t offsetInLine) override;
     std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter) override;
 };
 }

@@ -272,6 +272,59 @@ void AbstractView::setStartX(int startX) {
     recalcLines();
 }
 
+std::optional<std::pair<FilePosition, FilePosition>> AbstractView::wordBounds(int row, int col) {
+    if (row < 0 || row >= (int)indexView.size() || col < 0)
+        return std::nullopt;
+    IndexView iv = indexView[row];
+    auto deqLine = viewDeque->lineAt(iv.index);
+    int32_t lineLen = (int32_t)deqLine.size();
+    auto u8 = reinterpret_cast<const uint8_t*>(deqLine.data());
+    int32_t wrapEnd = (int32_t)(iv.wrapOffset + iv.wrapLen);
+
+    int32_t i = (int32_t)iv.wrapOffset;
+    int advances = 0;
+    while (advances < col && i < wrapEnd) {
+        U8_FWD_1(u8, i, wrapEnd);
+        advances++;
+    }
+    if (advances < col || i >= lineLen)
+        return std::nullopt;
+
+    int32_t iAfter = i;
+    UChar32 c;
+    U8_NEXT(u8, iAfter, lineLen, c);
+    uint32_t cl = Wrap::codeClass((char32_t)(c < 0 ? 0xFFFD : c));
+    if (cl == 0 || cl == (uint32_t)-1)
+        return std::nullopt;
+
+    int32_t startByte = i;
+    while (startByte > 0) {
+        int32_t prev = startByte;
+        U8_BACK_1(u8, 0, prev);
+        int32_t decodeAt = prev;
+        UChar32 pc;
+        U8_NEXT(u8, decodeAt, lineLen, pc);
+        if (Wrap::codeClass((char32_t)(pc < 0 ? 0xFFFD : pc)) != cl)
+            break;
+        startByte = prev;
+    }
+
+    int32_t endByte = iAfter;
+    while (endByte < lineLen) {
+        int32_t decodeAt = endByte;
+        UChar32 nc;
+        U8_NEXT(u8, decodeAt, lineLen, nc);
+        if (Wrap::codeClass((char32_t)(nc < 0 ? 0xFFFD : nc)) != cl)
+            break;
+        endByte = decodeAt;
+    }
+
+    return std::make_pair(
+        filePositionAtOffset(row, startByte),
+        filePositionAtOffset(row, endByte)
+    );
+}
+
 LinePointers AbstractView::getLinePointers(int n) {
     LinePointers result;
     if (n < 0)

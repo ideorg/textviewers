@@ -5,7 +5,6 @@
 #include "selection.h"
 #include "logic/IByteAccess.h"
 #include "logic/ILineAccess.h"
-#include "logic/Wrap.h"
 
 bool Selection::charSelected(std::pair<int, int> point, vl::AbstractView *view) {
     vl::FilePosition pos = view->filePosition(point.first, point.second);
@@ -56,19 +55,10 @@ void Selection::setSecond(std::pair<int, int> pos, vl::AbstractView *view) {
 }
 
 void Selection::selectWord(std::pair<int, int> pos, vl::AbstractView *view) {
-    auto dstr = view->at(pos.first);
-    int col = pos.second;
-    if (col < 0 || col >= (int)dstr.size()) return;
-    uint32_t cl = vl::Wrap::codeClass(dstr[col]);
-    if (cl == 0 || cl == (uint32_t)-1) return;
-    int startCol = col;
-    while (startCol > 0 && vl::Wrap::codeClass(dstr[startCol - 1]) == cl)
-        startCol--;
-    int endCol = col;
-    while (endCol < (int)dstr.size() && vl::Wrap::codeClass(dstr[endCol]) == cl)
-        endCol++;
-    firstPos = view->filePosition(pos.first, startCol);
-    secondPos = view->filePosition(pos.first, endCol);
+    auto bounds = view->wordBounds(pos.first, pos.second);
+    if (!bounds) return;
+    firstPos = bounds->first;
+    secondPos = bounds->second;
     compute(view);
 }
 

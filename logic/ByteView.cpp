@@ -197,6 +197,19 @@ FilePosition ByteView::lineEndPosition(int row) {
     return result;
 }
 
+FilePosition ByteView::filePositionAtOffset(int row, int64_t offsetInLine) {
+    FilePosition result;
+    result.interpretation = 1;
+    if (row < 0) {
+        result.bytePosition = 0;
+        return result;
+    }
+    auto iv = indexView[row];
+    auto deqLine = viewDeque->lineAt(iv.index);
+    result.bytePosition = m_byteAccess->pointerToOffset(deqLine.cbegin() + offsetInLine);
+    return result;
+}
+
 FilePosition ByteView::endPosition() {
     FilePosition result;
     result.interpretation = 1;

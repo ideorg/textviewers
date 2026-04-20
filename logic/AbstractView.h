@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <optional>
+#include <utility>
 #include "IDeque.h"
 #include "Wrap.h"
 
@@ -52,7 +54,9 @@ public:
     virtual FilePosition endPosition() = 0;
     virtual FilePosition lineStartPosition(int row) = 0;
     virtual FilePosition lineEndPosition(int row) = 0;
+    virtual FilePosition filePositionAtOffset(int row, int64_t offsetInLine) = 0;
     virtual std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter) = 0;
+    std::optional<std::pair<FilePosition, FilePosition>> wordBounds(int row, int col);
     int screenLineCount();
     int screenLineLen();
     size_t size();
