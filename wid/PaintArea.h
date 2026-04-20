@@ -14,6 +14,7 @@
 #include <qce/IFoldingProvider.h>
 #include <qce/FoldPairing.h>
 #include <QWidget>
+#include <set>
 #include <QPaintEvent>
 #include <QTimer>
 #include <QElapsedTimer>
@@ -53,6 +54,8 @@ Q_OBJECT
     QVector<qce::FoldRange> m_foldCache;
     int64_t m_foldCacheBegin = 0;
     int64_t m_foldCacheEnd = 0;
+    std::set<int64_t> m_collapsedBegins;
+    bool clickOnGutter(QMouseEvent *event);
     void paintHighlighted(QPainter &painter);
     void paintPlain(QPainter &painter);
     qreal gutterPx() const { return m_folding ? 16.0 : 0.0; }

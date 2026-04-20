@@ -164,11 +164,15 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         auto u8 = reinterpret_cast<const uint8_t *>(buf);
 
         bool hasFoldBegin = false;
+        bool collapsed = false;
         if (!foldBegins.empty()) {
             auto it = std::lower_bound(foldBegins.begin(), foldBegins.end(), wrapStart);
-            if (it != foldBegins.end() && *it < wrapEnd) hasFoldBegin = true;
+            if (it != foldBegins.end() && *it < wrapEnd) {
+                hasFoldBegin = true;
+                collapsed = m_collapsedBegins.count(*it) > 0;
+            }
         }
-        paintGutter(painter, r, hasFoldBegin, false);
+        paintGutter(painter, r, hasFoldBegin, collapsed);
 
         if (wrapEnd == wrapStart && tv->lastInFile(r)) {
             QRectF R(gx, r * fontHeight, this->rect().width() - gx, fontHeight);
@@ -261,7 +265,32 @@ void PaintArea::setFoldingProvider(qce::IFoldingProvider *f) {
     m_folding = f;
     m_foldCache.clear();
     m_foldCacheBegin = m_foldCacheEnd = 0;
+    m_collapsedBegins.clear();
     update();
+}
+
+bool PaintArea::clickOnGutter(QMouseEvent *event) {
+    if (!m_folding) return false;
+    if (event->pos().x() >= (int) gutterPx()) return false;
+    int row = (int) (event->pos().y() / fontHeight);
+    if (row < 0 || row >= (int) tv->size()) return true;
+    auto *bytes = byteAccess();
+    if (!bytes) return true;
+    auto lp = tv->getLinePointers(row);
+    int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
+    int64_t wrapEnd = bytes->pointerToOffset(lp.wrapEnd);
+    int64_t candidate = -1;
+    for (const auto &fr : m_foldCache) {
+        int64_t bb = (int64_t) fr.beginByte;
+        if (bb < wrapStart || bb >= wrapEnd) continue;
+        if (candidate < 0 || bb < candidate) candidate = bb;
+    }
+    if (candidate < 0) return true;
+    auto it = m_collapsedBegins.find(candidate);
+    if (it == m_collapsedBegins.end()) m_collapsedBegins.insert(candidate);
+    else m_collapsedBegins.erase(it);
+    update();
+    return true;
 }
 
 void PaintArea::setFoldMaxBytes(int64_t n) {
@@ -296,6 +325,7 @@ QColor PaintArea::getSelColor() {
 PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWidget(parent) {
     applyFont(m_fontSize);
     setData(addr, fileSize);
+    setMouseTracking(true);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
     connect(&autoScrollTimer, &QTimer::timeout, this, &PaintArea::doAutoScroll);
 }
@@ -470,6 +500,7 @@ std::pair<int, int> PaintArea::toScreenPos(std::pair<int, int> point, bool smart
 void PaintArea::mousePressEvent(QMouseEvent *event) {
     QWidget::mousePressEvent(event);
     if (event->button() == Qt::LeftButton) {
+        if (clickOnGutter(event)) return;
         setFocus();
         auto cp = toCharPos(event->pos(), true);
         if (!charInseideArea(cp)) return;
@@ -521,6 +552,10 @@ void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
+    if (m_folding && event->pos().x() < (int) gutterPx())
+        setCursor(Qt::PointingHandCursor);
+    else
+        setCursor(Qt::IBeamCursor);
     if (!selecting) return;
     lastMousePos = event->pos();
     auto cp = toCharPos(event->pos(), true);
@@ -711,11 +746,28 @@ void PaintArea::paintGutter(QPainter &painter, int row, bool hasFoldBegin, bool 
     painter.fillRect(QRectF(0, y, gx, fontHeight), QColor(0xf0, 0xf0, 0xf0));
     if (!hasFoldBegin) return;
     QPen savedPen = painter.pen();
-    painter.setPen(QColor(0x40, 0x40, 0x40));
-    QRectF R(0, y, gx, fontHeight);
-    QString marker = collapsed ? QStringLiteral("\u25B8")
-                               : QStringLiteral("\u25BE");
-    painter.drawText(R, Qt::AlignCenter, marker);
+    QPen pen(QColor(0x20, 0x20, 0x20));
+    pen.setWidthF(std::max<qreal>(1.2, gx / 14.0));
+    pen.setCapStyle(Qt::RoundCap);
+    pen.setJoinStyle(Qt::MiterJoin);
+    painter.setPen(pen);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    qreal cx = gx * 0.5;
+    qreal cy = y + fontHeight * 0.5;
+    qreal s = std::min(gx, (qreal) fontHeight) * 0.28;
+    QPointF p1, p2, p3;
+    if (collapsed) {
+        p1 = {cx - s * 0.5, cy - s};
+        p2 = {cx + s * 0.5, cy};
+        p3 = {cx - s * 0.5, cy + s};
+    } else {
+        p1 = {cx - s, cy - s * 0.5};
+        p2 = {cx,     cy + s * 0.5};
+        p3 = {cx + s, cy - s * 0.5};
+    }
+    painter.drawLine(p1, p2);
+    painter.drawLine(p2, p3);
+    painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setPen(savedPen);
 }
 
