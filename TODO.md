@@ -54,6 +54,16 @@
   collapsed fold are just not drawn; bottom of the view becomes
   blank until the user scrolls).  Requires virtualising the view
   index (AbstractView) so hidden rows don't take screen slots.
+  ~300-500 lines, 2-3 commits.
+
+- folding: async fold scan in a worker thread.  Paint always
+  uses the cached ranges (possibly stale) and never blocks; a
+  background thread runs foldersInBytes + pairFolds for the
+  current viewport and swaps the result in when done.  Cancels
+  mid-scan on new viewport.  Eliminates the last bit of
+  stuttering when the user scrollbar-jumps to a far region
+  (progressive budget already keeps foreground paint cheap but
+  the first "settled" scan still blocks).
 
 > 1.0
 - other code pages than UTF8
