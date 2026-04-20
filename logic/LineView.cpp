@@ -167,6 +167,35 @@ std::pair<int, int> LineView::locatePosition(FilePosition filePosition, bool pre
     return p;
 }
 
+FilePosition LineView::lineStartPosition(int row) {
+    FilePosition result;
+    result.interpretation = 2;
+    if (row < 0) {
+        result.lineNumber = 0;
+        result.offset = 0;
+        return result;
+    }
+    auto iv = indexView[row];
+    result.lineNumber = viewDeque->getFront() + iv.index;
+    result.offset = 0;
+    return result;
+}
+
+FilePosition LineView::lineEndPosition(int row) {
+    FilePosition result;
+    result.interpretation = 2;
+    if (row < 0) {
+        result.lineNumber = 0;
+        result.offset = 0;
+        return result;
+    }
+    auto iv = indexView[row];
+    auto deqLine = viewDeque->lineAt(iv.index);
+    result.lineNumber = viewDeque->getFront() + iv.index;
+    result.offset = (int)deqLine.size();
+    return result;
+}
+
 FilePosition LineView::endPosition() {
     FilePosition result;
     result.interpretation = 2;

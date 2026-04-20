@@ -12,6 +12,7 @@
 #include <QWidget>
 #include <QPaintEvent>
 #include <QTimer>
+#include <QElapsedTimer>
 
 namespace wid {
 
@@ -23,6 +24,7 @@ Q_OBJECT
     QTimer autoScrollTimer;
     bool selecting = false;
     QPoint lastMousePos;
+    QElapsedTimer sinceDoubleClick;
     bool drawCaret = true;
     Selection selection;
     std::pair<int,int> caretPos;
@@ -42,6 +44,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
 #if QT_CONFIG(wheelevent)
     void wheelEvent(QWheelEvent *event) override;

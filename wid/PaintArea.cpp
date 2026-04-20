@@ -213,6 +213,14 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         setFocus();
         auto cp = toCharPos(event->pos(), true);
         if (!charInseideArea(cp)) return;
+        if (sinceDoubleClick.isValid() &&
+            sinceDoubleClick.elapsed() <= QApplication::doubleClickInterval()) {
+            sinceDoubleClick.invalidate();
+            trySetCaret(event->pos());
+            selection.selectLogicalLine(cp.first, tv);
+            update();
+            return;
+        }
         selecting = true;
         lastMousePos = event->pos();
         grabMouse();
@@ -222,13 +230,28 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
+void PaintArea::mouseDoubleClickEvent(QMouseEvent *event) {
+    QWidget::mouseDoubleClickEvent(event);
     if (event->button() != Qt::LeftButton) return;
+    auto cp = toCharPos(event->pos(), true);
+    if (!charInseideArea(cp)) return;
     if (selecting) {
         selecting = false;
         autoScrollTimer.stop();
         releaseMouse();
     }
+    trySetCaret(event->pos());
+    selection.selectWord(cp, tv);
+    sinceDoubleClick.start();
+    update();
+}
+
+void PaintArea::mouseReleaseEvent(QMouseEvent *event) {
+    if (event->button() != Qt::LeftButton) return;
+    if (!selecting) return;
+    selecting = false;
+    autoScrollTimer.stop();
+    releaseMouse();
     auto cp = toCharPos(event->pos(), true);
     if (charInseideArea(cp)) {
         selection.setSecond(cp, tv);

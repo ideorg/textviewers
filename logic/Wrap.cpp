@@ -82,7 +82,7 @@ int Wrap::find(vector<int64_t> &v, int64_t pos) {
     return upper_bound(v.begin(), v.end(), pos)-v.begin();
 }
 
-uint32_t Wrap::codeClass(char32_t c) {
+/*static*/ uint32_t Wrap::codeClass(char32_t c) {
     if (ByteDocument::isNewlineChar(char(c)))
         return -1;
     if (c == ' ' || c == '\t')

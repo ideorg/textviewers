@@ -25,6 +25,8 @@ public:
     LineView *clone();
     FilePosition filePosition(int row, int col) override;
     FilePosition endPosition() override;
+    FilePosition lineStartPosition(int row) override;
+    FilePosition lineEndPosition(int row) override;
     std::pair<int, int> locatePosition(FilePosition filePosition, bool preferAfter) override;
 };
 }

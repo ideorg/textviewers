@@ -22,6 +22,8 @@ public:
     bool charSelected(std::pair<int, int> point, vl::AbstractView *view);
     void setFirst(std::pair<int,int> pos,  vl::AbstractView *view);
     void setSecond(std::pair<int,int> pos, vl::AbstractView *view);
+    void selectWord(std::pair<int,int> pos, vl::AbstractView *view);
+    void selectLogicalLine(int row, vl::AbstractView *view);
     void compute(vl::AbstractView *view);
     void setDocument(vl::IBaseAccess *doc);
     int selColBeg(int row, vl::AbstractView *view);
