@@ -23,6 +23,9 @@ namespace wid {
         void setMaxTabW(int w);
         int maxTabW() const;
         void setHighlighter(qce::IHighlighter *h);
+        void setFoldingProvider(qce::IFoldingProvider *f);
+        void setFoldMaxBytes(int64_t n);
+        int64_t foldMaxBytes() const;
     private:
         const int MAXVSCROLL = 10000;
         void hscrollChanged();

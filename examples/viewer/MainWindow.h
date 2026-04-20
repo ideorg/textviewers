@@ -15,6 +15,7 @@
 #include <memory>
 #include "wid/TextViewer.h"
 #include <qce/RulesHighlighter.h>
+#include <qce/RuleBasedFoldingProvider.h>
 #include <QFile>
 
 class MainWindow : public QMainWindow {
@@ -32,6 +33,7 @@ Q_OBJECT
     bool m_lastCaseInsensitive = false;
     bool m_lastWholeWord = false;
     std::unique_ptr<qce::RulesHighlighter> m_kateHighlighter;
+    std::unique_ptr<qce::RuleBasedFoldingProvider> m_kateFolding;
     void createMenus();
     void createSearchBar(QVBoxLayout *mainLayout);
     void runSearch(bool forward);
@@ -41,6 +43,7 @@ Q_OBJECT
     void askFontSize();
     void askTabWidth();
     void askLoadKate();
+    void askFoldMaxBytes();
     std::unique_ptr<QFile> file;
 public:
     MainWindow(QWidget *parent = nullptr);

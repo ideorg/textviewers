@@ -102,6 +102,18 @@ void TextViewer::setHighlighter(qce::IHighlighter *h) {
     paintArea->setHighlighter(h);
 }
 
+void TextViewer::setFoldingProvider(qce::IFoldingProvider *f) {
+    paintArea->setFoldingProvider(f);
+}
+
+void TextViewer::setFoldMaxBytes(int64_t n) {
+    paintArea->setFoldMaxBytes(n);
+}
+
+int64_t TextViewer::foldMaxBytes() const {
+    return paintArea->foldMaxBytes();
+}
+
 void TextViewer::vscrollChanged() {
     long double relative;
     if (vscroll->maximum() > 0)

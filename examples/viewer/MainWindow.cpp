@@ -326,11 +326,26 @@ void MainWindow::createMenus() {
     QMenu *hlMenu = menuBar()->addMenu(tr("&Highlighting"));
     QAction *hlNoneAct = hlMenu->addAction(tr("&None"));
     connect(hlNoneAct, &QAction::triggered, this, [this] {
+        widget->setFoldingProvider(nullptr);
         widget->setHighlighter(nullptr);
+        m_kateFolding.reset();
         m_kateHighlighter.reset();
     });
     QAction *hlKateAct = hlMenu->addAction(tr("Load &Kate XML..."));
     connect(hlKateAct, &QAction::triggered, this, &MainWindow::askLoadKate);
+    hlMenu->addSeparator();
+    QAction *foldMaxAct = hlMenu->addAction(tr("Fold max &span..."));
+    connect(foldMaxAct, &QAction::triggered, this, &MainWindow::askFoldMaxBytes);
+}
+
+void MainWindow::askFoldMaxBytes() {
+    bool ok = false;
+    int cur = (int) std::min<int64_t>(widget->foldMaxBytes(),
+                                       std::numeric_limits<int>::max());
+    int n = QInputDialog::getInt(this, tr("Fold max span"),
+                                 tr("Max bytes per fold region:"),
+                                 cur, 1, 1 << 30, 1024, &ok);
+    if (ok) widget->setFoldMaxBytes((int64_t) n);
 }
 
 void MainWindow::askLoadKate() {
@@ -347,5 +362,7 @@ void MainWindow::askLoadKate() {
         return;
     }
     m_kateHighlighter = std::move(hl);
+    m_kateFolding = std::make_unique<qce::RuleBasedFoldingProvider>(m_kateHighlighter.get());
     widget->setHighlighter(m_kateHighlighter.get());
+    widget->setFoldingProvider(m_kateFolding.get());
 }

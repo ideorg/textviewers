@@ -119,6 +119,20 @@ void PaintArea::paintHighlighted(QPainter &painter) {
                                  tokens, endState);
     const auto &palette = m_highlighter->attributes();
 
+    if (m_folding) {
+        QVector<qce::FoldMarker> markers;
+        qce::HighlightState foldEnd;
+        m_folding->foldersInBytes(buf, (qsizetype) bufLen,
+                                  m_highlighter->initialState(),
+                                  markers, foldEnd);
+        for (auto &m : markers) m.column += (int) preludeStart;
+        m_foldCache = qce::pairFolds(markers, (qsizetype) m_foldMaxBytes);
+        m_foldCacheBegin = preludeStart;
+        m_foldCacheEnd = endByte;
+    } else {
+        m_foldCache.clear();
+    }
+
     int tokIdx = 0;
     auto attrAt = [&](int64_t offRel) -> int {
         while (tokIdx < tokens.size()
@@ -225,6 +239,20 @@ void PaintArea::paintHighlighted(QPainter &painter) {
 
 void PaintArea::setHighlighter(qce::IHighlighter *h) {
     m_highlighter = h;
+    update();
+}
+
+void PaintArea::setFoldingProvider(qce::IFoldingProvider *f) {
+    m_folding = f;
+    m_foldCache.clear();
+    m_foldCacheBegin = m_foldCacheEnd = 0;
+    update();
+}
+
+void PaintArea::setFoldMaxBytes(int64_t n) {
+    if (n <= 0) n = 1;
+    m_foldMaxBytes = n;
+    m_foldCache.clear();
     update();
 }
 

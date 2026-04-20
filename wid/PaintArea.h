@@ -11,6 +11,8 @@
 #include "logic/IByteAccess.h"
 #include "misc/selection.h"
 #include <qce/IHighlighter.h>
+#include <qce/IFoldingProvider.h>
+#include <qce/FoldPairing.h>
 #include <QWidget>
 #include <QPaintEvent>
 #include <QTimer>
@@ -45,7 +47,12 @@ Q_OBJECT
     const char *m_addr;
     int64_t m_fileSize;
     qce::IHighlighter *m_highlighter = nullptr;
+    qce::IFoldingProvider *m_folding = nullptr;
     int64_t m_preludeBytes = 64 * 1024;
+    int64_t m_foldMaxBytes = 1024 * 1024;
+    QVector<qce::FoldRange> m_foldCache;
+    int64_t m_foldCacheBegin = 0;
+    int64_t m_foldCacheEnd = 0;
     void paintHighlighted(QPainter &painter);
     void paintPlain(QPainter &painter);
 protected:
@@ -81,6 +88,9 @@ public:
     void setMaxTabW(int w);
     int maxTabW() const;
     void setHighlighter(qce::IHighlighter *h);
+    void setFoldingProvider(qce::IFoldingProvider *f);
+    void setFoldMaxBytes(int64_t n);
+    int64_t foldMaxBytes() const { return m_foldMaxBytes; }
     bool charInseideArea(std::pair<int,int> cp);
     void drawSelBackground(QPainter &painter, int row);
 Q_SIGNALS:
