@@ -24,7 +24,16 @@
 - tab width
 - selection
 
+0.5.1 (refactor)
+- replace cpg/utf submodule helpers with ICU (via misc/utf_icu.hpp adapter)
+- bump cpg submodule to v1.0.0-3 (drops its nested utf submodule)
+
 ==== TODO
+
+0.5.2 (refactor)
+- inline ICU calls at call sites and remove misc/utf_icu.hpp adapter
+
+
 
 0.6
 - autoscroll with timer with mouse selection
