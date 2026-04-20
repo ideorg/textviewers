@@ -14,7 +14,7 @@ public:
     // Return false to cancel the search.
     using ProgressFn = std::function<bool(int64_t bytesDone, int64_t bytesTotal)>;
 
-    explicit Searcher(IByteAccess *doc, int64_t chunkSize = 64 * 1024 * 1024);
+    explicit Searcher(IByteAccess *doc, int64_t chunkSize = 16 * 1024 * 1024);
 
     // Returns offset of the earliest match whose start is >= startOffset.
     // Returns nullopt if no match, pattern is empty, or search is cancelled.
