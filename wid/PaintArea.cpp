@@ -75,11 +75,8 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     }
 
     if (drawCaret && hasFocus()) {
-        QPen pen(Qt::black);
-        pen.setWidth(2);
-        painter.setPen(pen);
         auto p = toScreenPos(caretPos, false);
-        painter.drawLine(p.second, p.first + 1, p.second, p.first + fontHeight - 1);
+        painter.fillRect(QRectF(p.second, p.first + 1, 2, fontHeight - 2), Qt::black);
     }
 }
 
@@ -297,6 +294,7 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         grabMouse();
         trySetCaret(event->pos());
         selection.setFirst(cp, tv);
+        m_selAnchor.reset();
         update();
     }
 }
@@ -441,16 +439,26 @@ void PaintArea::contextMenuEvent(QContextMenuEvent *event) {
 }
 
 void PaintArea::copyToClipboard() {
-    const int64_t COPY_LIMIT = 10 * 1024 * 1024; // 10 MB
+    const int64_t COPY_WARN  = 10 * 1024 * 1024;        // 10 MB
+    const int64_t COPY_LIMIT = 1024LL * 1024 * 1024;    // 1 GB
     int64_t size = selection.selectionSize();
-    bool doCopy = true;
+    auto formatBytes = [](int64_t n) {
+        QString s = QString::number(n);
+        for (int i = s.length() - 3; i > 0; i -= 3) s.insert(i, '\'');
+        return s;
+    };
     if (size > COPY_LIMIT) {
-        QString sizeStr = QString::number(size);
-        for (int i = sizeStr.length() - 3; i > 0; i -= 3)
-            sizeStr.insert(i, '\'');
+        QMessageBox::warning(this, "Copy refused",
+            QString("Selection size: %1 bytes.\nToo large to copy to the clipboard.")
+                .arg(formatBytes(size)));
+        return;
+    }
+    bool doCopy = true;
+    if (size > COPY_WARN) {
         QMessageBox msgBox(this);
         msgBox.setWindowTitle("Copy confirmation");
-        msgBox.setText(QString("Selection size: %1 bytes.\nCopy to clipboard?").arg(sizeStr));
+        msgBox.setText(QString("Selection size: %1 bytes.\nCopy to clipboard?")
+                           .arg(formatBytes(size)));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::Cancel);
         doCopy = (msgBox.exec() == QMessageBox::Yes);
@@ -508,66 +516,125 @@ void PaintArea::setKind(int kind) {
     setData(m_addr, m_fileSize);
 }
 
+void PaintArea::moveCaret(int newRow, int newCol, bool shift) {
+    if (shift && !m_selAnchor)
+        m_selAnchor = tv->filePosition(caretPos.first, caretPos.second);
+    else if (!shift)
+        m_selAnchor.reset();
+
+    int viewRows = (int) tv->size();
+    if (newRow < 0) {
+        for (int k = 0; k < -newRow; k++) tv->scrollUp();
+        newRow = 0;
+        Q_EMIT scrollVChanged();
+    } else if (viewRows > 0 && newRow >= viewRows) {
+        for (int k = 0; k < newRow - viewRows + 1; k++) tv->scrollDown();
+        newRow = (int) tv->size() - 1;
+        if (newRow < 0) newRow = 0;
+        Q_EMIT scrollVChanged();
+    }
+
+    int maxCol = (int) (width() / fontWidth);
+    if (newCol < 0) {
+        tv->setStartX(std::max(0, tv->startX() + newCol));
+        newCol = 0;
+        Q_EMIT scrollHChanged();
+    } else if (newCol > maxCol) {
+        tv->setStartX(tv->startX() + (newCol - maxCol));
+        newCol = maxCol;
+        Q_EMIT scrollHChanged();
+    }
+
+    caretPos = {newRow, newCol};
+
+    if (shift && m_selAnchor) {
+        auto caretFP = tv->filePosition(newRow, newCol);
+        selection.setRange(*m_selAnchor, caretFP, tv);
+    } else {
+        selection.setFirst(caretPos, tv);
+    }
+    update();
+}
+
 void PaintArea::keyPressEvent(QKeyEvent *event) {
     bool ctrl = event->modifiers() & Qt::ControlModifier;
+    bool shift = event->modifiers() & Qt::ShiftModifier;
     switch (event->key()) {
         case Qt::Key_Up:
-            tv->scrollUp();
-            update();
-            Q_EMIT scrollVChanged();
+            moveCaret(caretPos.first - 1, caretPos.second, shift);
             break;
         case Qt::Key_Down:
-            tv->scrollDown();
-            update();
-            Q_EMIT scrollVChanged();
+            moveCaret(caretPos.first + 1, caretPos.second, shift);
+            break;
+        case Qt::Key_Left:
+            moveCaret(caretPos.first, caretPos.second - 1, shift);
+            break;
+        case Qt::Key_Right:
+            moveCaret(caretPos.first, caretPos.second + 1, shift);
             break;
         case Qt::Key_PageUp:
-            tv->scrollPageUp();
-            update();
-            Q_EMIT scrollVChanged();
+            moveCaret(caretPos.first - tv->screenLineCount(), caretPos.second, shift);
             break;
         case Qt::Key_PageDown:
-            tv->scrollPageDown();
-            update();
-            Q_EMIT scrollVChanged();
+            moveCaret(caretPos.first + tv->screenLineCount(), caretPos.second, shift);
             break;
         case Qt::Key_Home:
             if (ctrl) {
+                if (shift && !m_selAnchor)
+                    m_selAnchor = tv->filePosition(caretPos.first, caretPos.second);
+                else if (!shift)
+                    m_selAnchor.reset();
                 tv->gotoProportional(0);
                 tv->fillDeque();
                 tv->recalcLines();
+                if (tv->startX() != 0) {
+                    tv->setStartX(0);
+                    Q_EMIT scrollHChanged();
+                }
+                caretPos = {0, 0};
+                if (shift && m_selAnchor) {
+                    auto caretFP = tv->filePosition(0, 0);
+                    selection.setRange(*m_selAnchor, caretFP, tv);
+                } else {
+                    selection.setFirst(caretPos, tv);
+                }
                 update();
                 Q_EMIT scrollVChanged();
             } else {
-                setHorizontal(0);
+                if (tv->startX() != 0) {
+                    tv->setStartX(0);
+                    Q_EMIT scrollHChanged();
+                }
+                moveCaret(caretPos.first, 0, shift);
             }
             break;
         case Qt::Key_End:
             if (ctrl) {
+                if (shift && !m_selAnchor)
+                    m_selAnchor = tv->filePosition(caretPos.first, caretPos.second);
+                else if (!shift)
+                    m_selAnchor.reset();
                 tv->gotoProportional(1);
                 tv->fillDeque();
                 tv->recalcLines();
+                int lastRow = std::max(0, (int) tv->size() - 1);
+                int lastCol = (int) tv->at(lastRow).size();
+                caretPos = {lastRow, lastCol};
+                if (shift && m_selAnchor) {
+                    auto caretFP = tv->filePosition(lastRow, lastCol);
+                    selection.setRange(*m_selAnchor, caretFP, tv);
+                } else {
+                    selection.setFirst(caretPos, tv);
+                }
                 update();
                 Q_EMIT scrollVChanged();
             } else {
-                if (caretPos.first >= 0 && caretPos.first < tv->size()) {
-                    auto lp = tv->getLinePointers(caretPos.first);
-                    int32_t length = (int32_t)(lp.wrapEnd - lp.beginLine);
-                    int32_t i = 0;
-                    int lineLen = 0;
-                    while (i < length) {
-                        U8_FWD_1(reinterpret_cast<const uint8_t*>(lp.beginLine), i, length);
-                        lineLen++;
-                    }
-                    setHorizontal(std::max(0, lineLen - tv->screenLineLen()));
-                }
+                int row = caretPos.first;
+                int endCol = 0;
+                if (row >= 0 && row < (int) tv->size())
+                    endCol = (int) tv->at(row).size();
+                moveCaret(row, endCol, shift);
             }
-            break;
-        case Qt::Key_Left:
-            setHorizontal(std::max(0, tv->startX() - 1));
-            break;
-        case Qt::Key_Right:
-            setHorizontal(tv->startX() + 1);
             break;
         case Qt::Key_C:
             if (ctrl)
@@ -576,6 +643,7 @@ void PaintArea::keyPressEvent(QKeyEvent *event) {
         case Qt::Key_A:
             if (ctrl) {
                 selection.selectAll(tv);
+                m_selAnchor.reset();
                 update();
             }
             break;

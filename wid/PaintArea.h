@@ -14,6 +14,7 @@
 #include <QPaintEvent>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <optional>
 
 namespace wid {
 
@@ -29,6 +30,8 @@ Q_OBJECT
     bool drawCaret = true;
     Selection selection;
     std::pair<int,int> caretPos;
+    std::optional<vl::FilePosition> m_selAnchor;
+    void moveCaret(int newRow, int newCol, bool shift);
     void doBlinkMethod();
     void doAutoScroll();
     static QColor getSelColor();
