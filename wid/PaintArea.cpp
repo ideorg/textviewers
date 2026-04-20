@@ -173,14 +173,21 @@ void PaintArea::paintHighlighted(QPainter &painter) {
     const auto &palette = m_highlighter->attributes();
 
     if (m_folding) {
+        int64_t vpSig = topByte ^ (endByte * 0x9E3779B97F4A7C15LL);
+        if (vpSig != m_lastViewportSig) {
+            m_progressiveBudget = std::min<int64_t>(m_foldMaxBytes, 10 * 1024);
+            m_lastViewportSig = vpSig;
+        }
+        int64_t budget = std::max<int64_t>(1, std::min(m_progressiveBudget, m_foldMaxBytes));
+
         bool cacheValid = m_foldCacheEnd > 0
             && m_foldCacheBegin <= preludeStart
-            && std::min(bytes->byteCount(), endByte + m_foldMaxBytes) <= m_foldCacheEnd;
+            && std::min(bytes->byteCount(), endByte + budget) <= m_foldCacheEnd;
         if (!cacheValid) {
             int64_t scanBegin = std::max(bytes->firstByte(),
                                          topByte - 2 * m_preludeBytes);
             int64_t scanEnd = std::min(bytes->byteCount(),
-                                       endByte + 2 * m_foldMaxBytes);
+                                       endByte + 2 * budget);
             const char *scanBuf = bytes->ofsetToPointer(scanBegin);
             int64_t scanLen = scanEnd - scanBegin;
             QVector<qce::FoldMarker> markers;
@@ -189,7 +196,7 @@ void PaintArea::paintHighlighted(QPainter &painter) {
                                       m_highlighter->initialState(),
                                       markers, foldEnd);
             for (auto &m : markers) m.column += (int) scanBegin;
-            QVector<qce::FoldRange> raw = qce::pairFolds(markers, (qsizetype) m_foldMaxBytes);
+            QVector<qce::FoldRange> raw = qce::pairFolds(markers, (qsizetype) budget);
             m_foldCache.clear();
             m_foldCache.reserve(raw.size());
             for (const auto &r : raw) {
@@ -205,9 +212,15 @@ void PaintArea::paintHighlighted(QPainter &painter) {
             m_foldCacheBegin = scanBegin;
             m_foldCacheEnd = scanEnd;
         }
+        if (m_progressiveBudget < m_foldMaxBytes) {
+            m_settleTimer.start(200);
+        } else {
+            m_settleTimer.stop();
+        }
     } else {
         m_foldCache.clear();
         m_foldCacheBegin = m_foldCacheEnd = 0;
+        m_settleTimer.stop();
     }
 
     int tokIdx = 0;
@@ -352,6 +365,9 @@ void PaintArea::setFoldingProvider(qce::IFoldingProvider *f) {
     m_foldCache.clear();
     m_foldCacheBegin = m_foldCacheEnd = 0;
     m_collapsedBegins.clear();
+    m_progressiveBudget = 0;
+    m_lastViewportSig = -1;
+    m_settleTimer.stop();
     update();
 }
 
@@ -383,6 +399,8 @@ void PaintArea::setFoldMaxBytes(int64_t n) {
     if (n <= 0) n = 1;
     m_foldMaxBytes = n;
     m_foldCache.clear();
+    m_progressiveBudget = 0;
+    m_lastViewportSig = -1;
     update();
 }
 
@@ -412,8 +430,17 @@ PaintArea::PaintArea(const char *addr, int64_t fileSize, QWidget *parent) : QWid
     applyFont(m_fontSize);
     setData(addr, fileSize);
     setMouseTracking(true);
+    m_settleTimer.setSingleShot(true);
     connect(&timer, &QTimer::timeout, this, &PaintArea::doBlinkMethod);
     connect(&autoScrollTimer, &QTimer::timeout, this, &PaintArea::doAutoScroll);
+    connect(&m_settleTimer, &QTimer::timeout, this, &PaintArea::onSettleTick);
+}
+
+void PaintArea::onSettleTick() {
+    if (m_progressiveBudget >= m_foldMaxBytes) return;
+    m_progressiveBudget = std::min(m_foldMaxBytes, m_progressiveBudget * 10);
+    if (m_progressiveBudget < 10 * 1024) m_progressiveBudget = 10 * 1024;
+    update();
 }
 
 void PaintArea::applyFont(qreal pt) {

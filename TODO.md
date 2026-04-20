@@ -49,5 +49,15 @@
 
 ==== TODO
 
+- folding: after collapse, load more lines from below the folded
+  region so the viewport fills up (currently the rows inside a
+  collapsed fold are just not drawn; bottom of the view becomes
+  blank until the user scrolls).  Requires virtualising the view
+  index (AbstractView) so hidden rows don't take screen slots.
+
+- folding: hover-only display of expanded (v) markers in the gutter
+  so densely foldable files (xml) don't look marker-heavy.  Idea
+  noted earlier; make it configurable.
+
 > 1.0
 - other code pages than UTF8
