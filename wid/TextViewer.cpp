@@ -4,7 +4,29 @@
 #include <QKeyEvent>
 #include <QFontDatabase>
 #include <QHBoxLayout>
+#include <QProxyStyle>
 #include <QDebug>
+
+namespace {
+
+// QProxyStyle that flips SH_ScrollBar_LeftClickAbsolutePosition on so a
+// left click on the scrollbar track jumps the slider to the click point
+// (centered on the cursor) instead of paging toward it one screen at a time.
+// Other style hints fall through to the application style.
+class JumpToClickStyle : public QProxyStyle {
+public:
+    using QProxyStyle::QProxyStyle;
+    int styleHint(StyleHint hint, const QStyleOption *option = nullptr,
+                  const QWidget *widget = nullptr,
+                  QStyleHintReturn *returnData = nullptr) const override {
+        if (hint == QStyle::SH_ScrollBar_LeftClickAbsolutePosition)
+            return 1;
+        return QProxyStyle::styleHint(hint, option, widget, returnData);
+    }
+};
+
+}
+
 
 namespace wid {
 TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
@@ -17,6 +39,10 @@ TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
     hscroll = new QScrollBar(this);
     hscroll->setOrientation(Qt::Horizontal);
     vscroll = new QScrollBar(this);
+    auto *jumpStyle = new JumpToClickStyle(hscroll->style());
+    jumpStyle->setParent(this);
+    hscroll->setStyle(jumpStyle);
+    vscroll->setStyle(jumpStyle);
     hLayout->addWidget(paintArea);
     hLayout->addWidget(vscroll);
     vLayout->addLayout(hLayout);
