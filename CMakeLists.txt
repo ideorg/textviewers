@@ -24,6 +24,9 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/ChangeableDocument.cpp
         logic/Searcher.cpp
         logic/Searcher.h
+        logic/Highlighter.h
+        logic/XmlHighlighter.cpp
+        logic/XmlHighlighter.h
 )
 
 set(MISC_SOURCES
@@ -56,6 +59,7 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testProportional.cpp
         test/testProportionalL.cpp
         test/testSearcher.cpp
+        test/testXmlHighlighter.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main ICU::uc)
