@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     hLayout->addWidget(lineEdit);
     hLayout->addWidget(button);
     mainLayout->addLayout(hLayout);
-    lineEdit->setText("../../../test/data/books.xml");
+    lineEdit->setText("/home/andrzej/wazne/gitmy/wikimedia-dump-fetcher/wiktionary/20260101/enwiktionary-20260101-pages-articles-multistream.xml");
     fs::path fspath = QCoreApplication::applicationDirPath().toStdString();
     fspath /= lineEdit->text().toStdString();
     file = std::make_unique<QFile>(canonical(fspath));
@@ -334,6 +334,13 @@ void MainWindow::createMenus() {
     QAction *hlKateAct = hlMenu->addAction(tr("Load &Kate XML..."));
     connect(hlKateAct, &QAction::triggered, this, &MainWindow::askLoadKate);
     hlMenu->addSeparator();
+    QAction *foldToggleAct = hlMenu->addAction(tr("&Folding enabled"));
+    foldToggleAct->setCheckable(true);
+    foldToggleAct->setChecked(true);
+    connect(foldToggleAct, &QAction::toggled, this, [this](bool on) {
+        if (on && m_kateFolding) widget->setFoldingProvider(m_kateFolding.get());
+        else widget->setFoldingProvider(nullptr);
+    });
     QAction *foldMaxAct = hlMenu->addAction(tr("Fold max &span..."));
     connect(foldMaxAct, &QAction::triggered, this, &MainWindow::askFoldMaxBytes);
 }
