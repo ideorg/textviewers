@@ -6,6 +6,8 @@
 #define TEXTVIEWER_SELECTION_H
 
 #include <cstdint>
+#include <optional>
+#include <utility>
 #include <QByteArray>
 #include "logic/IBaseAccess.h"
 #include "logic/AbstractView.h"
@@ -32,6 +34,8 @@ public:
     QByteArray get();
     void selectAll(vl::AbstractView *view);
     int64_t selectionSize();
+    // [begin, end) of a non-empty selection over byte positions.
+    std::optional<std::pair<int64_t, int64_t>> byteRange();
 };
 
 

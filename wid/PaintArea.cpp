@@ -23,6 +23,7 @@ namespace wid {
 void PaintArea::paintEvent(QPaintEvent *event) {
     selection.compute(tv);
     computeRowLayout();
+    computeMatchCols();
     QPainter painter(this);
     painter.setRenderHint(QPainter::TextAntialiasing);
     QRect R = event->rect();
@@ -83,6 +84,103 @@ void PaintArea::computeRowLayout() {
     m_rowYEnd = visIdx * fontHeight;
 }
 
+// Searches only the bytes of the visible rows (in no-wrap mode capped at what
+// fits on screen), so the cost does not depend on the file size.
+void PaintArea::computeMatchCols() {
+    m_rowMatches.assign(tv->size(), {});
+    auto *bytes = byteAccess();
+    if (!bytes || tv->size() == 0 || (m_markPattern.empty() && !m_currentMatch))
+        return;
+    std::vector<std::pair<int64_t, int64_t>> matches;  // begin, end
+    if (!m_markPattern.empty()) {
+        vl::Searcher searcher(bytes);
+        int64_t pLen = (int64_t) m_markPattern.size();
+        int64_t maxRowBytes = (int64_t) (tv->startX() + tv->screenLineLen()) * 4;
+        int64_t a = -1, b = -1;
+        auto flush = [&] {
+            if (a < 0) return;
+            for (int64_t s : searcher.findAll(m_markPattern, a, b, m_markOptions))
+                matches.emplace_back(s, s + pLen);
+        };
+        for (int r = 0; r < (int) tv->size(); r++) {
+            if (m_rowY[r] < 0) continue;
+            auto lp = tv->getLinePointers(r);
+            int64_t ws = bytes->pointerToOffset(lp.wrapPosition);
+            int64_t we = std::min(bytes->pointerToOffset(lp.wrapEnd), ws + maxRowBytes);
+            if (ws == b) {
+                b = we;
+            } else {
+                flush();
+                a = ws;
+                b = we;
+            }
+        }
+        flush();
+    }
+    if (m_currentMatch) {
+        auto it = std::find_if(matches.begin(), matches.end(),
+                               [&](const auto &m) { return m.first == m_currentMatch->first; });
+        if (it == matches.end()) matches.push_back(*m_currentMatch);
+    }
+    int rows = (int) tv->size();
+    for (const auto &[mb, me] : matches) {
+        vl::FilePosition begin{};
+        begin.interpretation = 1;
+        begin.bytePosition = mb;
+        vl::FilePosition end = begin;
+        end.bytePosition = me;
+        auto s = tv->locatePosition(begin, false);
+        auto e = tv->locatePosition(end, true);
+        if (s.first >= rows || e.first < 0) continue;
+        if (s.first < 0) s = {0, 0};
+        if (e.first >= rows) e = {rows - 1, tv->screenLineLen()};
+        bool current = m_currentMatch && m_currentMatch->first == mb;
+        for (int r = s.first; r <= e.first; r++) {
+            int c0 = std::max(0, r == s.first ? s.second : 0);
+            int c1 = r == e.first ? e.second : tv->screenLineLen();
+            if (c1 > c0) m_rowMatches[r].push_back({c0, c1, current});
+        }
+    }
+}
+
+void PaintArea::drawMatchBackground(QPainter &painter, int row) {
+    if (row >= (int) m_rowMatches.size() || m_rowY[row] < 0) return;
+    const QColor background(0xff, 0xe3, 0x9a);
+    const QColor activeBackground(0xff, 0xae, 0x52);
+    qreal gx = gutterPx();
+    for (const auto &m : m_rowMatches[row]) {
+        QRectF R(gx + m.begin * fontWidth, m_rowY[row],
+                 (m.end - m.begin) * fontWidth, fontHeight);
+        painter.fillRect(R, m.current ? activeBackground : background);
+    }
+}
+
+void PaintArea::setSearchMarks(const std::string &pattern, const vl::SearchOptions &options) {
+    m_markPattern = pattern;
+    m_markOptions = options;
+    update();
+}
+
+void PaintArea::clearSearchMarks() {
+    m_markPattern.clear();
+    m_currentMatch.reset();
+    update();
+}
+
+std::optional<std::pair<int64_t, int64_t>> PaintArea::selectionBytes() {
+    return selection.byteRange();
+}
+
+QByteArray PaintArea::selectedBytes(int64_t maxSize) {
+    if (selection.selectionSize() > maxSize) return {};
+    return selection.get();
+}
+
+int64_t PaintArea::topByte() {
+    if (tv->size() == 0) return 0;
+    return tv->lineStartPosition(0).bytePosition;
+}
+
 int PaintArea::rowForVisualY(int pixelY) const {
     if (pixelY < 0) return -1;
     int last = -1;
@@ -104,6 +202,7 @@ void PaintArea::paintPlain(QPainter &painter) {
         if (m_rowY[i] < 0) continue;
         qreal ry = m_rowY[i];
         drawSelBackground(painter, i);
+        drawMatchBackground(painter, i);
         std::u32string dstr = tv->at(i);
         if (dstr.empty() && tv->lastInFile(i)) {
             QRectF R(gx, ry, this->rect().width() - gx, fontHeight);
@@ -249,6 +348,7 @@ void PaintArea::paintHighlighted(QPainter &painter) {
         if (m_rowY[r] < 0) continue;
         qreal ry = m_rowY[r];
         drawSelBackground(painter, r);
+        drawMatchBackground(painter, r);
         auto lp = tv->getLinePointers(r);
         int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
         int64_t wrapEnd = bytes->pointerToOffset(lp.wrapEnd);
@@ -507,6 +607,7 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
     m_collapsed.clear();
     m_foldCache.clear();
     m_foldCacheBegin = m_foldCacheEnd = 0;
+    m_currentMatch.reset();
     switch(logicKind) {
         case 0: {
             doc = new vl::ByteDocument(addr, fileSize);
@@ -617,6 +718,7 @@ void PaintArea::showMatch(int64_t offset, int64_t length) {
     }
 
     selection.setRange(begin, end, tv);
+    m_currentMatch = std::make_pair(offset, offset + length);
     update();
     Q_EMIT scrollVChanged();
 }

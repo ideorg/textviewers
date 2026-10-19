@@ -340,3 +340,42 @@ TEST(Searcher, genomicRepetitive) {
     ASSERT_TRUE(r);
     EXPECT_EQ(9'990, *r);
 }
+TEST(Searcher, findNextLimit) {
+    string content = "ab ab ab";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    // The match must end at or before the limit.
+    EXPECT_EQ(3, s.findNext("ab", 1, nullptr, {}, 5).value_or(-1));
+    EXPECT_FALSE(s.findNext("ab", 1, nullptr, {}, 4));
+}
+
+TEST(Searcher, findPrevLimit) {
+    string content = "ab ab ab";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    // The match must start at or after the limit.
+    EXPECT_EQ(6, s.findPrev("ab", 8, nullptr, {}, 6).value_or(-1));
+    EXPECT_FALSE(s.findPrev("ab", 8, nullptr, {}, 7));
+    EXPECT_FALSE(s.findPrev("ab", 5, nullptr, {}, 4));
+}
+
+TEST(Searcher, findAllRange) {
+    string content = "aXa aXa aXa aXa";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    // Starts in [4, 9); the one at 8 extends past the end of the range.
+    EXPECT_EQ((vector<int64_t>{4, 8}), s.findAll("aXa", 4, 9));
+    EXPECT_EQ((vector<int64_t>{0, 4, 8, 12}), s.findAll("aXa", 0, (int64_t) content.size()));
+    EXPECT_TRUE(s.findAll("aXa", 1, 4).empty());
+}
+
+TEST(Searcher, findAllNonOverlappingCaseWord) {
+    string content = "aaaa Cat cat concat";
+    ByteDocument doc(content.c_str(), content.size());
+    Searcher s(&doc);
+    EXPECT_EQ((vector<int64_t>{0, 2}), s.findAll("aa", 0, 4));
+    SearchOptions ci{true, false};
+    EXPECT_EQ((vector<int64_t>{5, 9, 16}), s.findAll("cat", 0, (int64_t) content.size(), ci));
+    SearchOptions ciww{true, true};
+    EXPECT_EQ((vector<int64_t>{5, 9}), s.findAll("cat", 0, (int64_t) content.size(), ciww));
+}

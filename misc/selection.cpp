@@ -101,6 +101,12 @@ void Selection::selectAll(vl::AbstractView *view) {
     compute(view);
 }
 
+std::optional<std::pair<int64_t, int64_t>> Selection::byteRange() {
+    if (selBegin.interpretation != 1 || !selEnd.gt(selBegin))
+        return std::nullopt;
+    return std::make_pair(selBegin.bytePosition, selEnd.bytePosition);
+}
+
 int64_t Selection::selectionSize() {
     if (selEnd.gt(selBegin)) {
         if (selBegin.interpretation == 1) {

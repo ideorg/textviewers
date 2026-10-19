@@ -39,7 +39,9 @@ TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
     hscroll = new QScrollBar(this);
     hscroll->setOrientation(Qt::Horizontal);
     vscroll = new QScrollBar(this);
-    auto *jumpStyle = new JumpToClickStyle(hscroll->style());
+    // No base style: QProxyStyle(QStyle*) would take ownership of the
+    // application style and delete it together with the viewer.
+    auto *jumpStyle = new JumpToClickStyle;
     jumpStyle->setParent(this);
     hscroll->setStyle(jumpStyle);
     vscroll->setStyle(jumpStyle);
@@ -80,6 +82,26 @@ vl::IByteAccess *TextViewer::byteAccess() {
 
 void TextViewer::showMatch(int64_t offset, int64_t length) {
     paintArea->showMatch(offset, length);
+}
+
+void TextViewer::setSearchMarks(const std::string &pattern, const vl::SearchOptions &options) {
+    paintArea->setSearchMarks(pattern, options);
+}
+
+void TextViewer::clearSearchMarks() {
+    paintArea->clearSearchMarks();
+}
+
+std::optional<std::pair<int64_t, int64_t>> TextViewer::selectionBytes() {
+    return paintArea->selectionBytes();
+}
+
+QByteArray TextViewer::selectedBytes(int64_t maxSize) {
+    return paintArea->selectedBytes(maxSize);
+}
+
+int64_t TextViewer::topByte() {
+    return paintArea->topByte();
 }
 
 void TextViewer::setFontSize(qreal pt) {

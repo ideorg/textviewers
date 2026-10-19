@@ -90,10 +90,12 @@ bool Searcher::isWordBoundary(int64_t matchStart, int64_t matchLen) {
 std::optional<int64_t> Searcher::findNext(std::string_view pattern,
                                           int64_t startOffset,
                                           const ProgressFn &onProgress,
-                                          const SearchOptions &options) {
+                                          const SearchOptions &options,
+                                          int64_t limit) {
     if (pattern.empty()) return std::nullopt;
     int64_t first = m_doc->firstByte();
     int64_t total = m_doc->byteCount();
+    if (limit >= 0) total = std::min(total, limit);
     int64_t pLen = (int64_t) pattern.size();
     int64_t pos = std::max(startOffset, first);
     if (pos + pLen > total) return std::nullopt;
@@ -147,9 +149,11 @@ std::optional<int64_t> Searcher::findNext(std::string_view pattern,
 std::optional<int64_t> Searcher::findPrev(std::string_view pattern,
                                           int64_t endOffset,
                                           const ProgressFn &onProgress,
-                                          const SearchOptions &options) {
+                                          const SearchOptions &options,
+                                          int64_t limit) {
     if (pattern.empty()) return std::nullopt;
     int64_t first = m_doc->firstByte();
+    if (limit >= 0) first = std::max(first, limit);
     int64_t total = m_doc->byteCount();
     int64_t pLen = (int64_t) pattern.size();
     int64_t end = std::min(endOffset, total);
@@ -203,6 +207,47 @@ std::optional<int64_t> Searcher::findPrev(std::string_view pattern,
         }
     }
     return std::nullopt;
+}
+
+std::vector<int64_t> Searcher::findAll(std::string_view pattern,
+                                       int64_t begin, int64_t end,
+                                       const SearchOptions &options) {
+    std::vector<int64_t> result;
+    if (pattern.empty()) return result;
+    int64_t pLen = (int64_t) pattern.size();
+    begin = std::max(begin, m_doc->firstByte());
+    int64_t scanEnd = std::min(m_doc->byteCount(), end + pLen - 1);
+    if (scanEnd - begin < pLen) return result;
+    size_t len = (size_t) (scanEnd - begin);
+
+    const char *base = m_doc->ofsetToPointer(begin);
+    std::string folded;
+    std::string foldedPattern;
+    const char *patternData = pattern.data();
+    if (options.caseInsensitive) {
+        folded.resize(len);
+        foldByteRange(base, len, folded.data());
+        base = folded.data();
+        foldedPattern = foldPattern(pattern);
+        patternData = foldedPattern.data();
+    }
+    const char *p = base;
+    size_t remaining = len;
+    while (remaining >= (size_t) pLen) {
+        void *hit = memmem(p, remaining, patternData, pattern.size());
+        if (!hit) break;
+        const char *hitP = (const char *) hit;
+        int64_t hitOffset = begin + (hitP - base);
+        if (hitOffset >= end) break;
+        if (!options.wholeWord || isWordBoundary(hitOffset, pLen)) {
+            result.push_back(hitOffset);
+            p = hitP + pLen;
+        } else {
+            p = hitP + 1;
+        }
+        remaining = (size_t) ((base + len) - p);
+    }
+    return result;
 }
 
 }

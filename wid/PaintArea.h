@@ -9,6 +9,7 @@
 #include "logic/LineIndexedDocument.h"
 #include "logic/ByteView.h"
 #include "logic/IByteAccess.h"
+#include "logic/Searcher.h"
 #include "misc/selection.h"
 #include <qce/IHighlighter.h>
 #include <qce/IFoldingProvider.h>
@@ -69,6 +70,14 @@ Q_OBJECT
     void paintPlain(QPainter &painter);
     qreal gutterPx() const { return m_folding ? 16.0 : 0.0; }
     void paintGutter(QPainter &painter, int row, bool hasFoldBegin, bool collapsed);
+    // Search results are marked only in the visible rows.
+    struct MatchCols { int begin; int end; bool current; };
+    std::string m_markPattern;
+    vl::SearchOptions m_markOptions;
+    std::optional<std::pair<int64_t, int64_t>> m_currentMatch;
+    std::vector<std::vector<MatchCols>> m_rowMatches;
+    void computeMatchCols();
+    void drawMatchBackground(QPainter &painter, int row);
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
@@ -97,6 +106,11 @@ public:
     vl::IBaseAccess *doc = nullptr;
     vl::IByteAccess *byteAccess();
     void showMatch(int64_t offset, int64_t length);
+    void setSearchMarks(const std::string &pattern, const vl::SearchOptions &options);
+    void clearSearchMarks();
+    std::optional<std::pair<int64_t, int64_t>> selectionBytes();
+    QByteArray selectedBytes(int64_t maxSize);
+    int64_t topByte();
     void setFontSize(qreal pt);
     qreal fontSize() const { return m_fontSize; }
     void setMaxTabW(int w);

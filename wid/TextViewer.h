@@ -18,6 +18,12 @@ namespace wid {
         void setKind(int kind);
         vl::IByteAccess *byteAccess();
         void showMatch(int64_t offset, int64_t length);
+        // Marks the occurrences of pattern in the visible rows.
+        void setSearchMarks(const std::string &pattern, const vl::SearchOptions &options);
+        void clearSearchMarks();
+        std::optional<std::pair<int64_t, int64_t>> selectionBytes();
+        QByteArray selectedBytes(int64_t maxSize);
+        int64_t topByte();
         void setFontSize(qreal pt);
         qreal fontSize() const;
         void setMaxTabW(int w);
