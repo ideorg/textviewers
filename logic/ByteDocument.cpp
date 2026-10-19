@@ -186,8 +186,13 @@ std::optional<LinePoints> ByteDocument::lastLine() {
 }
 
 LinePoints ByteDocument::lineEnclosing(int64_t position) {
-    assert(m_fileSize > m_BOMsize);
     LinePoints lp;
+    if (fileIsEmpty()) {
+        lp.offset = m_BOMsize;
+        lp.len = 0;
+        lp.fullLen = 0;
+        return lp;
+    }
     lp.offset = gotoBeginLine(position, elMaybeInside);
     int64_t eolPos;
     if (isNewlineChar(m_addr[position]))

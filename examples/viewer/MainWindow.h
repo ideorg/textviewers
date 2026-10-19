@@ -47,6 +47,8 @@ Q_OBJECT
     std::unique_ptr<QFile> file;
 public:
     MainWindow(QWidget *parent = nullptr);
+    bool openFile(const QString &path);
+    bool loadKate(const QString &path);
 public slots:
     void onButtonCLick();
 };

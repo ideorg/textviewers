@@ -15,7 +15,8 @@
 #include <QShortcut>
 #include <QKeySequence>
 #include <QActionGroup>
-#include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <QCheckBox>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -26,12 +27,10 @@
 #include <atomic>
 #include <memory>
 #include <optional>
-#include <filesystem>
 #include "logic/Searcher.h"
 #include "logic/IByteAccess.h"
+#include <qce/kate/KatePaths.h>
 #include <qce/kate/KateXmlReader.h>
-
-namespace fs = std::filesystem;
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -42,16 +41,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     hLayout->addWidget(lineEdit);
     hLayout->addWidget(button);
     mainLayout->addLayout(hLayout);
-    lineEdit->setText("/home/andrzej/wazne/gitmy/wikimedia-dump-fetcher/wiktionary/20260101/enwiktionary-20260101-pages-articles-multistream.xml");
-    fs::path fspath = QCoreApplication::applicationDirPath().toStdString();
-    fspath /= lineEdit->text().toStdString();
-    file = std::make_unique<QFile>(canonical(fspath));
-    if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "error open file";
-        return;
-    }
-    uchar *addr = file->map(0, file->size());
-    widget = new wid::TextViewer((char *) addr, file->size(), this);
+    widget = new wid::TextViewer("", 0, this);
     mainLayout->addWidget(widget, 1);
     createSearchBar(mainLayout);
     QWidget *central = new QWidget(this);
@@ -234,28 +224,40 @@ void MainWindow::runSearch(bool forward) {
     watcher->setFuture(future);
 }
 
+bool MainWindow::openFile(const QString &path) {
+    auto newFile = std::make_unique<QFile>(QFileInfo(path).absoluteFilePath());
+    if (!newFile->open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, tr("Open File"),
+                             tr("Cannot open %1: %2").arg(path, newFile->errorString()));
+        return false;
+    }
+    const char *addr = "";
+    if (newFile->size() > 0) {
+        addr = (const char *) newFile->map(0, newFile->size());
+        if (!addr) {
+            QMessageBox::warning(this, tr("Open File"),
+                                 tr("Cannot map %1: %2").arg(path, newFile->errorString()));
+            return false;
+        }
+    }
+    widget->setData(addr, newFile->size());
+    newFile->close();
+    file = std::move(newFile);
+    lineEdit->setText(file->fileName());
+    m_lastPattern.clear();
+    m_lastMatchStart = -1;
+    m_lastMatchEnd = -1;
+    return true;
+}
+
 void MainWindow::onButtonCLick() {
     QFileDialog dialog(this, tr("Open File"));
-    fs::path fspath = QCoreApplication::applicationDirPath().toStdString();
-    fspath /= lineEdit->text().toStdString();
-    QString dirPath = QString::fromStdString(canonical(fspath.parent_path()).string());
-    dialog.setDirectory(dirPath);
+    QFileInfo current(lineEdit->text());
+    dialog.setDirectory(!lineEdit->text().isEmpty() && current.absoluteDir().exists()
+                            ? current.absolutePath() : QDir::homePath());
     dialog.setOption(QFileDialog::DontUseNativeDialog);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString path = dialog.selectedFiles().first();
-        lineEdit->setText(path);
-        file = std::make_unique<QFile>(lineEdit->text());
-        if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug() << "error open file";
-            return;
-        }
-        uchar *addr = file->map(0, file->size());
-        widget->setData((char*) addr, file->size());
-        file->close();
-        m_lastPattern.clear();
-        m_lastMatchStart = -1;
-        m_lastMatchEnd = -1;
-    }
+    if (dialog.exec() == QDialog::Accepted)
+        openFile(dialog.selectedFiles().first());
 }
 
 void MainWindow::createMenus() {
@@ -356,20 +358,23 @@ void MainWindow::askFoldMaxBytes() {
 }
 
 void MainWindow::askLoadKate() {
-    QString start = QStringLiteral("/home/%1/.local/share/org.kde.syntax-highlighting/syntax")
-                        .arg(qgetenv("USER").constData());
+    QString start = qce::kate::syntaxDir();
     if (!QFile::exists(start)) start.clear();
     QString path = QFileDialog::getOpenFileName(this, tr("Load Kate syntax XML"),
                                                 start, tr("Kate syntax (*.xml)"));
-    if (path.isEmpty()) return;
+    if (!path.isEmpty()) loadKate(path);
+}
+
+bool MainWindow::loadKate(const QString &path) {
     auto hl = KateXmlReader::load(path);
     if (!hl) {
         QMessageBox::warning(this, tr("Load Kate XML"),
                              tr("Failed to load %1").arg(path));
-        return;
+        return false;
     }
     m_kateHighlighter = std::move(hl);
     m_kateFolding = std::make_unique<qce::RuleBasedFoldingProvider>(m_kateHighlighter.get());
     widget->setHighlighter(m_kateHighlighter.get());
     widget->setFoldingProvider(m_kateFolding.get());
+    return true;
 }
