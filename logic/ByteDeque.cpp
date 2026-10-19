@@ -2,6 +2,7 @@
 // Created by andrzej on 8/26/23.
 //
 
+#include <algorithm>
 #include <cassert>
 #include "ByteDeque.h"
 
@@ -14,16 +15,65 @@ bool ByteDeque::empty() {
     return deq.empty();
 }
 
+// Union of the hidden ranges covering lineStart: smallest begin, largest end.
+std::optional<std::pair<int64_t, int64_t>> ByteDeque::covering(int64_t lineStart) {
+    if (!m_hidden)
+        return std::nullopt;
+    std::optional<std::pair<int64_t, int64_t>> result;
+    for (auto it = m_hidden->begin(); it != m_hidden->end() && it->first < lineStart; ++it) {
+        if (lineStart >= it->second)
+            continue;
+        if (!result)
+            result = *it;
+        else {
+            result->first = std::min(result->first, it->first);
+            result->second = std::max(result->second, it->second);
+        }
+    }
+    return result;
+}
+
+LinePoints ByteDeque::visibleEnclosing(int64_t position) {
+    auto lp = m_byteAccess->lineEnclosing(position);
+    while (auto r = covering(lp.offset))
+        lp = m_byteAccess->lineEnclosing(r->first);
+    return lp;
+}
+
+std::optional<LinePoints> ByteDeque::visibleAfter(const LinePoints &lp) {
+    auto opt = m_byteAccess->lineAfter(lp);
+    while (opt) {
+        auto r = covering(opt->offset);
+        if (!r)
+            break;
+        opt = m_byteAccess->lineAfter(m_byteAccess->lineEnclosing(r->second - 1));
+    }
+    return opt;
+}
+
+std::optional<LinePoints> ByteDeque::visibleBefore(const LinePoints &lp) {
+    auto opt = m_byteAccess->lineBefore(lp);
+    while (opt) {
+        auto r = covering(opt->offset);
+        if (!r)
+            break;
+        opt = m_byteAccess->lineEnclosing(r->first);
+    }
+    return opt;
+}
+
 bool ByteDeque::frontAtStart() {
-    return m_byteAccess->isFirstInFile(deq.front().linePoints);
+    if (m_byteAccess->isFirstInFile(deq.front().linePoints))
+        return true;
+    return !visibleBefore(deq.front().linePoints);
 }
 
 bool ByteDeque::pushFront(Wrap *wrap) {
     BDequeElem elem;
     if (deq.empty())
-        elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
+        elem.linePoints = visibleEnclosing(m_startByte);
     else {
-        auto opt = m_byteAccess->lineBefore(deq.front().linePoints);
+        auto opt = visibleBefore(deq.front().linePoints);
         if (!opt)
             return false;
         elem.linePoints = opt.value();
@@ -43,15 +93,17 @@ int ByteDeque::frontWrapCount() {
 }
 
 bool ByteDeque::backAtEnd() {
-    return m_byteAccess->isLastInFile(deq.back().linePoints);
+    if (m_byteAccess->isLastInFile(deq.back().linePoints))
+        return true;
+    return !visibleAfter(deq.back().linePoints);
 }
 
 bool ByteDeque::pushBack(Wrap *wrap) {
     BDequeElem elem;
     if (deq.empty())
-        elem.linePoints = m_byteAccess->lineEnclosing(m_startByte);
+        elem.linePoints = visibleEnclosing(m_startByte);
     else {
-        auto opt = m_byteAccess->lineAfter(deq.back().linePoints);
+        auto opt = visibleAfter(deq.back().linePoints);
         if (opt)
             elem.linePoints = opt.value();
         else
@@ -138,6 +190,7 @@ int64_t ByteDeque::getWrapMaximum(int wrapIndex) {
 IDeque *ByteDeque::clone() {
     auto newObj = new ByteDeque(m_byteAccess);
     newObj->m_startByte = m_startByte;
+    newObj->m_hidden = m_hidden;
     newObj->deq = deq;
     return newObj;
 }

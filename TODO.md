@@ -49,13 +49,6 @@
 
 ==== TODO
 
-- folding: after collapse, load more lines from below the folded
-  region so the viewport fills up (currently the rows inside a
-  collapsed fold are just not drawn; bottom of the view becomes
-  blank until the user scrolls).  Requires virtualising the view
-  index (AbstractView) so hidden rows don't take screen slots.
-  ~300-500 lines, 2-3 commits.
-
 - folding: async fold scan in a worker thread.  Paint always
   uses the cached ranges (possibly stale) and never blocks; a
   background thread runs foldersInBytes + pairFolds for the

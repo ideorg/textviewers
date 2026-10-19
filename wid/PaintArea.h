@@ -54,7 +54,8 @@ Q_OBJECT
     QVector<qce::FoldRange> m_foldCache;
     int64_t m_foldCacheBegin = 0;
     int64_t m_foldCacheEnd = 0;
-    std::set<int64_t> m_collapsedBegins;
+    vl::HiddenRanges m_collapsed;  // collapsed folds, begin -> end byte
+    void refillAfterFoldChange();
     std::vector<qreal> m_rowY;
     qreal m_rowYEnd = 0;
     int64_t m_progressiveBudget = 0;

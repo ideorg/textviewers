@@ -62,13 +62,14 @@ void PaintArea::computeRowLayout() {
     auto *bytes = byteAccess();
     for (int r = 0; r < total; r++) {
         bool hidden = false;
-        if (bytes && !m_collapsedBegins.empty()) {
+        // Whole hidden lines never reach the deque; this only catches wrap
+        // segments of a line whose fold begins mid-line.
+        if (bytes && !m_collapsed.empty()) {
             auto lp = tv->getLinePointers(r);
             int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
-            for (const auto &F : m_foldCache) {
-                if (!m_collapsedBegins.count((int64_t) F.beginByte)) continue;
-                if ((int64_t) F.beginByte < wrapStart
-                    && wrapStart < (int64_t) F.endByte) {
+            for (const auto &[b, e] : m_collapsed) {
+                if (b >= wrapStart) break;
+                if (wrapStart < e) {
                     hidden = true;
                     break;
                 }
@@ -259,8 +260,15 @@ void PaintArea::paintHighlighted(QPainter &painter) {
             auto it = std::lower_bound(foldBegins.begin(), foldBegins.end(), wrapStart);
             if (it != foldBegins.end() && *it < wrapEnd) {
                 hasFoldBegin = true;
-                collapsed = m_collapsedBegins.count(*it) > 0;
+                collapsed = m_collapsed.count(*it) > 0;
             }
+        }
+        // A collapsed fold stays marked even when the fold cache, rebuilt per
+        // viewport, no longer holds it.
+        if (!collapsed) {
+            auto it = m_collapsed.lower_bound(wrapStart);
+            if (it != m_collapsed.end() && it->first < wrapEnd)
+                hasFoldBegin = collapsed = true;
         }
         paintGutter(painter, r, hasFoldBegin, collapsed);
 
@@ -364,11 +372,20 @@ void PaintArea::setFoldingProvider(qce::IFoldingProvider *f) {
     m_folding = f;
     m_foldCache.clear();
     m_foldCacheBegin = m_foldCacheEnd = 0;
-    m_collapsedBegins.clear();
     m_progressiveBudget = 0;
     m_lastViewportSig = -1;
     m_settleTimer.stop();
+    if (!m_collapsed.empty()) {
+        m_collapsed.clear();
+        refillAfterFoldChange();
+    }
     update();
+}
+
+void PaintArea::refillAfterFoldChange() {
+    tv->fillDeque();
+    tv->recalcLines();
+    Q_EMIT scrollVChanged();
 }
 
 bool PaintArea::clickOnGutter(QMouseEvent *event) {
@@ -381,16 +398,24 @@ bool PaintArea::clickOnGutter(QMouseEvent *event) {
     auto lp = tv->getLinePointers(row);
     int64_t wrapStart = bytes->pointerToOffset(lp.wrapPosition);
     int64_t wrapEnd = bytes->pointerToOffset(lp.wrapEnd);
-    int64_t candidate = -1;
+    // An already collapsed fold on this row is expanded first; it may have
+    // dropped out of the fold cache.
+    auto col = m_collapsed.lower_bound(wrapStart);
+    if (col != m_collapsed.end() && col->first < wrapEnd) {
+        m_collapsed.erase(col);
+        refillAfterFoldChange();
+        update();
+        return true;
+    }
+    const qce::FoldRange *candidate = nullptr;
     for (const auto &fr : m_foldCache) {
         int64_t bb = (int64_t) fr.beginByte;
         if (bb < wrapStart || bb >= wrapEnd) continue;
-        if (candidate < 0 || bb < candidate) candidate = bb;
+        if (!candidate || bb < (int64_t) candidate->beginByte) candidate = &fr;
     }
-    if (candidate < 0) return true;
-    auto it = m_collapsedBegins.find(candidate);
-    if (it == m_collapsedBegins.end()) m_collapsedBegins.insert(candidate);
-    else m_collapsedBegins.erase(it);
+    if (!candidate) return true;
+    m_collapsed[(int64_t) candidate->beginByte] = (int64_t) candidate->endByte;
+    refillAfterFoldChange();
     update();
     return true;
 }
@@ -479,11 +504,17 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
     m_fileSize = fileSize;
     delete doc;
     delete tv;
+    m_collapsed.clear();
+    m_foldCache.clear();
+    m_foldCacheBegin = m_foldCacheEnd = 0;
     switch(logicKind) {
-        case 0:
+        case 0: {
             doc = new vl::ByteDocument(addr, fileSize);
-            tv = new vl::ByteView(dynamic_cast<vl::IByteAccess*>(doc));
+            auto *bv = new vl::ByteView(dynamic_cast<vl::IByteAccess*>(doc));
+            bv->setHiddenRanges(&m_collapsed);
+            tv = bv;
             break;
+        }
         case 1:
             doc = new vl::LineIndexedDocument(addr, fileSize);
             tv = new vl::LineView(dynamic_cast<vl::ILineAccess*>(doc));
@@ -544,6 +575,10 @@ vl::IByteAccess *PaintArea::byteAccess() {
 void PaintArea::showMatch(int64_t offset, int64_t length) {
     auto *bytes = byteAccess();
     if (!bytes) return;
+    for (auto it = m_collapsed.begin(); it != m_collapsed.end() && it->first < offset;) {
+        if (offset < it->second) it = m_collapsed.erase(it);
+        else ++it;
+    }
     if (auto *bv = dynamic_cast<vl::ByteView*>(tv)) {
         bv->gotoByte(offset);
     } else {

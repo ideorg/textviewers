@@ -7,6 +7,7 @@
 
 #include "AbstractView.h"
 #include "IByteAccess.h"
+#include "ByteDeque.h"
 
 namespace vl {
 
@@ -24,6 +25,7 @@ public:
     int64_t getWindowedMaximum() override;
     ByteView *clone();
     void gotoByte(int64_t offset);
+    void setHiddenRanges(const HiddenRanges *hidden);
     FilePosition filePosition(int row, int col) override;
     FilePosition endPosition() override;
     FilePosition lineStartPosition(int row) override;

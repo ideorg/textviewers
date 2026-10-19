@@ -62,6 +62,7 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testProportional.cpp
         test/testProportionalL.cpp
         test/testSearcher.cpp
+        test/testFold.cpp
 )
 
 target_link_libraries(gtest_viewer gtest gtest_main ICU::uc qcodeedit::qcodeedit)

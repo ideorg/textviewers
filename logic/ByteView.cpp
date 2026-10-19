@@ -16,6 +16,10 @@ ByteView::ByteView(IByteAccess *byteAccess) : m_byteAccess(byteAccess) {
     viewDeque = new ByteDeque(m_byteAccess);
 }
 
+void ByteView::setHiddenRanges(const HiddenRanges *hidden) {
+    static_cast<ByteDeque *>(viewDeque)->setHiddenRanges(hidden);
+}
+
 int64_t ByteView::beginTail() {
     auto opt = m_byteAccess->lastLine();
     if (!opt)
