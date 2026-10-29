@@ -19,6 +19,8 @@ struct SearchOptions {
     bool caseInsensitive = false;
     // Only accept matches that are not adjacent to a word-class codepoint.
     bool wholeWord = false;
+    // The pattern is a regular expression (RegexSearcher); Searcher ignores it.
+    bool regex = false;
 };
 
 class Searcher {

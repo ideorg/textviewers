@@ -6,8 +6,10 @@
 #include <atomic>
 #include <memory>
 #include <optional>
+#include "logic/RegexSearcher.h"
 #include "logic/Searcher.h"
 
+class QLabel;
 class QLineEdit;
 class QToolButton;
 class QShortcut;
@@ -37,6 +39,8 @@ protected:
     void hideEvent(QHideEvent *event) override;
 private:
     vl::SearchOptions options() const;
+    // Checks a regular expression; shows its error and returns false if invalid.
+    bool checkPattern();
     void updateMarks();
     void showNotFound();
     TextViewer *m_viewer;
@@ -44,11 +48,13 @@ private:
     QToolButton *m_wrap;
     QToolButton *m_case;
     QToolButton *m_words;
+    QToolButton *m_regex;
+    QLabel *m_status;
     QToolButton *m_previous;
     QToolButton *m_next;
     QShortcut *m_escape;
     std::shared_ptr<std::atomic<bool>> m_cancel;
-    QFuture<std::optional<int64_t>> m_future;
+    QFuture<std::optional<vl::RegexMatch>> m_future;
     bool m_busy = false;
 };
 

@@ -9,6 +9,7 @@
 #include "logic/LineIndexedDocument.h"
 #include "logic/ByteView.h"
 #include "logic/IByteAccess.h"
+#include "logic/RegexSearcher.h"
 #include "logic/Searcher.h"
 #include "misc/selection.h"
 #include <qce/IHighlighter.h>
@@ -74,6 +75,9 @@ Q_OBJECT
     struct MatchCols { int begin; int end; bool current; };
     std::string m_markPattern;
     vl::SearchOptions m_markOptions;
+    // Compiled once per pattern and document, not on every paint.
+    std::unique_ptr<vl::RegexSearcher> m_markRegex;
+    vl::IByteAccess *m_markRegexDoc = nullptr;
     std::optional<std::pair<int64_t, int64_t>> m_currentMatch;
     std::vector<std::vector<MatchCols>> m_rowMatches;
     void computeMatchCols();

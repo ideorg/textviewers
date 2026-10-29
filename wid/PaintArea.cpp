@@ -94,11 +94,20 @@ void PaintArea::computeMatchCols() {
     std::vector<std::pair<int64_t, int64_t>> matches;  // begin, end
     if (!m_markPattern.empty()) {
         vl::Searcher searcher(bytes);
+        if (m_markOptions.regex && (!m_markRegex || m_markRegexDoc != bytes)) {
+            m_markRegex = std::make_unique<vl::RegexSearcher>(bytes, m_markPattern, m_markOptions);
+            m_markRegexDoc = bytes;
+        }
         int64_t pLen = (int64_t) m_markPattern.size();
         int64_t maxRowBytes = (int64_t) (tv->startX() + tv->screenLineLen()) * 4;
         int64_t a = -1, b = -1;
         auto flush = [&] {
             if (a < 0) return;
+            if (m_markOptions.regex) {
+                for (const auto &m : m_markRegex->findAll(a, b))
+                    matches.emplace_back(m.offset, m.offset + m.length);
+                return;
+            }
             for (int64_t s : searcher.findAll(m_markPattern, a, b, m_markOptions))
                 matches.emplace_back(s, s + pLen);
         };
@@ -158,11 +167,13 @@ void PaintArea::drawMatchBackground(QPainter &painter, int row) {
 void PaintArea::setSearchMarks(const std::string &pattern, const vl::SearchOptions &options) {
     m_markPattern = pattern;
     m_markOptions = options;
+    m_markRegex.reset();
     update();
 }
 
 void PaintArea::clearSearchMarks() {
     m_markPattern.clear();
+    m_markRegex.reset();
     m_currentMatch.reset();
     update();
 }
@@ -608,6 +619,7 @@ void PaintArea::setData(const char *addr, int64_t fileSize) {
     m_foldCache.clear();
     m_foldCacheBegin = m_foldCacheEnd = 0;
     m_currentMatch.reset();
+    m_markRegex.reset();
     switch(logicKind) {
         case 0: {
             doc = new vl::ByteDocument(addr, fileSize);

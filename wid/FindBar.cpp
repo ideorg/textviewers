@@ -45,10 +45,16 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
     m_wrap->setChecked(true);
     m_case = button("Cc", tr("Match case"), true);
     m_words = button("W", tr("Whole words"), true);
-    for (auto *b : {m_wrap, m_case, m_words}) fieldLayout->addWidget(b);
+    m_regex = button(".*", tr("Regular expression"), true);
+    for (auto *b : {m_wrap, m_case, m_words, m_regex}) fieldLayout->addWidget(b);
     field->setMinimumWidth(260);
     field->setMaximumWidth(360);
     layout->addWidget(field, 1);
+    // No count of results (the file may be too large to know it): only the
+    // error of an invalid pattern.
+    m_status = new QLabel(this);
+    m_status->setObjectName("findStatus");
+    layout->addWidget(m_status);
     m_previous = button(QString(), tr("Previous match (Shift+F3)"));
     m_previous->setIcon(style()->standardIcon(QStyle::SP_ArrowUp));
     m_next = button(QString(), tr("Next match (F3)"));
@@ -65,7 +71,7 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
     connect(m_next, &QToolButton::clicked, this, [this] { findNext(); });
     connect(m_query, &QLineEdit::textChanged, this, &FindBar::updateMarks);
     connect(m_query, &QLineEdit::returnPressed, this, [this] { findNext(); });
-    for (auto *b : {m_case, m_words})
+    for (auto *b : {m_case, m_words, m_regex})
         connect(b, &QToolButton::toggled, this, &FindBar::updateMarks);
     auto *backwards = new QShortcut(QKeySequence(Qt::SHIFT | Qt::Key_Return), m_query);
     connect(backwards, &QShortcut::activated, this, [this] { findNext(true); });
@@ -106,7 +112,29 @@ vl::SearchOptions FindBar::options() const {
     vl::SearchOptions opts;
     opts.caseInsensitive = !m_case->isChecked();
     opts.wholeWord = m_words->isChecked();
+    opts.regex = m_regex->isChecked();
     return opts;
+}
+
+bool FindBar::checkPattern() {
+    m_status->clear();
+    m_query->setToolTip(QString());
+    bool valid = true;
+    if (m_regex->isChecked() && !m_query->text().isEmpty()) {
+        QByteArray pattern = m_query->text().toUtf8();
+        vl::RegexSearcher regex(m_viewer->byteAccess(), pattern.toStdString(), options());
+        if (!regex.isValid()) {
+            m_status->setText(tr("Invalid pattern"));
+            QString error = QString::fromStdString(regex.errorString());
+            // The offset is in bytes of UTF-8; shown as a position in characters.
+            int position = QString::fromUtf8(pattern.left((int) regex.errorOffset())).size();
+            m_query->setToolTip(tr("%1 at position %2").arg(error).arg(position + 1));
+            valid = false;
+        }
+    }
+    m_next->setEnabled(valid);
+    m_previous->setEnabled(valid);
+    return valid;
 }
 
 void FindBar::showSearch() {
@@ -128,6 +156,10 @@ void FindBar::closeSearch() {
 
 void FindBar::updateMarks() {
     if (isHidden()) return;
+    if (!checkPattern()) {
+        m_viewer->clearSearchMarks();
+        return;
+    }
     m_viewer->setSearchMarks(m_query->text().toUtf8().toStdString(), options());
 }
 
@@ -145,7 +177,7 @@ void FindBar::findNext(bool backwards) {
         return;
     }
     vl::IByteAccess *bytes = m_viewer->byteAccess();
-    if (!bytes) return;
+    if (!bytes || !checkPattern()) return;
 
     // From the current result (or selection), otherwise from the top of the view.
     auto sel = m_viewer->selectionBytes();
@@ -161,13 +193,33 @@ void FindBar::findNext(bool backwards) {
     auto done = std::make_shared<std::atomic<int64_t>>(0);
     // Both passes together cover the file once.
     int64_t range = wrap ? total - first : (backwards ? from - first : total - from);
-    m_future = QtConcurrent::run([=]() -> std::optional<int64_t> {
-        vl::Searcher searcher(bytes);
+    m_future = QtConcurrent::run([=]() -> std::optional<vl::RegexMatch> {
         int64_t passOffset = 0;
         auto progress = [&](int64_t d, int64_t) {
             done->store(passOffset + d, std::memory_order_relaxed);
             return !cancel->load(std::memory_order_relaxed);
         };
+        if (opts.regex) {
+            // The second pass covers the matches the first one could not reach;
+            // one crossing the starting point may be missed.
+            vl::RegexSearcher regex(bytes, pattern, opts);
+            std::optional<vl::RegexMatch> hit;
+            if (!backwards) {
+                hit = regex.findNext(from, progress);
+                if (!hit && wrap && !cancel->load()) {
+                    passOffset = total - from;
+                    hit = regex.findNext(first, progress, from);
+                }
+            } else {
+                hit = regex.findPrev(from, progress);
+                if (!hit && wrap && !cancel->load()) {
+                    passOffset = from - first;
+                    hit = regex.findPrev(total, progress, from);
+                }
+            }
+            return hit;
+        }
+        vl::Searcher searcher(bytes);
         std::optional<int64_t> hit;
         if (!backwards) {
             hit = searcher.findNext(pattern, from, progress, opts);
@@ -183,7 +235,8 @@ void FindBar::findNext(bool backwards) {
                                         std::max(first, from - pLen + 1));
             }
         }
-        return hit;
+        if (!hit) return std::nullopt;
+        return vl::RegexMatch{*hit, pLen};
     });
 
     m_busy = true;
@@ -198,16 +251,16 @@ void FindBar::findNext(bool backwards) {
     timer->start(50);
     connect(dialog, &QProgressDialog::canceled, this, [cancel] { cancel->store(true); });
 
-    auto *watcher = new QFutureWatcher<std::optional<int64_t>>(this);
-    connect(watcher, &QFutureWatcher<std::optional<int64_t>>::finished, this,
-            [this, watcher, dialog, cancel, pLen] {
+    auto *watcher = new QFutureWatcher<std::optional<vl::RegexMatch>>(this);
+    connect(watcher, &QFutureWatcher<std::optional<vl::RegexMatch>>::finished, this,
+            [this, watcher, dialog, cancel] {
                 m_busy = false;
                 dialog->reset();
                 dialog->deleteLater();
                 watcher->deleteLater();
                 auto result = watcher->result();
                 if (result) {
-                    m_viewer->showMatch(*result, pLen);
+                    m_viewer->showMatch(result->offset, result->length);
                     updateMarks();
                 } else if (!cancel->load()) {
                     showNotFound();

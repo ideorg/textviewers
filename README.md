@@ -34,6 +34,16 @@ very long lines are wrapped
 tab spaces intended to equal place of screen
 - beside goto with scrollbar, scrolling to small distances: one line down and up, one page down and up 
 
+Search (wid::FindBar, Ctrl+F):
+- options: wrap around, match case (Cc), whole words (W), regular expression (.*)
+- results are marked only in the visible part of the file, without a count,
+  since counting them could mean reading the whole file
+- F3 / Shift+F3 search the whole file in the background; a progress dialog
+  appears for long searches and can cancel them
+- regular expressions are PCRE2 over the UTF-8 bytes, e.g. `(c|k)o(j|y)ones`;
+  ^ and $ match at line ends; a match longer than 64 KiB may be missed;
+  an invalid pattern shows "Invalid pattern", its error in the tooltip
+
 How was done length limit of lines? It is impractical to divide line in points 10000, 
 20000, 30000 from begin line (if segment size was set to 10k Unicode chars).
 First - utf8 char lengths are variable, second, more important, that lines are 
