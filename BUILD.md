@@ -5,6 +5,7 @@ Prerequisites:
 Ubuntu, Mint and similar:
 * sudo apt install qt6-base-dev
 * sudo apt install libgtest-dev
+* sudo apt install libicu-dev libpcre2-dev pkg-config
 
 Build:
 * create build direcotry

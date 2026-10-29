@@ -11,6 +11,8 @@ add_definitions("-Werror=return-type -Werror=unused-result")
 set(MAIN_PROJECT_DIR ${CMAKE_SOURCE_DIR})
 
 find_package(ICU REQUIRED COMPONENTS uc)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PCRE2 REQUIRED IMPORTED_TARGET GLOBAL libpcre2-8)
 find_package(qcodeedit REQUIRED)
 find_package(qcodeedit-kate REQUIRED)
 
@@ -30,6 +32,8 @@ set(LOGIC_SOURCES logic/ByteDocument.cpp
         logic/ChangeableDocument.cpp
         logic/Searcher.cpp
         logic/Searcher.h
+        logic/RegexSearcher.cpp
+        logic/RegexSearcher.h
 )
 
 set(MISC_SOURCES
@@ -66,6 +70,6 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testFold.cpp
 )
 
-target_link_libraries(gtest_viewer gtest gtest_main ICU::uc qcodeedit::qcodeedit)
+target_link_libraries(gtest_viewer gtest gtest_main ICU::uc PkgConfig::PCRE2 qcodeedit::qcodeedit)
 
 target_include_directories(gtest_viewer PRIVATE ${CMAKE_SOURCE_DIR})

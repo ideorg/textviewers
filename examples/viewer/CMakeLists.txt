@@ -40,7 +40,7 @@ qt_add_executable(${EXAMPLE}
         ${PROJECT_SOURCES}
 )
 
-target_link_libraries(${EXAMPLE} PRIVATE Qt6::Widgets Qt6::Concurrent ICU::uc qcodeedit::kate qcodeedit::qcodeedit)
+target_link_libraries(${EXAMPLE} PRIVATE Qt6::Widgets Qt6::Concurrent ICU::uc PkgConfig::PCRE2 qcodeedit::kate qcodeedit::qcodeedit)
 
 target_include_directories(${EXAMPLE} PRIVATE ../../)
 
