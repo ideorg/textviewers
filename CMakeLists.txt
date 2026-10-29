@@ -67,6 +67,7 @@ add_executable(gtest_viewer ${LOGIC_SOURCES}
         test/testProportional.cpp
         test/testProportionalL.cpp
         test/testSearcher.cpp
+        test/testRegexSearcher.cpp
         test/testFold.cpp
 )
 
