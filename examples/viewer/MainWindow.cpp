@@ -95,6 +95,8 @@ bool MainWindow::openFile(const QString &path) {
             return false;
         }
     }
+    // A search still reading the old file is stopped before it is unmapped.
+    findBar->cancelSearch();
     widget->setData(addr, newFile->size());
     newFile->close();
     file = std::move(newFile);

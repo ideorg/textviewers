@@ -1,11 +1,13 @@
 #include "FindBar.h"
 #include "TextViewer.h"
 
+#include <QApplication>
+#include <QElapsedTimer>
 #include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QProgressDialog>
+#include <QProgressBar>
 #include <QShortcut>
 #include <QStyle>
 #include <QTimer>
@@ -55,6 +57,20 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
     m_status = new QLabel(this);
     m_status->setObjectName("findStatus");
     layout->addWidget(m_status);
+    // The progress of a long F3 search, in the bar rather than in a dialog: on
+    // Wayland a dialog shown and closed at once leaves its activation token
+    // unused, and GNOME keeps the busy cursor for seconds.
+    m_progress = new QProgressBar(this);
+    m_progress->setObjectName("findProgress");
+    m_progress->setRange(0, 1000);
+    m_progress->setTextVisible(false);
+    m_progress->setFixedWidth(120);
+    m_progress->hide();
+    layout->addWidget(m_progress);
+    m_stop = button(QString(), tr("Stop searching (Escape)"));
+    m_stop->setIcon(style()->standardIcon(QStyle::SP_BrowserStop));
+    m_stop->hide();
+    layout->addWidget(m_stop);
     m_previous = button(QString(), tr("Previous match (Shift+F3)"));
     m_previous->setIcon(style()->standardIcon(QStyle::SP_ArrowUp));
     m_next = button(QString(), tr("Next match (F3)"));
@@ -67,6 +83,9 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
     layout->addWidget(close);
 
     connect(close, &QToolButton::clicked, this, &FindBar::closeSearch);
+    connect(m_stop, &QToolButton::clicked, this, [this] {
+        if (m_cancel) m_cancel->store(true);
+    });
     connect(m_previous, &QToolButton::clicked, this, [this] { findNext(true); });
     connect(m_next, &QToolButton::clicked, this, [this] { findNext(); });
     connect(m_query, &QLineEdit::textChanged, this, &FindBar::updateMarks);
@@ -94,6 +113,10 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
 
 FindBar::~FindBar() {
     // The search reads the viewer's data, which goes away with the host.
+    cancelSearch();
+}
+
+void FindBar::cancelSearch() {
     if (m_cancel) m_cancel->store(true, std::memory_order_relaxed);
     m_future.waitForFinished();
 }
@@ -149,6 +172,11 @@ void FindBar::showSearch() {
 }
 
 void FindBar::closeSearch() {
+    // Escape during a search stops it; the next one closes the bar.
+    if (m_busy) {
+        if (m_cancel) m_cancel->store(true);
+        return;
+    }
     hide();
     m_viewer->clearSearchMarks();
     m_viewer->setFocus();
@@ -240,23 +268,39 @@ void FindBar::findNext(bool backwards) {
     });
 
     m_busy = true;
-    auto *dialog = new QProgressDialog(tr("Searching..."), tr("Cancel"), 0, 1000, this);
-    dialog->setWindowModality(Qt::WindowModal);
-    dialog->setMinimumDuration(300);
-    dialog->setValue(0);
-    auto *timer = new QTimer(dialog);
-    connect(timer, &QTimer::timeout, dialog, [dialog, done, range] {
-        if (range > 0) dialog->setValue((int) std::min<int64_t>(999, 1000 * done->load() / range));
+    m_shownForSearch = false;
+    // Progress only for a search that takes a while, so a near result does
+    // not flash it. With the bar hidden (F3) it is shown for the search.
+    auto started = std::make_shared<QElapsedTimer>();
+    started->start();
+    auto *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, [this, started, done, range] {
+        if (m_progress->isHidden() && started->elapsed() >= 300) {
+            if (isHidden()) {
+                m_shownForSearch = true;
+                show();
+            }
+            m_progress->show();
+            m_stop->show();
+        }
+        if (range > 0)
+            m_progress->setValue((int) std::min<int64_t>(1000, 1000 * done->load() / range));
     });
     timer->start(50);
-    connect(dialog, &QProgressDialog::canceled, this, [cancel] { cancel->store(true); });
 
     auto *watcher = new QFutureWatcher<std::optional<vl::RegexMatch>>(this);
     connect(watcher, &QFutureWatcher<std::optional<vl::RegexMatch>>::finished, this,
-            [this, watcher, dialog, cancel] {
+            [this, watcher, timer, cancel] {
                 m_busy = false;
-                dialog->reset();
-                dialog->deleteLater();
+                timer->stop();
+                timer->deleteLater();
+                m_progress->hide();
+                m_stop->hide();
+                m_progress->setValue(0);
+                // Shown only for the search: hidden again, unless the user went into it.
+                if (m_shownForSearch && !isAncestorOf(QApplication::focusWidget()))
+                    hide();
+                m_shownForSearch = false;
                 watcher->deleteLater();
                 auto result = watcher->result();
                 if (result) {

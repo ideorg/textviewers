@@ -38,8 +38,10 @@ Search (wid::FindBar, Ctrl+F):
 - options: wrap around, match case (Cc), whole words (W), regular expression (.*)
 - results are marked only in the visible part of the file, without a count,
   since counting them could mean reading the whole file
-- F3 / Shift+F3 search the whole file in the background; a progress dialog
-  appears for long searches and can cancel them
+- F3 / Shift+F3 search the whole file in the background; a search taking
+  longer than 0.3 s shows its progress in the bar (the bar appears for it if
+  hidden), and Escape or the stop button cancels it; no dialog window is
+  opened, which on Wayland would ask for an activation token
 - regular expressions are PCRE2 over the UTF-8 bytes, e.g. `(c|k)o(j|y)ones`;
   ^ and $ match at line ends; a match longer than 64 KiB may be missed;
   an invalid pattern shows "Invalid pattern", its error in the tooltip
