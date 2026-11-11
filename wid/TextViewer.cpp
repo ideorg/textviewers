@@ -6,6 +6,8 @@
 #include <QHBoxLayout>
 #include <QProxyStyle>
 #include <QDebug>
+#include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrentRun>
 
 namespace {
 
@@ -56,10 +58,126 @@ TextViewer::TextViewer(const char *addr, int64_t fileSize, QWidget *parent) :
     connect(paintArea, &PaintArea::scrollHChanged, this, &TextViewer::setHScrollChange);
     connect(paintArea, &PaintArea::scrollVChanged, this, &TextViewer::setVScrollChange);
     setFocusProxy(paintArea);
+    m_findTimer.setInterval(50);
+    connect(&m_findTimer, &QTimer::timeout, this, [this] {
+        if (m_finding && m_findDone) emit findProgress(m_findDone->load(), m_findRange);
+    });
+}
+
+TextViewer::~TextViewer() {
+    stopFind();
 }
 
 void TextViewer::setData(const char *addr, int64_t fileSize) {
+    stopFind();
     paintArea->setData(addr, fileSize);
+}
+
+void TextViewer::stopFind() {
+    if (!m_finding) return;
+    m_findCancel->store(true, std::memory_order_relaxed);
+    m_findFuture.waitForFinished();
+    m_finding = false;
+    m_findTimer.stop();
+    ++m_findId;  // its watcher's end is let go
+}
+
+void TextViewer::cancelFind() {
+    if (!m_finding) return;
+    stopFind();
+    emit findFinished(FindOutcome::Cancelled);
+}
+
+void TextViewer::find(const std::string &pattern, const vl::SearchOptions &options, bool backwards,
+                      bool wrap) {
+    stopFind();
+    vl::IByteAccess *bytes = byteAccess();
+    if (!bytes || pattern.empty()) {
+        emit findFinished(FindOutcome::NotFound);
+        return;
+    }
+    // From the current result (or selection), otherwise from the top of the view.
+    auto sel = selectionBytes();
+    int64_t from = sel ? (backwards ? sel->first : sel->second) : topByte();
+    int64_t first = bytes->firstByte();
+    int64_t total = bytes->byteCount();
+    int64_t pLen = (int64_t) pattern.size();
+    vl::SearchOptions opts = options;
+
+    auto cancel = std::make_shared<std::atomic<bool>>(false);
+    auto done = std::make_shared<std::atomic<int64_t>>(0);
+    m_findCancel = cancel;
+    m_findDone = done;
+    // Both passes together cover the file once.
+    m_findRange = wrap ? total - first : (backwards ? from - first : total - from);
+    m_findFuture = QtConcurrent::run([=]() -> FindHit {
+        int64_t passOffset = 0;
+        auto progress = [&](int64_t d, int64_t) {
+            done->store(passOffset + d, std::memory_order_relaxed);
+            return !cancel->load(std::memory_order_relaxed);
+        };
+        if (opts.regex) {
+            // The second pass covers the matches the first one could not reach;
+            // one crossing the starting point may be missed.
+            vl::RegexSearcher regex(bytes, pattern, opts);
+            std::optional<vl::RegexMatch> hit;
+            if (!backwards) {
+                hit = regex.findNext(from, progress);
+                if (!hit && wrap && !cancel->load()) {
+                    passOffset = total - from;
+                    return {regex.findNext(first, progress, from), true};
+                }
+            } else {
+                hit = regex.findPrev(from, progress);
+                if (!hit && wrap && !cancel->load()) {
+                    passOffset = from - first;
+                    return {regex.findPrev(total, progress, from), true};
+                }
+            }
+            return {hit, false};
+        }
+        vl::Searcher searcher(bytes);
+        std::optional<int64_t> hit;
+        bool wrapped = false;
+        if (!backwards) {
+            hit = searcher.findNext(pattern, from, progress, opts);
+            if (!hit && wrap && !cancel->load()) {
+                passOffset = total - from;
+                wrapped = true;
+                hit = searcher.findNext(pattern, first, progress, opts, from + pLen - 1);
+            }
+        } else {
+            hit = searcher.findPrev(pattern, from, progress, opts);
+            if (!hit && wrap && !cancel->load()) {
+                passOffset = from - first;
+                wrapped = true;
+                hit = searcher.findPrev(pattern, total, progress, opts,
+                                        std::max(first, from - pLen + 1));
+            }
+        }
+        if (!hit) return {std::nullopt, false};
+        return {vl::RegexMatch{*hit, pLen}, wrapped};
+    });
+    m_finding = true;
+    m_findTimer.start();
+    const unsigned id = ++m_findId;
+    auto *watcher = new QFutureWatcher<FindHit>(this);
+    connect(watcher, &QFutureWatcher<FindHit>::finished, this, [this, watcher, id, cancel] {
+        watcher->deleteLater();
+        if (id != m_findId) return;  // stopped, or another search since
+        m_finding = false;
+        m_findTimer.stop();
+        FindHit hit = watcher->result();
+        if (cancel->load()) {
+            emit findFinished(FindOutcome::Cancelled);
+        } else if (hit.match) {
+            showMatch(hit.match->offset, hit.match->length);
+            emit findFinished(hit.wrapped ? FindOutcome::Wrapped : FindOutcome::Found);
+        } else {
+            emit findFinished(FindOutcome::NotFound);
+        }
+    });
+    watcher->setFuture(m_findFuture);
 }
 
 void TextViewer::hscrollChanged() {

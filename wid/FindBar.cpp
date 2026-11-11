@@ -2,18 +2,14 @@
 #include "TextViewer.h"
 
 #include <QApplication>
-#include <QElapsedTimer>
-#include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QProgressBar>
 #include <QShortcut>
 #include <QStyle>
-#include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
-#include <QtConcurrent/QtConcurrentRun>
 
 namespace wid {
 
@@ -83,9 +79,9 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
     layout->addWidget(close);
 
     connect(close, &QToolButton::clicked, this, &FindBar::closeSearch);
-    connect(m_stop, &QToolButton::clicked, this, [this] {
-        if (m_cancel) m_cancel->store(true);
-    });
+    connect(m_stop, &QToolButton::clicked, m_viewer, &TextViewer::cancelFind);
+    connect(m_viewer, &TextViewer::findProgress, this, &FindBar::searchProgress);
+    connect(m_viewer, &TextViewer::findFinished, this, &FindBar::searchFinished);
     connect(m_previous, &QToolButton::clicked, this, [this] { findNext(true); });
     connect(m_next, &QToolButton::clicked, this, [this] { findNext(); });
     connect(m_query, &QLineEdit::textChanged, this, &FindBar::updateMarks);
@@ -111,14 +107,11 @@ FindBar::FindBar(TextViewer *viewer, QWidget *scope) : QWidget(scope), m_viewer(
     hide();
 }
 
-FindBar::~FindBar() {
-    // The search reads the viewer's data, which goes away with the host.
-    cancelSearch();
-}
+// The viewer stops its search itself when it goes.
+FindBar::~FindBar() = default;
 
 void FindBar::cancelSearch() {
-    if (m_cancel) m_cancel->store(true, std::memory_order_relaxed);
-    m_future.waitForFinished();
+    m_viewer->cancelFind();
 }
 
 void FindBar::showEvent(QShowEvent *event) {
@@ -174,7 +167,7 @@ void FindBar::showSearch() {
 void FindBar::closeSearch() {
     // Escape during a search stops it; the next one closes the bar.
     if (m_busy) {
-        if (m_cancel) m_cancel->store(true);
+        m_viewer->cancelFind();
         return;
     }
     hide();
@@ -207,110 +200,49 @@ void FindBar::findNext(bool backwards) {
     vl::IByteAccess *bytes = m_viewer->byteAccess();
     if (!bytes || !checkPattern()) return;
 
-    // From the current result (or selection), otherwise from the top of the view.
-    auto sel = m_viewer->selectionBytes();
-    int64_t from = sel ? (backwards ? sel->first : sel->second) : m_viewer->topByte();
-    int64_t first = bytes->firstByte();
-    int64_t total = bytes->byteCount();
-    int64_t pLen = (int64_t) pattern.size();
-    bool wrap = m_wrap->isChecked();
-    vl::SearchOptions opts = options();
-
-    m_cancel = std::make_shared<std::atomic<bool>>(false);
-    auto cancel = m_cancel;
-    auto done = std::make_shared<std::atomic<int64_t>>(0);
-    // Both passes together cover the file once.
-    int64_t range = wrap ? total - first : (backwards ? from - first : total - from);
-    m_future = QtConcurrent::run([=]() -> std::optional<vl::RegexMatch> {
-        int64_t passOffset = 0;
-        auto progress = [&](int64_t d, int64_t) {
-            done->store(passOffset + d, std::memory_order_relaxed);
-            return !cancel->load(std::memory_order_relaxed);
-        };
-        if (opts.regex) {
-            // The second pass covers the matches the first one could not reach;
-            // one crossing the starting point may be missed.
-            vl::RegexSearcher regex(bytes, pattern, opts);
-            std::optional<vl::RegexMatch> hit;
-            if (!backwards) {
-                hit = regex.findNext(from, progress);
-                if (!hit && wrap && !cancel->load()) {
-                    passOffset = total - from;
-                    hit = regex.findNext(first, progress, from);
-                }
-            } else {
-                hit = regex.findPrev(from, progress);
-                if (!hit && wrap && !cancel->load()) {
-                    passOffset = from - first;
-                    hit = regex.findPrev(total, progress, from);
-                }
-            }
-            return hit;
-        }
-        vl::Searcher searcher(bytes);
-        std::optional<int64_t> hit;
-        if (!backwards) {
-            hit = searcher.findNext(pattern, from, progress, opts);
-            if (!hit && wrap && !cancel->load()) {
-                passOffset = total - from;
-                hit = searcher.findNext(pattern, first, progress, opts, from + pLen - 1);
-            }
-        } else {
-            hit = searcher.findPrev(pattern, from, progress, opts);
-            if (!hit && wrap && !cancel->load()) {
-                passOffset = from - first;
-                hit = searcher.findPrev(pattern, total, progress, opts,
-                                        std::max(first, from - pLen + 1));
-            }
-        }
-        if (!hit) return std::nullopt;
-        return vl::RegexMatch{*hit, pLen};
-    });
-
     m_busy = true;
     m_shownForSearch = false;
+    m_started.start();
+    m_viewer->find(pattern, options(), backwards, m_wrap->isChecked());
+}
+
+void FindBar::searchProgress(qint64 done, qint64 total) {
+    if (!m_busy) return;
     // Progress only for a search that takes a while, so a near result does
     // not flash it. With the bar hidden (F3) it is shown for the search.
-    auto started = std::make_shared<QElapsedTimer>();
-    started->start();
-    auto *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, [this, started, done, range] {
-        if (m_progress->isHidden() && started->elapsed() >= 300) {
-            if (isHidden()) {
-                m_shownForSearch = true;
-                show();
-            }
-            m_progress->show();
-            m_stop->show();
+    if (m_progress->isHidden() && m_started.elapsed() >= 300) {
+        if (isHidden()) {
+            m_shownForSearch = true;
+            show();
         }
-        if (range > 0)
-            m_progress->setValue((int) std::min<int64_t>(1000, 1000 * done->load() / range));
-    });
-    timer->start(50);
+        m_progress->show();
+        m_stop->show();
+    }
+    if (total > 0)
+        m_progress->setValue((int) std::min<int64_t>(1000, 1000 * done / total));
+}
 
-    auto *watcher = new QFutureWatcher<std::optional<vl::RegexMatch>>(this);
-    connect(watcher, &QFutureWatcher<std::optional<vl::RegexMatch>>::finished, this,
-            [this, watcher, timer, cancel] {
-                m_busy = false;
-                timer->stop();
-                timer->deleteLater();
-                m_progress->hide();
-                m_stop->hide();
-                m_progress->setValue(0);
-                // Shown only for the search: hidden again, unless the user went into it.
-                if (m_shownForSearch && !isAncestorOf(QApplication::focusWidget()))
-                    hide();
-                m_shownForSearch = false;
-                watcher->deleteLater();
-                auto result = watcher->result();
-                if (result) {
-                    m_viewer->showMatch(result->offset, result->length);
-                    updateMarks();
-                } else if (!cancel->load()) {
-                    showNotFound();
-                }
-            });
-    watcher->setFuture(m_future);
+void FindBar::searchFinished(TextViewer::FindOutcome outcome) {
+    if (!m_busy) return;
+    m_busy = false;
+    m_progress->hide();
+    m_stop->hide();
+    m_progress->setValue(0);
+    // Shown only for the search: hidden again, unless the user went into it.
+    if (m_shownForSearch && !isAncestorOf(QApplication::focusWidget()))
+        hide();
+    m_shownForSearch = false;
+    switch (outcome) {
+    case TextViewer::FindOutcome::Found:
+    case TextViewer::FindOutcome::Wrapped:
+        updateMarks();
+        break;
+    case TextViewer::FindOutcome::NotFound:
+        showNotFound();
+        break;
+    case TextViewer::FindOutcome::Cancelled:
+        break;
+    }
 }
 
 }

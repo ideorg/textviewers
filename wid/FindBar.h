@@ -2,12 +2,10 @@
 #define VIEWER_FINDBAR_H
 
 #include <QWidget>
-#include <QFuture>
-#include <atomic>
-#include <memory>
-#include <optional>
+#include <QElapsedTimer>
 #include "logic/RegexSearcher.h"
 #include "logic/Searcher.h"
+#include "TextViewer.h"
 
 class QLabel;
 class QProgressBar;
@@ -17,12 +15,11 @@ class QShortcut;
 
 namespace wid {
 
-class TextViewer;
-
 // Search bar for TextViewer, looking like the one of qceditor's editor.
 // Occurrences are marked only in the visible rows (no count: the file may be
-// too large to know it); F3 / Shift+F3 search the file in the background,
-// a long search showing its progress in the bar, stopped by Escape.
+// too large to know it); F3 / Shift+F3 search the file in the background
+// (TextViewer::find()), a long search showing its progress in the bar,
+// stopped by Escape.
 //
 // The host puts the bar in its layout (above the viewer). Ctrl+F, F3,
 // Shift+F3 and, while the bar is shown, Escape work when the focus is in
@@ -47,6 +44,8 @@ private:
     bool checkPattern();
     void updateMarks();
     void showNotFound();
+    void searchProgress(qint64 done, qint64 total);
+    void searchFinished(TextViewer::FindOutcome outcome);
     TextViewer *m_viewer;
     QLineEdit *m_query;
     QToolButton *m_wrap;
@@ -60,8 +59,7 @@ private:
     QToolButton *m_previous;
     QToolButton *m_next;
     QShortcut *m_escape;
-    std::shared_ptr<std::atomic<bool>> m_cancel;
-    QFuture<std::optional<vl::RegexMatch>> m_future;
+    QElapsedTimer m_started;  // of the search running
     bool m_busy = false;
 };
 

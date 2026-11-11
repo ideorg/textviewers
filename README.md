@@ -42,6 +42,10 @@ Search (wid::FindBar, Ctrl+F):
   longer than 0.3 s shows its progress in the bar (the bar appears for it if
   hidden), and Escape or the stop button cancels it; no dialog window is
   opened, which on Wayland would ask for an activation token
+- the background search itself is TextViewer's (`find()`, `cancelFind()`,
+  signals `findProgress()` and `findFinished()`: Found, Wrapped, NotFound,
+  Cancelled), so another bar can drive it; the viewer stops a running search
+  when its data is replaced or it is deleted
 - regular expressions are PCRE2 over the UTF-8 bytes, e.g. `(c|k)o(j|y)ones`;
   ^ and $ match at line ends; a match longer than 64 KiB may be missed;
   an invalid pattern shows "Invalid pattern", its error in the tooltip
